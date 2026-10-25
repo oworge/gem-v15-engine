@@ -2,50 +2,121 @@
 <html>
 <head>
     <title>GEM V15.0 ENGINE</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; max-width: 800px; margin: auto; }
-        .card { background: #1e1e1e; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #00ff88; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #fff; padding: 15px; max-width: 800px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ff88; padding-bottom: 10px; margin-bottom: 15px; }
+        h1 { color: #00ff88; margin: 0; font-size: 22px; }
+        .btn { background: #00ff88; color: #121212; border: none; padding: 10px 15px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn:active { background: #00cc6a; }
+        .stake-box { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #333; }
+        .stake-box input { background: #121212; border: 1px solid #00ff88; color: #fff; padding: 8px; width: 90px; border-radius: 4px; font-size: 16px; text-align: right; font-weight: bold; }
         .acc-box { background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #00ff88; }
+        .card { background: #1e1e1e; padding: 12px 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #00ff88; display: flex; justify-content: space-between; align-items: center; }
+        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .badge-upcoming { background: #333; color: #aaa; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00ff88; color: #121212; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
-    <h1 style="color:#00ff88;">GEM V15.0 ENGINE</h1>
-    <p>QUANTITATIVE ACCUMULATOR PIPELINE</p>
+    <div class="header">
+        <div>
+            <h1>GEM V15.0 ENGINE</h1>
+            <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">3-6-9 Tiered Accumulator Pipeline</p>
+        </div>
+        <button class="btn" onclick="copyBetSlip()">?? Copy Slip</button>
+    </div>
+
+    <div class="stake-box">
+        <span><b>Base Stake (£):</b></span>
+        <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
+    </div>
+
     <div id="acc-container"></div>
-    <h2>Selected Slate (9 Legs)</h2>
+
+    <h3 style="margin-bottom:10px;">Active Slate (9 Legs)</h3>
     <div id="fixtures-container">Loading slate...</div>
+
+    <div id="toast" class="toast">Bet slip copied to clipboard!</div>
+
     <script>
+        let globalData = null;
+
         async function fetchFixtures() {
-            const container = document.getElementById('fixtures-container');
-            const accContainer = document.getElementById('acc-container');
             try {
-                const response = await fetch('/api/fixtures?v=' + new Date().getTime());
-                const result = await response.json();
-
-                accContainer.innerHTML = 
-                    <div class="acc-box">
-                        <h3 style="color:#00ff88; margin-top:0;">? 6-FOLD ACCUMULATOR</h3>
-                        <p>Legs: <b></b> | Combined Odds: <b></b></p>
-                        <p>Recommended Stake: <b>£</b> ? Est Return: <b>£</b></p>
-                    </div>
-                    <div class="acc-box">
-                        <h3 style="color:#00ff88; margin-top:0;">?? 9-FOLD ACCUMULATOR (FULL SLATE)</h3>
-                        <p>Legs: <b></b> | Combined Odds: <b></b></p>
-                        <p>Recommended Stake: <b>£</b> ? Est Return: <b>£</b></p>
-                    </div>
-                ;
-
-                container.innerHTML = result.slate.map(item => 
-                    <div class="card">
-                        <b>Leg : </b><br/>
-                        Selection: <span style="color:#00ff88;"></span> () @ 
-                    </div>
-                ).join('');
+                const response = await fetch('/api/fixtures?cb=' + new Date().getTime(), { cache: 'no-store' });
+                globalData = await response.json();
+                renderApp();
             } catch (err) {
-                container.innerHTML = 'Error fetching slate.';
+                document.getElementById('fixtures-container').innerHTML = 'Error fetching slate.';
             }
         }
+
+        function recalculateReturns() {
+            const stakeInput = parseFloat(document.getElementById('baseStake').value) || 0;
+            if (!globalData) return;
+
+            const threeReturn = (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2);
+            const sixReturn = (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2);
+            const nineReturn = (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2);
+
+            document.getElementById('acc-container').innerHTML = 
+                <div class="acc-box">
+                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 3-FOLD ACCUMULATOR (Legs 1-3)</h3>
+                    <p style="margin:4px 0; font-size:13px;">Odds: <b>\</b> | Stake: <b>£\</b> ? Return: <b style="color:#00ff88;">£\</b></p>
+                </div>
+                <div class="acc-box">
+                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">? 6-FOLD ACCUMULATOR (Legs 1-6)</h3>
+                    <p style="margin:4px 0; font-size:13px;">Odds: <b>\</b> | Stake: <b>£\</b> ? Return: <b style="color:#00ff88;">£\</b></p>
+                </div>
+                <div class="acc-box">
+                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 9-FOLD ACCUMULATOR (Legs 1-9)</h3>
+                    <p style="margin:4px 0; font-size:13px;">Odds: <b>\</b> | Stake: <b>£\</b> ? Return: <b style="color:#00ff88;">£\</b></p>
+                </div>
+            ;
+        }
+
+        function renderApp() {
+            recalculateReturns();
+            const container = document.getElementById('fixtures-container');
+            container.innerHTML = globalData.slate.map(item => 
+                <div class="card">
+                    <div>
+                        <div style="font-size:11px; color:#888; margin-bottom:2px;">LEG \</div>
+                        <b style="font-size:14px;">\</b><br/>
+                        <span style="font-size:13px; color:#00ff88;">\</span> <span style="font-size:12px; color:#aaa;">(\)</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge badge-upcoming">\</span>
+                        <div style="font-size:15px; font-weight:bold; margin-top:5px;">@ \</div>
+                    </div>
+                </div>
+            ).join('');
+        }
+
+        function copyBetSlip() {
+            if (!globalData) return;
+            const stakeInput = parseFloat(document.getElementById('baseStake').value) || 10;
+            let text = "=== GEM V15.0 3-6-9 ENGINE SLIP ===\\n\\n";
+            text += "?? 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
+            text += "? 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
+            text += "?? 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
+            globalData.slate.forEach(i => {
+                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " @ " + i.odds + "\\n";
+            });
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 2000);
+            });
+        }
+
         fetchFixtures();
     </script>
 </body>
