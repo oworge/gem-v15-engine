@@ -2,14 +2,45 @@
 from fastapi import FastAPI, Response
 from fastapi.responses import HTMLResponse
 from datetime import datetime
+import math
 import random
 
 app = FastAPI()
 
+def poisson_prob(lmbda, k):
+    return (math.exp(-lmbda) * (lmbda ** k)) / math.factorial(k)
+
+def calculate_poisson_edge(home_xg, away_xg):
+    # Generates a matrix of score probabilities up to 5 goals
+    matrix = {}
+    home_win_prob = 0
+    draw_prob = 0
+    away_win_prob = 0
+    over_15_prob = 0
+    
+    for h in range(6):
+        for a in range(6):
+            p = poisson_prob(home_xg, h) * poisson_prob(away_xg, a)
+            matrix[(h, a)] = p
+            if h > a:
+                home_win_prob += p
+            elif h == a:
+                draw_prob += p
+            else:
+                away_win_prob += p
+            if h + a >= 2:
+                over_15_prob += p
+                
+    return {
+        "dc_home": round((home_win_prob + draw_prob) * 100, 1),
+        "dc_away": round((away_win_prob + draw_prob) * 100, 1),
+        "over_15": round(over_15_prob * 100, 1)
+    }
+
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Automated Quant Terminal</title>
+    <title>GEM V15.0 Poisson Quant Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -31,7 +62,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         .metric-card input { background: var(--bg); border: 1px solid var(--border); color: var(--accent); padding: 6px 10px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; box-sizing: border-box; text-align: right; }
         .metric-card .val { font-size: 18px; font-weight: 800; color: var(--accent); }
 
-        /* Interactive Tier Tabs */
         .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
         .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
         .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
@@ -54,7 +84,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
         .badge-scoreai { background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
         .badge-clv { background: rgba(240,180,41,0.15); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
-        .badge-xg { background: rgba(0,191,255,0.15); color: #00bfff; border: 1px solid rgba(0,191,255,0.3); }
+        .badge-poisson { background: rgba(0,191,255,0.15); color: #00bfff; border: 1px solid rgba(0,191,255,0.3); }
         .badge-elite { background: var(--gold); color: #0d1117; }
 
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #0d1117; padding: 10px 22px; border-radius: 20px; font-weight: 800; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.6); z-index: 1000; font-size: 13px; }
@@ -63,8 +93,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 TERMINAL</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Automated Quant & On-Demand Daily Picks</p>
+            <h1>GEM V15.0 POISSON TERMINAL</h1>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Poisson Matrix & Automated Quant Engine</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -75,12 +105,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
         </div>
         <div class="metric-card">
-            <label>Engine Mode</label>
-            <div class="val" style="font-size:14px; margin-top:4px;">⚡ Automated Active</div>
+            <label>Model Engine</label>
+            <div class="val" style="font-size:14px; margin-top:4px;">📊 Poisson Active</div>
         </div>
     </div>
 
-    <!-- Automated Tier & Daily Pick Tabs -->
     <div class="tabs">
         <div class="tab active" onclick="switchTier('all', this)">🔥 Full Slate</div>
         <div class="tab" onclick="switchTier('three', this)">🎯 3-Fold</div>
@@ -114,31 +143,26 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
             selectedTier = tier;
-
-            if (tier === 'daily') {
-                generateDailyPick();
-            }
-
+            if (tier === 'daily') generateDailyPick();
             renderApp();
         }
 
         function generateDailyPick() {
             if (!globalData || globalData.slate.length === 0) return;
-            // Pick a random elite match from the pool to simulate an on-demand daily generated pick
             const elitePool = globalData.slate.filter(i => i.scoreai_conf >= 90);
             const pool = elitePool.length > 0 ? elitePool : globalData.slate;
             const randomItem = pool[Math.floor(Math.random() * pool.length)];
             
             generatedDailyPick = {
-                leg: 'AI-1',
-                date: 'Today, Live Generation',
+                leg: 'P-1',
+                date: 'Today, Poisson Live',
                 match: randomItem.match,
                 selection: randomItem.selection,
                 market: randomItem.market,
                 odds: randomItem.odds,
                 scoreai_conf: randomItem.scoreai_conf,
                 clv_edge: randomItem.clv_edge,
-                xg_ratio: randomItem.xg_ratio
+                poisson_prob: randomItem.poisson_prob
             };
         }
 
@@ -153,7 +177,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('acc-container').innerHTML = 
                 '<div class="acc-box elite">' +
                     '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ELITE ANCHOR (Legs 1-3)</div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD POISSON ANCHOR (Legs 1-3)</div>' +
                         '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
                     '</div>' +
                     '<div style="text-align:right;">' +
@@ -181,15 +205,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             let filteredSlate = globalData.slate;
             if (selectedTier === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
-                titleEl.innerText = "🎯 3-Fold Anchor Selections (Legs 1-3)";
+                titleEl.innerText = "🎯 3-Fold Poisson Selections (Legs 1-3)";
             } else if (selectedTier === 'six') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 6);
-                titleEl.innerText = "⚡ 6-Fold Multiplier Selections (Legs 1-6)";
+                titleEl.innerText = "⚡ 6-Fold Poisson Selections (Legs 1-6)";
             } else if (selectedTier === 'daily') {
                 filteredSlate = generatedDailyPick ? [generatedDailyPick] : [];
-                titleEl.innerText = "⚡ On-Demand Automated Daily Pick (Tap Tab to Regenerate)";
+                titleEl.innerText = "⚡ On-Demand Poisson Daily Pick";
             } else {
-                titleEl.innerText = "🔥 Full 9-Fold Automated Slate (Legs 1-9)";
+                titleEl.innerText = "🔥 Full Poisson Automated Slate (Legs 1-9)";
             }
 
             container.innerHTML = filteredSlate.map(item => {
@@ -212,7 +236,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                         (isElite ? '<span class="badge badge-elite">⭐ 90%+ ELITE</span>' : '') +
                         '<span class="badge badge-scoreai">AI: ' + item.scoreai_conf + '%</span>' +
                         '<span class="badge badge-clv">CLV: +' + item.clv_edge + '%</span>' +
-                        '<span class="badge badge-xg">xG: ' + item.xg_ratio + '</span>' +
+                        '<span class="badge badge-poisson">Poisson Model: ' + item.poisson_prob + '%</span>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -221,7 +245,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         function copyBetSlip() {
             if (!globalData) return;
             const stake = parseFloat(document.getElementById('baseStake').value) || 10;
-            let titleText = selectedTier === 'three' ? "3-FOLD ANCHOR" : selectedTier === 'six' ? "6-FOLD MULTIPLIER" : selectedTier === 'daily' ? "ON-DEMAND DAILY PICK" : "FULL 9-FOLD SLIP";
+            let titleText = selectedTier === 'three' ? "3-FOLD POISSON ANCHOR" : selectedTier === 'six' ? "6-FOLD MULTIPLIER" : selectedTier === 'daily' ? "POISSON DAILY PICK" : "FULL 9-FOLD SLIP";
             let text = "=== GEM V15.0 " + titleText + " ===\\n\\n";
             
             let activeLegs = globalData.slate;
@@ -230,7 +254,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (selectedTier === 'daily') activeLegs = generatedDailyPick ? [generatedDailyPick] : [];
 
             activeLegs.forEach(i => {
-                text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (AI: " + i.scoreai_conf + "%, CLV: +" + i.clv_edge + "%) @ " + i.odds + "\\n";
+                text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%, CLV: +" + i.clv_edge + "%) @ " + i.odds + "\\n";
             });
             
             navigator.clipboard.writeText(text).then(() => {
@@ -248,7 +272,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Terminal", "short_name": "GEM Terminal", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 Poisson", "short_name": "GEM Poisson", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -258,21 +282,44 @@ async def read_index(response: Response):
 @app.get("/api/fixtures")
 async def get_fixtures(response: Response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    active_slate = [
-        {"leg": 1, "date": "Sat 31 Oct, 15:00", "match": "Chelsea vs Newcastle", "selection": "Chelsea Win or Draw (DC)", "market": "Double Chance", "odds": 1.25, "scoreai_conf": 91, "clv_edge": 4.2, "xg_ratio": "1.85 - 0.92"},
-        {"leg": 2, "date": "Sat 31 Oct, 17:30", "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win or Draw (DC)", "market": "Double Chance", "odds": 1.18, "scoreai_conf": 94, "clv_edge": 5.1, "xg_ratio": "2.10 - 0.75"},
-        {"leg": 3, "date": "Sun 1 Nov, 14:00", "match": "West Ham vs Manchester United", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.28, "scoreai_conf": 90, "clv_edge": 3.8, "xg_ratio": "1.65 - 1.45"},
-        {"leg": 4, "date": "Sat 31 Oct, 20:00", "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "scoreai_conf": 92, "clv_edge": 5.2, "xg_ratio": "2.30 - 1.80"},
-        {"leg": 5, "date": "Sun 1 Nov, 19:45", "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 89, "clv_edge": 3.9, "xg_ratio": "1.70 - 0.95"},
-        {"leg": 6, "date": "Sun 1 Nov, 17:05", "match": "Monaco vs Lyon", "selection": "Both Teams to Score (Yes)", "market": "BTTS", "odds": 1.65, "scoreai_conf": 88, "clv_edge": 3.1, "xg_ratio": "1.55 - 1.30"},
-        {"leg": 7, "date": "Sat 31 Oct, 18:45", "match": "Ajax vs Feyenoord", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.35, "scoreai_conf": 87, "clv_edge": 3.5, "xg_ratio": "1.90 - 1.40"},
-        {"leg": 8, "date": "Mon 2 Nov, 20:15", "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 91, "clv_edge": 4.5, "xg_ratio": "1.60 - 0.85"},
-        {"leg": 9, "date": "Sun 1 Nov, 20:30", "match": "Sporting CP vs Braga", "selection": "Sporting CP Win or Draw", "market": "Double Chance", "odds": 1.20, "scoreai_conf": 93, "clv_edge": 4.8, "xg_ratio": "1.95 - 0.90"}
+    
+    raw_fixtures = [
+        {"leg": 1, "date": "Sat 31 Oct, 15:00", "match": "Chelsea vs Newcastle", "selection": "Chelsea Win or Draw (DC)", "market": "Double Chance", "odds": 1.25, "scoreai_conf": 91, "clv_edge": 4.2, "home_xg": 1.85, "away_xg": 0.92},
+        {"leg": 2, "date": "Sat 31 Oct, 17:30", "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win or Draw (DC)", "market": "Double Chance", "odds": 1.18, "scoreai_conf": 94, "clv_edge": 5.1, "home_xg": 2.10, "away_xg": 0.75},
+        {"leg": 3, "date": "Sun 1 Nov, 14:00", "match": "West Ham vs Manchester United", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.28, "scoreai_conf": 90, "clv_edge": 3.8, "home_xg": 1.65, "away_xg": 1.45},
+        {"leg": 4, "date": "Sat 31 Oct, 20:00", "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "scoreai_conf": 92, "clv_edge": 5.2, "home_xg": 2.30, "away_xg": 1.80},
+        {"leg": 5, "date": "Sun 1 Nov, 19:45", "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 89, "clv_edge": 3.9, "home_xg": 1.70, "away_xg": 0.95},
+        {"leg": 6, "date": "Sun 1 Nov, 17:05", "match": "Monaco vs Lyon", "selection": "Both Teams to Score (Yes)", "market": "BTTS", "odds": 1.65, "scoreai_conf": 88, "clv_edge": 3.1, "home_xg": 1.55, "away_xg": 1.30},
+        {"leg": 7, "date": "Sat 31 Oct, 18:45", "match": "Ajax vs Feyenoord", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.35, "scoreai_conf": 87, "clv_edge": 3.5, "home_xg": 1.90, "away_xg": 1.40},
+        {"leg": 8, "date": "Mon 2 Nov, 20:15", "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 91, "clv_edge": 4.5, "home_xg": 1.60, "away_xg": 0.85},
+        {"leg": 9, "date": "Sun 1 Nov, 20:30", "match": "Sporting CP vs Braga", "selection": "Sporting CP Win or Draw", "market": "Double Chance", "odds": 1.20, "scoreai_conf": 93, "clv_edge": 4.8, "home_xg": 1.95, "away_xg": 0.90}
     ]
+
+    processed_slate = []
+    for fix in raw_fixtures:
+        p_res = calculate_poisson_edge(fix["home_xg"], fix["away_xg"])
+        # Select matching model probability based on market type
+        if "Double Chance" in fix["market"]:
+            model_prob = p_res["dc_home"] if "Chelsea" in fix["match"] or "Liverpool" in fix["match"] or "Inter" in fix["match"] or "Benfica" in fix["match"] or "Sporting" in fix["match"] else p_res["dc_away"]
+        else:
+            model_prob = p_res["over_15"]
+            
+        processed_slate.append({
+            "leg": fix["leg"],
+            "date": fix["date"],
+            "match": fix["match"],
+            "selection": fix["selection"],
+            "market": fix["market"],
+            "odds": fix["odds"],
+            "scoreai_conf": fix["scoreai_conf"],
+            "clv_edge": fix["clv_edge"],
+            "poisson_prob": model_prob
+        })
+
     return {
         "status": "success",
         "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "slate": active_slate,
+        "slate": processed_slate,
         "accumulators": {
             "three_fold": {"legs": "1-3", "odds": 1.89},
             "six_fold": {"legs": "1-6", "odds": 4.15},
