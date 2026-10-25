@@ -1,3 +1,4 @@
+﻿# -*- coding: utf-8 -*-
 from fastapi import FastAPI, Response
 from fastapi.responses import HTMLResponse
 from datetime import datetime
@@ -36,11 +37,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             <h1>GEM V15.0 ENGINE</h1>
             <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">3-6-9 Tiered Accumulator Pipeline</p>
         </div>
-        <button class="btn" onclick="copyBetSlip()">?? Copy Slip</button>
+        <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
 
     <div class="stake-box">
-        <span><b>Base Stake (�):</b></span>
+        <span><b>Base Stake (£):</b></span>
         <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
     </div>
 
@@ -74,16 +75,16 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             document.getElementById('acc-container').innerHTML = 
                 '<div class="acc-box">' +
-                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 3-FOLD ACCUMULATOR (Legs 1-3)</h3>' +
-                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: <b>�' + stakeInput.toFixed(2) + '</b> ? Return: <b style="color:#00ff88;">�' + threeReturn + '</b></p>' +
+                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">🎯 3-FOLD ACCUMULATOR (Legs 1-3)</h3>' +
+                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ➔ Return: <b style="color:#00ff88;">£' + threeReturn + '</b></p>' +
                 '</div>' +
                 '<div class="acc-box">' +
-                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">? 6-FOLD ACCUMULATOR (Legs 1-6)</h3>' +
-                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: <b>�' + stakeInput.toFixed(2) + '</b> ? Return: <b style="color:#00ff88;">�' + sixReturn + '</b></p>' +
+                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">⚡ 6-FOLD ACCUMULATOR (Legs 1-6)</h3>' +
+                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ➔ Return: <b style="color:#00ff88;">£' + sixReturn + '</b></p>' +
                 '</div>' +
                 '<div class="acc-box">' +
-                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 9-FOLD ACCUMULATOR (Legs 1-9)</h3>' +
-                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: <b>�' + stakeInput.toFixed(2) + '</b> ? Return: <b style="color:#00ff88;">�' + nineReturn + '</b></p>' +
+                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">🔥 9-FOLD ACCUMULATOR (Legs 1-9)</h3>' +
+                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ➔ Return: <b style="color:#00ff88;">£' + nineReturn + '</b></p>' +
                 '</div>';
         }
 
@@ -109,9 +110,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (!globalData) return;
             const stakeInput = parseFloat(document.getElementById('baseStake').value) || 10;
             let text = "=== GEM V15.0 3-6-9 ENGINE SLIP ===\\n\\n";
-            text += "?? 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: �" + (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
-            text += "? 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: �" + (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
-            text += "?? 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: �" + (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
+            text += "🎯 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
+            text += "⚡ 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
+            text += "🔥 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
             globalData.slate.forEach(i => {
                 text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " @ " + i.odds + "\\n";
             });
