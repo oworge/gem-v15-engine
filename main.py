@@ -58,7 +58,7 @@ def calculate_poisson_edge(home_xg, away_xg):
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Daily 3-6-9 Terminal</title>
+    <title>GEM V15.0 Futures Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -67,7 +67,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <style>
-        :root { --bg: #0d1117; --card-bg: #161b22; --accent: #00ff88; --accent-glow: rgba(0,255,136,0.15); --gold: #f0b429; --text: #f0f6fc; --text-dim: #8b949e; --border: #30363d; --red: #ff5555; }
+        :root { --bg: #0d1117; --card-bg: #161b22; --accent: #00ff88; --accent-glow: rgba(0,255,136,0.15); --gold: #f0b429; --text: #f0f6fc; --text-dim: #8b949e; --border: #30363d; --red: #ff5555; --purple: #a371f7; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 12px; max-width: 850px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 12px; margin-bottom: 12px; }
         h1 { color: var(--accent); margin: 0; font-size: 20px; letter-spacing: 0.5px; }
@@ -80,11 +80,13 @@ HTML_CONTENT = """<!DOCTYPE html>
         .metric-card input { background: var(--bg); border: 1px solid var(--border); color: var(--accent); padding: 6px 10px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; box-sizing: border-box; text-align: right; }
         .metric-card .val { font-size: 18px; font-weight: 800; color: var(--accent); }
 
-        .tabs { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
+        .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
         .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
         .tab.daily-tab { background: rgba(240,180,41,0.15); color: var(--gold); border-color: rgba(240,180,41,0.4); }
         .tab.daily-tab.active { background: var(--gold); color: #0d1117; }
+        .tab.futures-tab { background: rgba(163,113,247,0.15); color: var(--purple); border-color: rgba(163,113,247,0.4); }
+        .tab.futures-tab.active { background: var(--purple); color: #0d1117; }
         .tab.ledger-tab { background: rgba(0,191,255,0.15); color: #00bfff; border-color: rgba(0,191,255,0.4); }
         .tab.ledger-tab.active { background: #00bfff; color: #0d1117; }
 
@@ -95,17 +97,20 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         .card { background: var(--card-bg); padding: 12px 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
         .card.elite { border-left-color: var(--gold); }
+        .card.futures-card { border-left-color: var(--purple); }
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
         
         .progress-bar-bg { background: var(--bg); height: 6px; border-radius: 3px; width: 100%; margin-top: 8px; overflow: hidden; border: 1px solid var(--border); }
         .progress-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; }
         .progress-bar-fill.elite { background: var(--gold); }
+        .progress-bar-fill.futures { background: var(--purple); }
 
         .badges { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
         .badge-scoreai { background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
         .badge-clv { background: rgba(240,180,41,0.15); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
         .badge-poisson { background: rgba(0,191,255,0.15); color: #00bfff; border: 1px solid rgba(0,191,255,0.3); }
+        .badge-futures { background: rgba(163,113,247,0.15); color: var(--purple); border: 1px solid rgba(163,113,247,0.3); }
         .badge-elite { background: var(--gold); color: #0d1117; }
 
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #0d1117; padding: 10px 22px; border-radius: 20px; font-weight: 800; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.6); z-index: 1000; font-size: 13px; }
@@ -115,7 +120,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="header">
         <div>
             <h1>GEM V15.0 QUANT TERMINAL</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Automated Daily 3-6-9 Fold Engine</p>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Futures & Daily 3-6-9 Fold Engine</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -127,15 +132,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
         <div class="metric-card">
             <label>System Mode</label>
-            <div class="val" style="font-size:14px; margin-top:4px;">⚡ Daily 3-6-9 Active</div>
+            <div class="val" style="font-size:14px; margin-top:4px;">🔮 Futures Active</div>
         </div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('all', this)">🔥 Full Slate</div>
-        <div class="tab daily-tab" onclick="switchTab('today', this)">⚡ Today's Games</div>
-        <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold Tier</div>
-        <div class="tab" onclick="switchTab('six', this)">⚡ 6-Fold Tier</div>
+        <div class="tab active" onclick="switchTab('all', this)">🔥 All</div>
+        <div class="tab daily-tab" onclick="switchTab('today', this)">⚡ Today</div>
+        <div class="tab futures-tab" onclick="switchTab('futures', this)">🔮 Futures</div>
+        <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold</div>
         <div class="tab ledger-tab" onclick="switchTab('ledger', this)">📊 Ledger</div>
     </div>
 
@@ -228,16 +233,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                         '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + sixRet + '</div>' +
                         '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
                     '</div>' +
-                '</div>' +
-                '<div class="acc-box" onclick="logBetToLedger(\'9-Fold Full Slate\', ' + globalData.accumulators.nine_fold.odds + ')">' +
-                    '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">🔥 9-FOLD FULL SLATE (Legs 1-9) &bull; Tap to Log</div>' +
-                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
-                    '</div>' +
-                    '<div style="text-align:right;">' +
-                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + nineRet + '</div>' +
-                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
-                    '</div>' +
                 '</div>';
         }
 
@@ -249,7 +244,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (currentTab === 'ledger') {
                 titleEl.innerText = "📊 Self-Learning Performance Ledger";
                 if (ledgerData.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap any 3-6-9 fold tier box above to log your accumulator!</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap any accumulator tier above to log your bet slip!</div>';
                     return;
                 }
                 
@@ -291,12 +286,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (currentTab === 'today') {
                 filteredSlate = globalData.slate.filter(i => i.day_group === 'today');
                 titleEl.innerText = "⚡ Today's Active Games & Poisson Predictions";
+            } else if (currentTab === 'futures') {
+                filteredSlate = globalData.slate.filter(i => i.day_group === 'futures');
+                titleEl.innerText = "🔮 Futures (2-3 Days Out - Early Value Edge)";
             } else if (currentTab === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
                 titleEl.innerText = "🎯 3-Fold Anchor Selections (Legs 1-3)";
-            } else if (currentTab === 'six') {
-                filteredSlate = globalData.slate.filter(i => i.leg <= 6);
-                titleEl.innerText = "⚡ 6-Fold Multiplier Selections (Legs 1-6)";
             } else {
                 titleEl.innerText = "🔥 Full Automated Slate (Legs 1-9)";
             }
@@ -307,8 +302,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
 
             container.innerHTML = filteredSlate.map(item => {
+                const isFutures = item.day_group === 'futures';
                 const isElite = item.scoreai_conf >= 90;
-                return '<div class="card ' + (isElite ? 'elite' : '') + '">' +
+                return '<div class="card ' + (isFutures ? 'futures-card' : isElite ? 'elite' : '') + '">' +
                     '<div class="card-top">' +
                         '<div>' +
                             '<div style="font-size:10px; color:var(--text-dim); font-weight:700; margin-bottom:2px;">LEG ' + item.leg + ' &bull; 📅 ' + item.date + '</div>' +
@@ -316,17 +312,18 @@ HTML_CONTENT = """<!DOCTYPE html>
                             '<span style="font-size:12px; color:var(--accent); font-weight:600;">' + item.selection + '</span> <span style="font-size:11px; color:var(--text-dim);">(' + item.market + ')</span>' +
                         '</div>' +
                         '<div style="text-align:right;">' +
-                            '<div style="font-size:16px; font-weight:900; color:' + (isElite ? 'var(--gold)' : 'var(--accent)') + ';">@ ' + item.odds + '</div>' +
+                            '<div style="font-size:16px; font-weight:900; color:' + (isFutures ? 'var(--purple)' : isElite ? 'var(--gold)' : 'var(--accent)') + ';">@ ' + item.odds + '</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="progress-bar-bg">' +
-                        '<div class="progress-bar-fill ' + (isElite ? 'elite' : '') + '" style="width: ' + item.scoreai_conf + '%;"></div>' +
+                        '<div class="progress-bar-fill ' + (isFutures ? 'futures' : isElite ? 'elite' : '') + '" style="width: ' + item.scoreai_conf + '%;"></div>' +
                     '</div>' +
                     '<div class="badges">' +
+                        (isFutures ? '<span class="badge badge-futures">🔮 FUTURES VALUE</span>' : '') +
                         (isElite ? '<span class="badge badge-elite">⭐ 90%+ ELITE</span>' : '') +
                         '<span class="badge badge-scoreai">AI: ' + item.scoreai_conf + '%</span>' +
                         '<span class="badge badge-clv">CLV: +' + item.clv_edge + '%</span>' +
-                        '<span class="badge badge-poisson">Poisson Model: ' + item.poisson_prob + '%</span>' +
+                        '<span class="badge badge-poisson">Model: ' + item.poisson_prob + '%</span>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -336,7 +333,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (!globalData) return;
             logBetToLedger('Full Slate Slip', globalData.accumulators.nine_fold.odds);
             
-            let text = "=== GEM V15.0 DAILY 3-6-9 SLIP ===\\n\\n";
+            let text = "=== GEM V15.0 FUTURES & SLATE SLIP ===\\n\\n";
             globalData.slate.forEach(i => {
                 text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%) @ " + i.odds + "\\n";
             });
@@ -357,7 +354,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Daily", "short_name": "GEM Daily", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 Futures", "short_name": "GEM Fut", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -371,20 +368,20 @@ async def get_fixtures(response: Response):
     raw_fixtures = [
         {"leg": 1, "date": "Today, 15:00", "day_group": "today", "match": "Chelsea vs Newcastle", "selection": "Chelsea Win or Draw (DC)", "market": "Double Chance", "odds": 1.25, "scoreai_conf": 91, "clv_edge": 4.2, "home_xg": 1.85, "away_xg": 0.92},
         {"leg": 2, "date": "Today, 17:30", "day_group": "today", "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win or Draw (DC)", "market": "Double Chance", "odds": 1.18, "scoreai_conf": 94, "clv_edge": 5.1, "home_xg": 2.10, "away_xg": 0.75},
-        {"leg": 3, "date": "Today, 20:00", "day_group": "today", "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "scoreai_conf": 92, "clv_edge": 5.2, "home_xg": 2.30, "away_xg": 1.80},
-        {"leg": 4, "date": "Tomorrow, 14:00", "day_group": "tomorrow", "match": "West Ham vs Manchester United", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.28, "scoreai_conf": 90, "clv_edge": 3.8, "home_xg": 1.65, "away_xg": 1.45},
-        {"leg": 5, "date": "Tomorrow, 17:05", "day_group": "tomorrow", "match": "Monaco vs Lyon", "selection": "Both Teams to Score (Yes)", "market": "BTTS", "odds": 1.65, "scoreai_conf": 88, "clv_edge": 3.1, "home_xg": 1.55, "away_xg": 1.30},
-        {"leg": 6, "date": "Tomorrow, 19:45", "day_group": "tomorrow", "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 89, "clv_edge": 3.9, "home_xg": 1.70, "away_xg": 0.95},
-        {"leg": 7, "date": "Tue 27 Oct, 18:45", "day_group": "upcoming", "match": "Ajax vs Feyenoord", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.35, "scoreai_conf": 87, "clv_edge": 3.5, "home_xg": 1.90, "away_xg": 1.40},
-        {"leg": 8, "date": "Tue 27 Oct, 20:15", "day_group": "upcoming", "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 91, "clv_edge": 4.5, "home_xg": 1.60, "away_xg": 0.85},
-        {"leg": 9, "date": "Wed 28 Oct, 20:30", "day_group": "upcoming", "match": "Sporting CP vs Braga", "selection": "Sporting CP Win or Draw", "market": "Double Chance", "odds": 1.20, "scoreai_conf": 93, "clv_edge": 4.8, "home_xg": 1.95, "away_xg": 0.90}
+        {"leg": 3, "date": "Wed 28 Oct, 20:00", "day_group": "futures", "match": "Arsenal vs Sevilla", "selection": "Arsenal Win or Draw (DC)", "market": "Double Chance", "odds": 1.22, "scoreai_conf": 93, "clv_edge": 5.8, "home_xg": 2.20, "away_xg": 0.80},
+        {"leg": 4, "date": "Wed 28 Oct, 20:00", "day_group": "futures", "match": "Bayern Munich vs Galatasaray", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.28, "scoreai_conf": 92, "clv_edge": 4.9, "home_xg": 2.40, "away_xg": 1.10},
+        {"leg": 5, "date": "Thu 29 Oct, 18:45", "day_group": "futures", "match": "Roma vs Brighton", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.32, "scoreai_conf": 89, "clv_edge": 4.1, "home_xg": 1.70, "away_xg": 1.55},
+        {"leg": 6, "date": "Tomorrow, 19:45", "day_group": "today", "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 89, "clv_edge": 3.9, "home_xg": 1.70, "away_xg": 0.95},
+        {"leg": 7, "date": "Sat 31 Oct, 18:45", "day_group": "upcoming", "match": "Ajax vs Feyenoord", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.35, "scoreai_conf": 87, "clv_edge": 3.5, "home_xg": 1.90, "away_xg": 1.40},
+        {"leg": 8, "date": "Sat 31 Oct, 20:15", "day_group": "upcoming", "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 91, "clv_edge": 4.5, "home_xg": 1.60, "away_xg": 0.85},
+        {"leg": 9, "date": "Sun 1 Nov, 20:30", "day_group": "upcoming", "match": "Sporting CP vs Braga", "selection": "Sporting CP Win or Draw", "market": "Double Chance", "odds": 1.20, "scoreai_conf": 93, "clv_edge": 4.8, "home_xg": 1.95, "away_xg": 0.90}
     ]
 
     processed_slate = []
     for fix in raw_fixtures:
         p_res = calculate_poisson_edge(fix["home_xg"], fix["away_xg"])
         if "Double Chance" in fix["market"]:
-            model_prob = p_res["dc_home"] if "Chelsea" in fix["match"] or "Liverpool" in fix["match"] or "Inter" in fix["match"] or "Benfica" in fix["match"] or "Sporting" in fix["match"] else p_res["dc_away"]
+            model_prob = p_res["dc_home"] if "Chelsea" in fix["match"] or "Liverpool" in fix["match"] or "Arsenal" in fix["match"] or "Inter" in fix["match"] or "Benfica" in fix["match"] or "Sporting" in fix["match"] else p_res["dc_away"]
         else:
             model_prob = p_res["over_15"]
             
