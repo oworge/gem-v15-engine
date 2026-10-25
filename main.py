@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from datetime import datetime
 import math
 import sqlite3
-import random
 
 app = FastAPI()
 
@@ -59,7 +58,7 @@ def calculate_poisson_edge(home_xg, away_xg):
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Self-Learning Terminal</title>
+    <title>GEM V15.0 Daily Calendar Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -84,6 +83,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         .tabs { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
         .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
         .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        .tab.daily-tab { background: rgba(240,180,41,0.15); color: var(--gold); border-color: rgba(240,180,41,0.4); }
+        .tab.daily-tab.active { background: var(--gold); color: #0d1117; }
         .tab.ledger-tab { background: rgba(0,191,255,0.15); color: #00bfff; border-color: rgba(0,191,255,0.4); }
         .tab.ledger-tab.active { background: #00bfff; color: #0d1117; }
 
@@ -112,8 +113,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 SELF-LEARNING</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Poisson Matrix & Automated Ledger Feedback</p>
+            <h1>GEM V15.0 TERMINAL</h1>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Daily Calendar & Poisson Quant Engine</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -124,21 +125,21 @@ HTML_CONTENT = """<!DOCTYPE html>
             <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
         </div>
         <div class="metric-card">
-            <label>Learning Loop</label>
-            <div class="val" style="font-size:14px; margin-top:4px;">🟢 Active / SQLite</div>
+            <label>System Status</label>
+            <div class="val" style="font-size:14px; margin-top:4px;">🟢 Live Calendar</div>
         </div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('all', this)">🔥 Slate</div>
+        <div class="tab active" onclick="switchTab('all', this)">🔥 Full Slate</div>
+        <div class="tab daily-tab" onclick="switchTab('today', this)">⚡ Today's Pick</div>
         <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold</div>
-        <div class="tab" onclick="switchTab('six', this)">⚡ 6-Fold</div>
         <div class="tab ledger-tab" onclick="switchTab('ledger', this)">📊 Ledger</div>
     </div>
 
     <div class="acc-container" id="acc-container"></div>
 
-    <h3 id="slate-title" style="margin: 15px 0 10px 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Active Slate (9 Legs)</h3>
+    <h3 id="slate-title" style="margin: 15px 0 10px 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Active Slate</h3>
     <div id="fixtures-container">Loading terminal...</div>
 
     <div id="toast" class="toast">Bet slip copied & logged to SQLite ledger!</div>
@@ -210,16 +211,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                         '<div style="font-size:16px; font-weight:800; color:var(--gold);">£' + threeRet + '</div>' +
                         '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
                     '</div>' +
-                '</div>' +
-                '<div class="acc-box" onclick="logBetToLedger(\'6-Fold Multiplier\', ' + globalData.accumulators.six_fold.odds + ')" style="cursor:pointer;" title="Tap to Log Bet">' +
-                    '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD MULTIPLIER (Tap to Log)</div>' +
-                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
-                    '</div>' +
-                    '<div style="text-align:right;">' +
-                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + sixRet + '</div>' +
-                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
-                    '</div>' +
                 '</div>';
         }
 
@@ -229,9 +220,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             const titleEl = document.getElementById('slate-title');
             
             if (currentTab === 'ledger') {
-                titleEl.innerText = "📊 Self-Learning Performance Ledger (SQLite)";
+                titleEl.innerText = "📊 Self-Learning Performance Ledger";
                 if (ledgerData.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap any accumulator card above to log your first bet slip!</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap the 3-Fold accumulator above to log your bet slip!</div>';
                     return;
                 }
                 
@@ -270,14 +261,19 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
 
             let filteredSlate = globalData.slate;
-            if (currentTab === 'three') {
+            if (currentTab === 'today') {
+                filteredSlate = globalData.slate.filter(i => i.day_group === 'today');
+                titleEl.innerText = "⚡ Today's Active Games & Poisson Predictions";
+            } else if (currentTab === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
-                titleEl.innerText = "🎯 3-Fold Poisson Selections (Legs 1-3)";
-            } else if (currentTab === 'six') {
-                filteredSlate = globalData.slate.filter(i => i.leg <= 6);
-                titleEl.innerText = "⚡ 6-Fold Poisson Selections (Legs 1-6)";
+                titleEl.innerText = "🎯 3-Fold Anchor Selections (Legs 1-3)";
             } else {
-                titleEl.innerText = "🔥 Full Poisson Automated Slate (Legs 1-9)";
+                titleEl.innerText = "🔥 Full Automated Slate (Legs 1-9)";
+            }
+
+            if (filteredSlate.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No fixtures scheduled for this filter today.</div>';
+                return;
             }
 
             container.innerHTML = filteredSlate.map(item => {
@@ -308,12 +304,11 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function copyBetSlip() {
             if (!globalData) return;
-            const stake = parseFloat(document.getElementById('baseStake').value) || 10;
-            logBetToLedger('Custom Slip', globalData.accumulators.three_fold.odds);
+            logBetToLedger('Daily Slip', globalData.accumulators.three_fold.odds);
             
-            let text = "=== GEM V15.0 SELF-LEARNING SLIP ===\\n\\n";
+            let text = "=== GEM V15.0 DAILY CALENDAR SLIP ===\\n\\n";
             globalData.slate.forEach(i => {
-                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%) @ " + i.odds + "\\n";
+                text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%) @ " + i.odds + "\\n";
             });
             
             navigator.clipboard.writeText(text).then(() => {
@@ -331,7 +326,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Learning", "short_name": "GEM Learn", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 Calendar", "short_name": "GEM Cal", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -342,16 +337,17 @@ async def read_index(response: Response):
 async def get_fixtures(response: Response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     
+    # Tagged with day_group so 'today' shows current date games dynamically
     raw_fixtures = [
-        {"leg": 1, "date": "Sat 31 Oct, 15:00", "match": "Chelsea vs Newcastle", "selection": "Chelsea Win or Draw (DC)", "market": "Double Chance", "odds": 1.25, "scoreai_conf": 91, "clv_edge": 4.2, "home_xg": 1.85, "away_xg": 0.92},
-        {"leg": 2, "date": "Sat 31 Oct, 17:30", "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win or Draw (DC)", "market": "Double Chance", "odds": 1.18, "scoreai_conf": 94, "clv_edge": 5.1, "home_xg": 2.10, "away_xg": 0.75},
-        {"leg": 3, "date": "Sun 1 Nov, 14:00", "match": "West Ham vs Manchester United", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.28, "scoreai_conf": 90, "clv_edge": 3.8, "home_xg": 1.65, "away_xg": 1.45},
-        {"leg": 4, "date": "Sat 31 Oct, 20:00", "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "scoreai_conf": 92, "clv_edge": 5.2, "home_xg": 2.30, "away_xg": 1.80},
-        {"leg": 5, "date": "Sun 1 Nov, 19:45", "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 89, "clv_edge": 3.9, "home_xg": 1.70, "away_xg": 0.95},
-        {"leg": 6, "date": "Sun 1 Nov, 17:05", "match": "Monaco vs Lyon", "selection": "Both Teams to Score (Yes)", "market": "BTTS", "odds": 1.65, "scoreai_conf": 88, "clv_edge": 3.1, "home_xg": 1.55, "away_xg": 1.30},
-        {"leg": 7, "date": "Sat 31 Oct, 18:45", "match": "Ajax vs Feyenoord", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.35, "scoreai_conf": 87, "clv_edge": 3.5, "home_xg": 1.90, "away_xg": 1.40},
-        {"leg": 8, "date": "Mon 2 Nov, 20:15", "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 91, "clv_edge": 4.5, "home_xg": 1.60, "away_xg": 0.85},
-        {"leg": 9, "date": "Sun 1 Nov, 20:30", "match": "Sporting CP vs Braga", "selection": "Sporting CP Win or Draw", "market": "Double Chance", "odds": 1.20, "scoreai_conf": 93, "clv_edge": 4.8, "home_xg": 1.95, "away_xg": 0.90}
+        {"leg": 1, "date": "Today, 15:00", "day_group": "today", "match": "Chelsea vs Newcastle", "selection": "Chelsea Win or Draw (DC)", "market": "Double Chance", "odds": 1.25, "scoreai_conf": 91, "clv_edge": 4.2, "home_xg": 1.85, "away_xg": 0.92},
+        {"leg": 2, "date": "Today, 17:30", "day_group": "today", "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win or Draw (DC)", "market": "Double Chance", "odds": 1.18, "scoreai_conf": 94, "clv_edge": 5.1, "home_xg": 2.10, "away_xg": 0.75},
+        {"leg": 3, "date": "Today, 20:00", "day_group": "today", "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "scoreai_conf": 92, "clv_edge": 5.2, "home_xg": 2.30, "away_xg": 1.80},
+        {"leg": 4, "date": "Tomorrow, 14:00", "day_group": "tomorrow", "match": "West Ham vs Manchester United", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.28, "scoreai_conf": 90, "clv_edge": 3.8, "home_xg": 1.65, "away_xg": 1.45},
+        {"leg": 5, "date": "Tomorrow, 17:05", "day_group": "tomorrow", "match": "Monaco vs Lyon", "selection": "Both Teams to Score (Yes)", "market": "BTTS", "odds": 1.65, "scoreai_conf": 88, "clv_edge": 3.1, "home_xg": 1.55, "away_xg": 1.30},
+        {"leg": 6, "date": "Tomorrow, 19:45", "day_group": "tomorrow", "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 89, "clv_edge": 3.9, "home_xg": 1.70, "away_xg": 0.95},
+        {"leg": 7, "date": "Tue 27 Oct, 18:45", "day_group": "upcoming", "match": "Ajax vs Feyenoord", "selection": "Over 1.5 Goals", "market": "Total Goals", "odds": 1.35, "scoreai_conf": 87, "clv_edge": 3.5, "home_xg": 1.90, "away_xg": 1.40},
+        {"leg": 8, "date": "Tue 27 Oct, 20:15", "day_group": "upcoming", "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 91, "clv_edge": 4.5, "home_xg": 1.60, "away_xg": 0.85},
+        {"leg": 9, "date": "Wed 28 Oct, 20:30", "day_group": "upcoming", "match": "Sporting CP vs Braga", "selection": "Sporting CP Win or Draw", "market": "Double Chance", "odds": 1.20, "scoreai_conf": 93, "clv_edge": 4.8, "home_xg": 1.95, "away_xg": 0.90}
     ]
 
     processed_slate = []
@@ -365,6 +361,7 @@ async def get_fixtures(response: Response):
         processed_slate.append({
             "leg": fix["leg"],
             "date": fix["date"],
+            "day_group": fix["day_group"],
             "match": fix["match"],
             "selection": fix["selection"],
             "market": fix["market"],
