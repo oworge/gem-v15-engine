@@ -8,7 +8,7 @@ app = FastAPI()
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Elite Trading Terminal</title>
+    <title>GEM V15.0 Automated Quant Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -24,31 +24,27 @@ HTML_CONTENT = """<!DOCTYPE html>
         .btn { background: var(--accent); color: #0d1117; border: none; padding: 10px 16px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 13px; box-shadow: 0 0 15px var(--accent-glow); transition: all 0.2s; }
         .btn:active { transform: scale(0.96); opacity: 0.8; }
         
-        /* Dashboard Metrics Grid */
         .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
         .metric-card { background: var(--card-bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; }
         .metric-card label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
         .metric-card input { background: var(--bg); border: 1px solid var(--border); color: var(--accent); padding: 6px 10px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; box-sizing: border-box; text-align: right; }
         .metric-card .val { font-size: 18px; font-weight: 800; color: var(--accent); }
 
-        /* Filter Tabs */
+        /* Interactive Tier Tabs */
         .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-        .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); }
+        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
+        .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
-        /* Tier Boxes */
         .acc-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .acc-box { background: var(--card-bg); padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); }
         .acc-box.elite { border-left-color: var(--gold); background: linear-gradient(135deg, #161b22 0%, #1f241c 100%); }
 
-        /* Fixture Cards */
         .card { background: var(--card-bg); padding: 12px 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
         .card.elite { border-left-color: var(--gold); }
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
         
-        /* Progress Bar */
         .progress-bar-bg { background: var(--bg); height: 6px; border-radius: 3px; width: 100%; margin-top: 8px; overflow: hidden; border: 1px solid var(--border); }
-        .progress-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+        .progress-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; }
         .progress-bar-fill.elite { background: var(--gold); }
 
         .badges { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
@@ -65,7 +61,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="header">
         <div>
             <h1>GEM V15.0 TERMINAL</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Global Quantitative Engine & 90%+ Filter</p>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Automated Daily 3-6-9 Quant Engine</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -76,27 +72,28 @@ HTML_CONTENT = """<!DOCTYPE html>
             <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
         </div>
         <div class="metric-card">
-            <label>System Status</label>
-            <div class="val" style="font-size:14px; margin-top:4px;">🟢 Operational</div>
+            <label>Engine Mode</label>
+            <div class="val" style="font-size:14px; margin-top:4px;">⚡ Automated Active</div>
         </div>
     </div>
 
+    <!-- Automated Tier Selection Tabs -->
     <div class="tabs">
-        <div class="tab active" onclick="filterTier('all', this)">All Legs (9)</div>
-        <div class="tab" onclick="filterTier('elite', this)">⭐ Elite 90%+ Only</div>
-        <div class="tab" onclick="filterTier('anchors', this)">🎯 3-Fold Anchor</div>
+        <div class="tab active" onclick="switchTier('all', this)">🔥 Full 9-Fold Slate</div>
+        <div class="tab" onclick="switchTier('three', this)">🎯 3-Fold Anchor</div>
+        <div class="tab" onclick="switchTier('six', this)">⚡ 6-Fold Multiplier</div>
     </div>
 
     <div class="acc-container" id="acc-container"></div>
 
-    <h3 style="margin: 15px 0 10px 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Active Quant Slate</h3>
+    <h3 id="slate-title" style="margin: 15px 0 10px 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Active Slate (9 Legs)</h3>
     <div id="fixtures-container">Loading terminal...</div>
 
     <div id="toast" class="toast">Bet slip copied to clipboard!</div>
 
     <script>
         let globalData = null;
-        let currentFilter = 'all';
+        let selectedTier = 'all';
 
         async function fetchFixtures() {
             try {
@@ -108,10 +105,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        function filterTier(type, el) {
+        function switchTier(tier, el) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
-            currentFilter = type;
+            selectedTier = tier;
             renderApp();
         }
 
@@ -136,7 +133,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 '</div>' +
                 '<div class="acc-box">' +
                     '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD ACCUMULATOR (Legs 1-6)</div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD MULTIPLIER (Legs 1-6)</div>' +
                         '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
                     '</div>' +
                     '<div style="text-align:right;">' +
@@ -159,12 +156,17 @@ HTML_CONTENT = """<!DOCTYPE html>
         function renderApp() {
             recalculateReturns();
             const container = document.getElementById('fixtures-container');
+            const titleEl = document.getElementById('slate-title');
             
             let filteredSlate = globalData.slate;
-            if (currentFilter === 'elite') {
-                filteredSlate = globalData.slate.filter(i => i.scoreai_conf >= 90);
-            } else if (currentFilter === 'anchors') {
+            if (selectedTier === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
+                titleEl.innerText = "🎯 3-Fold Anchor Selections (Legs 1-3)";
+            } else if (selectedTier === 'six') {
+                filteredSlate = globalData.slate.filter(i => i.leg <= 6);
+                titleEl.innerText = "⚡ 6-Fold Multiplier Selections (Legs 1-6)";
+            } else {
+                titleEl.innerText = "🔥 Full 9-Fold Automated Slate (Legs 1-9)";
             }
 
             container.innerHTML = filteredSlate.map(item => {
@@ -196,13 +198,17 @@ HTML_CONTENT = """<!DOCTYPE html>
         function copyBetSlip() {
             if (!globalData) return;
             const stake = parseFloat(document.getElementById('baseStake').value) || 10;
-            let text = "=== GEM V15.0 ELITE TERMINAL SLIP ===\\n\\n";
-            text += "🎯 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stake * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
-            text += "⚡ 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stake * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
-            text += "🔥 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stake * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
-            globalData.slate.forEach(i => {
-                text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (AI: " + i.scoreai_conf + "%, CLV: +" + i.clv_edge + "%, xG: " + i.xg_ratio + ") @ " + i.odds + "\\n";
+            let titleText = selectedTier === 'three' ? "3-FOLD ANCHOR" : selectedTier === 'six' ? "6-FOLD MULTIPLIER" : "FULL 9-FOLD SLIP";
+            let text = "=== GEM V15.0 " + titleText + " ===\\n\\n";
+            
+            let activeLegs = globalData.slate;
+            if (selectedTier === 'three') activeLegs = globalData.slate.filter(i => i.leg <= 3);
+            if (selectedTier === 'six') activeLegs = globalData.slate.filter(i => i.leg <= 6);
+
+            activeLegs.forEach(i => {
+                text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (AI: " + i.scoreai_conf + "%, CLV: +" + i.clv_edge + "%) @ " + i.odds + "\\n";
             });
+            
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
                 toast.style.display = 'block';
