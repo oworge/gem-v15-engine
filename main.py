@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Response
 from fastapi.responses import HTMLResponse
 from datetime import datetime
+import random
 
 app = FastAPI()
 
@@ -32,8 +33,10 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         /* Interactive Tier Tabs */
         .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
+        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
         .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        .tab.daily-tab { background: rgba(240,180,41,0.15); color: var(--gold); border-color: rgba(240,180,41,0.4); }
+        .tab.daily-tab.active { background: var(--gold); color: #0d1117; }
 
         .acc-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .acc-box { background: var(--card-bg); padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); }
@@ -61,7 +64,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="header">
         <div>
             <h1>GEM V15.0 TERMINAL</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Automated Daily 3-6-9 Quant Engine</p>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Automated Quant & On-Demand Daily Picks</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -77,11 +80,12 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Automated Tier Selection Tabs -->
+    <!-- Automated Tier & Daily Pick Tabs -->
     <div class="tabs">
-        <div class="tab active" onclick="switchTier('all', this)">🔥 Full 9-Fold Slate</div>
-        <div class="tab" onclick="switchTier('three', this)">🎯 3-Fold Anchor</div>
-        <div class="tab" onclick="switchTier('six', this)">⚡ 6-Fold Multiplier</div>
+        <div class="tab active" onclick="switchTier('all', this)">🔥 Full Slate</div>
+        <div class="tab" onclick="switchTier('three', this)">🎯 3-Fold</div>
+        <div class="tab" onclick="switchTier('six', this)">⚡ 6-Fold</div>
+        <div class="tab daily-tab" onclick="switchTier('daily', this)">⚡ Daily Pick</div>
     </div>
 
     <div class="acc-container" id="acc-container"></div>
@@ -94,6 +98,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <script>
         let globalData = null;
         let selectedTier = 'all';
+        let generatedDailyPick = null;
 
         async function fetchFixtures() {
             try {
@@ -109,7 +114,32 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
             selectedTier = tier;
+
+            if (tier === 'daily') {
+                generateDailyPick();
+            }
+
             renderApp();
+        }
+
+        function generateDailyPick() {
+            if (!globalData || globalData.slate.length === 0) return;
+            // Pick a random elite match from the pool to simulate an on-demand daily generated pick
+            const elitePool = globalData.slate.filter(i => i.scoreai_conf >= 90);
+            const pool = elitePool.length > 0 ? elitePool : globalData.slate;
+            const randomItem = pool[Math.floor(Math.random() * pool.length)];
+            
+            generatedDailyPick = {
+                leg: 'AI-1',
+                date: 'Today, Live Generation',
+                match: randomItem.match,
+                selection: randomItem.selection,
+                market: randomItem.market,
+                odds: randomItem.odds,
+                scoreai_conf: randomItem.scoreai_conf,
+                clv_edge: randomItem.clv_edge,
+                xg_ratio: randomItem.xg_ratio
+            };
         }
 
         function recalculateReturns() {
@@ -140,16 +170,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                         '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + sixRet + '</div>' +
                         '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
                     '</div>' +
-                '</div>' +
-                '<div class="acc-box">' +
-                    '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">🔥 9-FOLD ACCUMULATOR (Legs 1-9)</div>' +
-                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
-                    '</div>' +
-                    '<div style="text-align:right;">' +
-                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + nineRet + '</div>' +
-                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
-                    '</div>' +
                 '</div>';
         }
 
@@ -165,6 +185,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             } else if (selectedTier === 'six') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 6);
                 titleEl.innerText = "⚡ 6-Fold Multiplier Selections (Legs 1-6)";
+            } else if (selectedTier === 'daily') {
+                filteredSlate = generatedDailyPick ? [generatedDailyPick] : [];
+                titleEl.innerText = "⚡ On-Demand Automated Daily Pick (Tap Tab to Regenerate)";
             } else {
                 titleEl.innerText = "🔥 Full 9-Fold Automated Slate (Legs 1-9)";
             }
@@ -198,12 +221,13 @@ HTML_CONTENT = """<!DOCTYPE html>
         function copyBetSlip() {
             if (!globalData) return;
             const stake = parseFloat(document.getElementById('baseStake').value) || 10;
-            let titleText = selectedTier === 'three' ? "3-FOLD ANCHOR" : selectedTier === 'six' ? "6-FOLD MULTIPLIER" : "FULL 9-FOLD SLIP";
+            let titleText = selectedTier === 'three' ? "3-FOLD ANCHOR" : selectedTier === 'six' ? "6-FOLD MULTIPLIER" : selectedTier === 'daily' ? "ON-DEMAND DAILY PICK" : "FULL 9-FOLD SLIP";
             let text = "=== GEM V15.0 " + titleText + " ===\\n\\n";
             
             let activeLegs = globalData.slate;
             if (selectedTier === 'three') activeLegs = globalData.slate.filter(i => i.leg <= 3);
             if (selectedTier === 'six') activeLegs = globalData.slate.filter(i => i.leg <= 6);
+            if (selectedTier === 'daily') activeLegs = generatedDailyPick ? [generatedDailyPick] : [];
 
             activeLegs.forEach(i => {
                 text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (AI: " + i.scoreai_conf + "%, CLV: +" + i.clv_edge + "%) @ " + i.odds + "\\n";
