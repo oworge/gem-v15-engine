@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from datetime import datetime
 
 app = FastAPI()
@@ -38,7 +38,7 @@ HTML_CONTENT = """
     <div class="header">
         <div>
             <h1>GEM V15.0 ENGINE</h1>
-            <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">Tactical Quantitative Accumulator</p>
+            <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">3-6-9 Tiered Accumulator Pipeline</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">?? Copy Slip</button>
     </div>
@@ -72,66 +72,54 @@ HTML_CONTENT = """
             const stakeInput = parseFloat(document.getElementById('baseStake').value) || 0;
             if (!globalData) return;
 
-            const sixFoldStake = stakeInput;
-            const sixFoldReturn = (sixFoldStake * globalData.accumulators.six_fold.odds).toFixed(2);
-            
-            const nineFoldStake = (stakeInput / 2).toFixed(2);
-            const nineFoldReturn = (nineFoldStake * globalData.accumulators.nine_fold.odds).toFixed(2);
+            const threeReturn = (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2);
+            const sixReturn = (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2);
+            const nineReturn = (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2);
 
             document.getElementById('acc-container').innerHTML = \
                 <div class="acc-box">
-                    <h3 style="color:#00ff88; margin-top:0; font-size:16px;">? 6-FOLD ACCUMULATOR</h3>
-                    <p style="margin:5px 0;">Legs: <b>\</b> | Odds: <b>\</b></p>
-                    <p style="margin:5px 0;">Stake: <b>£\</b> ? Est. Return: <b style="color:#00ff88;">£\</b></p>
+                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 3-FOLD ACCUMULATOR (Legs 1-3)</h3>
+                    <p style="margin:4px 0; font-size:13px;">Odds: <b>\</b> | Stake: <b>£\</b> ? Return: <b style="color:#00ff88;">£\</b></p>
                 </div>
                 <div class="acc-box">
-                    <h3 style="color:#00ff88; margin-top:0; font-size:16px;">?? 9-FOLD ACCUMULATOR (FULL SLATE)</h3>
-                    <p style="margin:5px 0;">Legs: <b>\</b> | Odds: <b>\</b></p>
-                    <p style="margin:5px 0;">Stake: <b>£\</b> ? Est. Return: <b style="color:#00ff88;">£\</b></p>
+                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">? 6-FOLD ACCUMULATOR (Legs 1-6)</h3>
+                    <p style="margin:4px 0; font-size:13px;">Odds: <b>\</b> | Stake: <b>£\</b> ? Return: <b style="color:#00ff88;">£\</b></p>
+                </div>
+                <div class="acc-box">
+                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 9-FOLD ACCUMULATOR (Legs 1-9)</h3>
+                    <p style="margin:4px 0; font-size:13px;">Odds: <b>\</b> | Stake: <b>£\</b> ? Return: <b style="color:#00ff88;">£\</b></p>
                 </div>
             \;
         }
 
         function renderApp() {
             recalculateReturns();
-
             const container = document.getElementById('fixtures-container');
-            container.innerHTML = globalData.slate.map(item => {
-                let badgeClass = 'badge-upcoming';
-                if (item.status === 'LIVE') badgeClass = 'badge-live';
-                if (item.status === 'WON') badgeClass = 'badge-won';
-
-                return \
-                    <div class="card">
-                        <div>
-                            <div style="font-size:11px; color:#888; margin-bottom:2px;">LEG \</div>
-                            <b style="font-size:14px;">\</b><br/>
-                            <span style="font-size:13px; color:#00ff88;">\</span> <span style="font-size:12px; color:#aaa;">(\)</span>
-                        </div>
-                        <div style="text-align:right;">
-                            <span class="badge \">\</span>
-                            <div style="font-size:15px; font-weight:bold; margin-top:5px;">@ \</div>
-                        </div>
+            container.innerHTML = globalData.slate.map(item => \
+                <div class="card">
+                    <div>
+                        <div style="font-size:11px; color:#888; margin-bottom:2px;">LEG \</div>
+                        <b style="font-size:14px;">\</b><br/>
+                        <span style="font-size:13px; color:#00ff88;">\</span> <span style="font-size:12px; color:#aaa;">(\)</span>
                     </div>
-                \;
-            }).join('');
+                    <div style="text-align:right;">
+                        <span class="badge badge-upcoming">\</span>
+                        <div style="font-size:15px; font-weight:bold; margin-top:5px;">@ \</div>
+                    </div>
+                </div>
+            \).join('');
         }
 
         function copyBetSlip() {
             if (!globalData) return;
             const stakeInput = parseFloat(document.getElementById('baseStake').value) || 10;
-            const sixReturn = (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2);
-            const nineStake = (stakeInput / 2).toFixed(2);
-            const nineReturn = (nineStake * globalData.accumulators.nine_fold.odds).toFixed(2);
-
-            let text = "=== GEM V15.0 ENGINE BET SLIP ===\\n\\n";
-            text += "? 6-FOLD ACCUMULATOR (Odds: " + globalData.accumulators.six_fold.odds + " | Stake: £" + stakeInput.toFixed(2) + " | Return: £" + sixReturn + ")\\n";
-            text += "?? 9-FOLD ACCUMULATOR (Odds: " + globalData.accumulators.nine_fold.odds + " | Stake: £" + nineStake + " | Return: £" + nineReturn + ")\\n\\n";
-            text += "SELECTIONS:\\n";
+            let text = "=== GEM V15.0 3-6-9 ENGINE SLIP ===\\n\\n";
+            text += "?? 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
+            text += "? 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
+            text += "?? 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
             globalData.slate.forEach(i => {
-                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " (" + i.market + ") @ " + i.odds + "\\n";
+                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " @ " + i.odds + "\\n";
             });
-
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
                 toast.style.display = 'block';
@@ -147,15 +135,7 @@ HTML_CONTENT = """
 
 @app.get("/manifest.json")
 async def manifest():
-    return {
-        "name": "GEM V15.0 Engine",
-        "short_name": "GEM V15",
-        "start_url": "/",
-        "display": "standalone",
-        "background_color": "#121212",
-        "theme_color": "#00ff88",
-        "icons": []
-    }
+    return {"name": "GEM V15.0 Engine", "short_name": "GEM V15", "start_url": "/", "display": "standalone", "background_color": "#121212", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -165,7 +145,6 @@ async def read_index(response: Response):
 @app.get("/api/fixtures")
 async def get_fixtures(response: Response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    
     active_slate = [
         {"leg": 1, "match": "Chelsea vs Newcastle", "selection": "Chelsea Win", "market": "1X2", "odds": 1.75, "status": "UPCOMING"},
         {"leg": 2, "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win", "market": "1X2", "odds": 1.50, "status": "UPCOMING"},
@@ -177,12 +156,12 @@ async def get_fixtures(response: Response):
         {"leg": 8, "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "status": "UPCOMING"},
         {"leg": 9, "match": "Sporting CP vs Braga", "selection": "Sporting CP Win", "market": "1X2", "odds": 1.55, "status": "UPCOMING"}
     ]
-    
     return {
         "status": "success",
         "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
         "slate": active_slate,
         "accumulators": {
+            "three_fold": {"legs": "1-3", "odds": 4.46},
             "six_fold": {"legs": "1-6", "odds": 8.15},
             "nine_fold": {"legs": "1-9", "odds": 36.42}
         }
