@@ -73,36 +73,35 @@ HTML_CONTENT = """<!DOCTYPE html>
             const nineReturn = (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2);
 
             document.getElementById('acc-container').innerHTML = 
-                <div class="acc-box">
-                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 3-FOLD ACCUMULATOR (Legs 1-3)</h3>
-                    <p style="margin:4px 0; font-size:13px;">Odds: <b></b> | Stake: <b>£</b> ? Return: <b style="color:#00ff88;">£</b></p>
-                </div>
-                <div class="acc-box">
-                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">? 6-FOLD ACCUMULATOR (Legs 1-6)</h3>
-                    <p style="margin:4px 0; font-size:13px;">Odds: <b></b> | Stake: <b>£</b> ? Return: <b style="color:#00ff88;">£</b></p>
-                </div>
-                <div class="acc-box">
-                    <h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 9-FOLD ACCUMULATOR (Legs 1-9)</h3>
-                    <p style="margin:4px 0; font-size:13px;">Odds: <b></b> | Stake: <b>£</b> ? Return: <b style="color:#00ff88;">£</b></p>
-                </div>
-            ;
+                '<div class="acc-box">' +
+                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 3-FOLD ACCUMULATOR (Legs 1-3)</h3>' +
+                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ? Return: <b style="color:#00ff88;">£' + threeReturn + '</b></p>' +
+                '</div>' +
+                '<div class="acc-box">' +
+                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">? 6-FOLD ACCUMULATOR (Legs 1-6)</h3>' +
+                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ? Return: <b style="color:#00ff88;">£' + sixReturn + '</b></p>' +
+                '</div>' +
+                '<div class="acc-box">' +
+                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">?? 9-FOLD ACCUMULATOR (Legs 1-9)</h3>' +
+                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ? Return: <b style="color:#00ff88;">£' + nineReturn + '</b></p>' +
+                '</div>';
         }
 
         function renderApp() {
             recalculateReturns();
             const container = document.getElementById('fixtures-container');
             container.innerHTML = globalData.slate.map(item => 
-                <div class="card">
-                    <div>
-                        <div style="font-size:11px; color:#888; margin-bottom:2px;">LEG </div>
-                        <b style="font-size:14px;"></b><br/>
-                        <span style="font-size:13px; color:#00ff88;"></span> <span style="font-size:12px; color:#aaa;">()</span>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="badge badge-upcoming"></span>
-                        <div style="font-size:15px; font-weight:bold; margin-top:5px;">@ </div>
-                    </div>
-                </div>
+                '<div class="card">' +
+                    '<div>' +
+                        '<div style="font-size:11px; color:#888; margin-bottom:2px;">LEG ' + item.leg + '</div>' +
+                        '<b style="font-size:14px;">' + item.match + '</b><br/>' +
+                        '<span style="font-size:13px; color:#00ff88;">' + item.selection + '</span> <span style="font-size:12px; color:#aaa;">(' + item.market + ')</span>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<span class="badge badge-upcoming">' + item.status + '</span>' +
+                        '<div style="font-size:15px; font-weight:bold; margin-top:5px;">@ ' + item.odds + '</div>' +
+                    '</div>' +
+                '</div>'
             ).join('');
         }
 
