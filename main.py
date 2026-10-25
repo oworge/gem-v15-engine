@@ -1,18 +1,38 @@
 ﻿# -*- coding: utf-8 -*-
-from fastapi import FastAPI, Response
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Response, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from datetime import datetime
 import math
+import sqlite3
 import random
 
 app = FastAPI()
+
+DB_FILE = "gem_ledger.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ledger (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            tier_name TEXT,
+            stake REAL,
+            odds REAL,
+            return_amt REAL,
+            status TEXT DEFAULT 'PENDING'
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 def poisson_prob(lmbda, k):
     return (math.exp(-lmbda) * (lmbda ** k)) / math.factorial(k)
 
 def calculate_poisson_edge(home_xg, away_xg):
-    # Generates a matrix of score probabilities up to 5 goals
-    matrix = {}
     home_win_prob = 0
     draw_prob = 0
     away_win_prob = 0
@@ -21,7 +41,6 @@ def calculate_poisson_edge(home_xg, away_xg):
     for h in range(6):
         for a in range(6):
             p = poisson_prob(home_xg, h) * poisson_prob(away_xg, a)
-            matrix[(h, a)] = p
             if h > a:
                 home_win_prob += p
             elif h == a:
@@ -40,7 +59,7 @@ def calculate_poisson_edge(home_xg, away_xg):
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Poisson Quant Terminal</title>
+    <title>GEM V15.0 Self-Learning Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -49,7 +68,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <style>
-        :root { --bg: #0d1117; --card-bg: #161b22; --accent: #00ff88; --accent-glow: rgba(0,255,136,0.15); --gold: #f0b429; --text: #f0f6fc; --text-dim: #8b949e; --border: #30363d; }
+        :root { --bg: #0d1117; --card-bg: #161b22; --accent: #00ff88; --accent-glow: rgba(0,255,136,0.15); --gold: #f0b429; --text: #f0f6fc; --text-dim: #8b949e; --border: #30363d; --red: #ff5555; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 12px; max-width: 850px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 12px; margin-bottom: 12px; }
         h1 { color: var(--accent); margin: 0; font-size: 20px; letter-spacing: 0.5px; }
@@ -62,11 +81,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         .metric-card input { background: var(--bg); border: 1px solid var(--border); color: var(--accent); padding: 6px 10px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; box-sizing: border-box; text-align: right; }
         .metric-card .val { font-size: 18px; font-weight: 800; color: var(--accent); }
 
-        .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 9px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; transition: all 0.2s; }
         .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
-        .tab.daily-tab { background: rgba(240,180,41,0.15); color: var(--gold); border-color: rgba(240,180,41,0.4); }
-        .tab.daily-tab.active { background: var(--gold); color: #0d1117; }
+        .tab.ledger-tab { background: rgba(0,191,255,0.15); color: #00bfff; border-color: rgba(0,191,255,0.4); }
+        .tab.ledger-tab.active { background: #00bfff; color: #0d1117; }
 
         .acc-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .acc-box { background: var(--card-bg); padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); }
@@ -93,8 +112,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 POISSON TERMINAL</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Poisson Matrix & Automated Quant Engine</p>
+            <h1>GEM V15.0 SELF-LEARNING</h1>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Poisson Matrix & Automated Ledger Feedback</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -105,16 +124,16 @@ HTML_CONTENT = """<!DOCTYPE html>
             <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
         </div>
         <div class="metric-card">
-            <label>Model Engine</label>
-            <div class="val" style="font-size:14px; margin-top:4px;">📊 Poisson Active</div>
+            <label>Learning Loop</label>
+            <div class="val" style="font-size:14px; margin-top:4px;">🟢 Active / SQLite</div>
         </div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="switchTier('all', this)">🔥 Full Slate</div>
-        <div class="tab" onclick="switchTier('three', this)">🎯 3-Fold</div>
-        <div class="tab" onclick="switchTier('six', this)">⚡ 6-Fold</div>
-        <div class="tab daily-tab" onclick="switchTier('daily', this)">⚡ Daily Pick</div>
+        <div class="tab active" onclick="switchTab('all', this)">🔥 Slate</div>
+        <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold</div>
+        <div class="tab" onclick="switchTab('six', this)">⚡ 6-Fold</div>
+        <div class="tab ledger-tab" onclick="switchTab('ledger', this)">📊 Ledger</div>
     </div>
 
     <div class="acc-container" id="acc-container"></div>
@@ -122,48 +141,56 @@ HTML_CONTENT = """<!DOCTYPE html>
     <h3 id="slate-title" style="margin: 15px 0 10px 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Active Slate (9 Legs)</h3>
     <div id="fixtures-container">Loading terminal...</div>
 
-    <div id="toast" class="toast">Bet slip copied to clipboard!</div>
+    <div id="toast" class="toast">Bet slip copied & logged to SQLite ledger!</div>
 
     <script>
         let globalData = null;
-        let selectedTier = 'all';
-        let generatedDailyPick = null;
+        let currentTab = 'all';
+        let ledgerData = [];
 
         async function fetchFixtures() {
             try {
                 const response = await fetch('/api/fixtures?cb=' + new Date().getTime(), { cache: 'no-store' });
                 globalData = await response.json();
-                renderApp();
+                fetchLedger();
             } catch (err) {
                 document.getElementById('fixtures-container').innerHTML = '<div style="color:#ff5555; text-align:center; padding:20px;">Terminal connection error.</div>';
             }
         }
 
-        function switchTier(tier, el) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-            selectedTier = tier;
-            if (tier === 'daily') generateDailyPick();
-            renderApp();
+        async function fetchLedger() {
+            try {
+                const res = await fetch('/api/ledger');
+                ledgerData = await res.json();
+                renderApp();
+            } catch(e) { renderApp(); }
         }
 
-        function generateDailyPick() {
-            if (!globalData || globalData.slate.length === 0) return;
-            const elitePool = globalData.slate.filter(i => i.scoreai_conf >= 90);
-            const pool = elitePool.length > 0 ? elitePool : globalData.slate;
-            const randomItem = pool[Math.floor(Math.random() * pool.length)];
-            
-            generatedDailyPick = {
-                leg: 'P-1',
-                date: 'Today, Poisson Live',
-                match: randomItem.match,
-                selection: randomItem.selection,
-                market: randomItem.market,
-                odds: randomItem.odds,
-                scoreai_conf: randomItem.scoreai_conf,
-                clv_edge: randomItem.clv_edge,
-                poisson_prob: randomItem.poisson_prob
-            };
+        async function logBetToLedger(tierName, oddsVal) {
+            const stake = parseFloat(document.getElementById('baseStake').value) || 10;
+            const retAmt = (stake * oddsVal).toFixed(2);
+            await fetch('/api/ledger/log', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({tier_name: tierName, stake: stake, odds: oddsVal, return_amt: retAmt})
+            });
+            fetchLedger();
+        }
+
+        async function updateBetStatus(id, status) {
+            await fetch('/api/ledger/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: id, status: status})
+            });
+            fetchLedger();
+        }
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            currentTab = tab;
+            renderApp();
         }
 
         function recalculateReturns() {
@@ -172,12 +199,11 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             const threeRet = (stake * globalData.accumulators.three_fold.odds).toFixed(2);
             const sixRet = (stake * globalData.accumulators.six_fold.odds).toFixed(2);
-            const nineRet = (stake * globalData.accumulators.nine_fold.odds).toFixed(2);
 
             document.getElementById('acc-container').innerHTML = 
-                '<div class="acc-box elite">' +
+                '<div class="acc-box elite" onclick="logBetToLedger(\'3-Fold Anchor\', ' + globalData.accumulators.three_fold.odds + ')" style="cursor:pointer;" title="Tap to Log Bet">' +
                     '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD POISSON ANCHOR (Legs 1-3)</div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ANCHOR (Tap to Log)</div>' +
                         '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
                     '</div>' +
                     '<div style="text-align:right;">' +
@@ -185,9 +211,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                         '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
                     '</div>' +
                 '</div>' +
-                '<div class="acc-box">' +
+                '<div class="acc-box" onclick="logBetToLedger(\'6-Fold Multiplier\', ' + globalData.accumulators.six_fold.odds + ')" style="cursor:pointer;" title="Tap to Log Bet">' +
                     '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD MULTIPLIER (Legs 1-6)</div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD MULTIPLIER (Tap to Log)</div>' +
                         '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
                     '</div>' +
                     '<div style="text-align:right;">' +
@@ -202,16 +228,54 @@ HTML_CONTENT = """<!DOCTYPE html>
             const container = document.getElementById('fixtures-container');
             const titleEl = document.getElementById('slate-title');
             
+            if (currentTab === 'ledger') {
+                titleEl.innerText = "📊 Self-Learning Performance Ledger (SQLite)";
+                if (ledgerData.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap any accumulator card above to log your first bet slip!</div>';
+                    return;
+                }
+                
+                let totalStaked = ledgerData.reduce((acc, cur) => acc + cur.stake, 0);
+                let settled = ledgerData.filter(i => i.status !== 'PENDING');
+                let won = settled.filter(i => i.status === 'WON');
+                let profit = won.reduce((acc, cur) => acc + (cur.return_amt - cur.stake), 0) - settled.filter(i => i.status === 'LOST').reduce((acc, cur) => acc + cur.stake, 0);
+                let strikeRate = settled.length > 0 ? ((won.length / settled.length) * 100).toFixed(1) : 0;
+
+                let html = '<div class="card" style="border-left-color:#00bfff;">' +
+                    '<b style="color:#00bfff; font-size:14px;">Ledger Performance Summary</b>' +
+                    '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; margin-top:8px; text-align:center;">' +
+                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">STAKED</div><b>£' + totalStaked.toFixed(2) + '</b></div>' +
+                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">PROFIT</div><b style="color:' + (profit >= 0 ? 'var(--accent)' : 'var(--red)') + ';">£' + profit.toFixed(2) + '</b></div>' +
+                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">STRIKE RATE</div><b>' + strikeRate + '%</b></div>' +
+                    '</div>' +
+                '</div>';
+
+                html += ledgerData.map(item => 
+                    '<div class="card" style="border-left-color:' + (item.status === 'WON' ? 'var(--accent)' : item.status === 'LOST' ? 'var(--red)' : 'var(--gold)') + '">' +
+                        '<div class="card-top">' +
+                            '<div>' +
+                                '<div style="font-size:10px; color:var(--text-dim);">' + item.timestamp + '</div>' +
+                                '<b style="font-size:14px;">' + item.tier_name + '</b><br/>' +
+                                '<span style="font-size:12px; color:var(--text-dim);">Stake: £' + item.stake.toFixed(2) + ' | Odds: @' + item.odds + ' ➔ Ret: £' + item.return_amt.toFixed(2) + '</span>' +
+                            '</div>' +
+                            '<div style="text-align:right;">' +
+                                '<span class="badge" style="background:' + (item.status === 'WON' ? 'var(--accent)' : item.status === 'LOST' ? 'var(--red)' : 'var(--gold)') + '; color:#0d1117;">' + item.status + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        (item.status === 'PENDING' ? '<div style="margin-top:8px; display:flex; gap:6px;"><button class="btn" style="padding:4px 10px; font-size:11px; background:var(--accent);" onclick="updateBetStatus(' + item.id + ', \'WON\')">✅ Mark Won</button><button class="btn" style="padding:4px 10px; font-size:11px; background:var(--red); color:#fff;" onclick="updateBetStatus(' + item.id + ', \'LOST\')">❌ Mark Lost</button></div>' : '') +
+                    '</div>'
+                ).join('');
+                container.innerHTML = html;
+                return;
+            }
+
             let filteredSlate = globalData.slate;
-            if (selectedTier === 'three') {
+            if (currentTab === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
                 titleEl.innerText = "🎯 3-Fold Poisson Selections (Legs 1-3)";
-            } else if (selectedTier === 'six') {
+            } else if (currentTab === 'six') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 6);
                 titleEl.innerText = "⚡ 6-Fold Poisson Selections (Legs 1-6)";
-            } else if (selectedTier === 'daily') {
-                filteredSlate = generatedDailyPick ? [generatedDailyPick] : [];
-                titleEl.innerText = "⚡ On-Demand Poisson Daily Pick";
             } else {
                 titleEl.innerText = "🔥 Full Poisson Automated Slate (Legs 1-9)";
             }
@@ -245,16 +309,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         function copyBetSlip() {
             if (!globalData) return;
             const stake = parseFloat(document.getElementById('baseStake').value) || 10;
-            let titleText = selectedTier === 'three' ? "3-FOLD POISSON ANCHOR" : selectedTier === 'six' ? "6-FOLD MULTIPLIER" : selectedTier === 'daily' ? "POISSON DAILY PICK" : "FULL 9-FOLD SLIP";
-            let text = "=== GEM V15.0 " + titleText + " ===\\n\\n";
+            logBetToLedger('Custom Slip', globalData.accumulators.three_fold.odds);
             
-            let activeLegs = globalData.slate;
-            if (selectedTier === 'three') activeLegs = globalData.slate.filter(i => i.leg <= 3);
-            if (selectedTier === 'six') activeLegs = globalData.slate.filter(i => i.leg <= 6);
-            if (selectedTier === 'daily') activeLegs = generatedDailyPick ? [generatedDailyPick] : [];
-
-            activeLegs.forEach(i => {
-                text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%, CLV: +" + i.clv_edge + "%) @ " + i.odds + "\\n";
+            let text = "=== GEM V15.0 SELF-LEARNING SLIP ===\\n\\n";
+            globalData.slate.forEach(i => {
+                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%) @ " + i.odds + "\\n";
             });
             
             navigator.clipboard.writeText(text).then(() => {
@@ -272,7 +331,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Poisson", "short_name": "GEM Poisson", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 Learning", "short_name": "GEM Learn", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -298,7 +357,6 @@ async def get_fixtures(response: Response):
     processed_slate = []
     for fix in raw_fixtures:
         p_res = calculate_poisson_edge(fix["home_xg"], fix["away_xg"])
-        # Select matching model probability based on market type
         if "Double Chance" in fix["market"]:
             model_prob = p_res["dc_home"] if "Chelsea" in fix["match"] or "Liverpool" in fix["match"] or "Inter" in fix["match"] or "Benfica" in fix["match"] or "Sporting" in fix["match"] else p_res["dc_away"]
         else:
@@ -326,3 +384,35 @@ async def get_fixtures(response: Response):
             "nine_fold": {"legs": "1-9", "odds": 10.42}
         }
     }
+
+@app.get("/api/ledger")
+async def get_ledger():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM ledger ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+@app.post("/api/ledger/log")
+async def log_bet(request: Request):
+    data = await request.json()
+    now = datetime.utcnow().strftime("%d %b %H:%M")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?, ?, ?)",
+                   (now, data.get("tier_name"), data.get("stake"), data.get("odds"), data.get("return_amt")))
+    conn.commit()
+    conn.close()
+    return {"status": "logged"}
+
+@app.post("/api/ledger/update")
+async def update_bet(request: Request):
+    data = await request.json()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE ledger SET status = ? WHERE id = ?", (data.get("status"), data.get("id")))
+    conn.commit()
+    conn.close()
+    return {"status": "updated"}
