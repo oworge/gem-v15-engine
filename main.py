@@ -8,7 +8,7 @@ app = FastAPI()
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 ENGINE</title>
+    <title>GEM V15.0 + ScoreAI ENGINE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -26,16 +26,17 @@ HTML_CONTENT = """<!DOCTYPE html>
         .stake-box input { background: #121212; border: 1px solid #00ff88; color: #fff; padding: 8px; width: 90px; border-radius: 4px; font-size: 16px; text-align: right; font-weight: bold; }
         .acc-box { background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #00ff88; }
         .card { background: #1e1e1e; padding: 12px 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #00ff88; display: flex; justify-content: space-between; align-items: center; }
-        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .badge { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-left: 5px; }
         .badge-upcoming { background: #333; color: #aaa; }
+        .badge-scoreai { background: #00ff88; color: #121212; }
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00ff88; color: #121212; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 ENGINE</h1>
-            <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">3-6-9 Tiered Accumulator Pipeline</p>
+            <h1>GEM V15.0 + ScoreAI</h1>
+            <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">3-6-9 Tiered Engine with ScoreAI Modeling</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -47,7 +48,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <div id="acc-container"></div>
 
-    <h3 style="margin-bottom:10px;">Active Slate (9 Legs)</h3>
+    <h3 style="margin-bottom:10px;">Active Slate (9 Legs + ScoreAI)</h3>
     <div id="fixtures-container">Loading slate...</div>
 
     <div id="toast" class="toast">Bet slip copied to clipboard!</div>
@@ -100,6 +101,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     '</div>' +
                     '<div style="text-align:right;">' +
                         '<span class="badge badge-upcoming">' + item.status + '</span>' +
+                        '<span class="badge badge-scoreai">AI: ' + item.scoreai_conf + '%</span>' +
                         '<div style="font-size:15px; font-weight:bold; margin-top:5px;">@ ' + item.odds + '</div>' +
                     '</div>' +
                 '</div>'
@@ -109,12 +111,12 @@ HTML_CONTENT = """<!DOCTYPE html>
         function copyBetSlip() {
             if (!globalData) return;
             const stakeInput = parseFloat(document.getElementById('baseStake').value) || 10;
-            let text = "=== GEM V15.0 3-6-9 ENGINE SLIP ===\\n\\n";
+            let text = "=== GEM V15.0 + SCOREAI SLIP ===\\n\\n";
             text += "🎯 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
             text += "⚡ 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
             text += "🔥 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
             globalData.slate.forEach(i => {
-                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " @ " + i.odds + "\\n";
+                text += "Leg " + i.leg + ": " + i.match + " -> " + i.selection + " (ScoreAI: " + i.scoreai_conf + "%) @ " + i.odds + "\\n";
             });
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
@@ -131,7 +133,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Engine", "short_name": "GEM V15", "start_url": "/", "display": "standalone", "background_color": "#121212", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 ScoreAI", "short_name": "GEM+AI", "start_url": "/", "display": "standalone", "background_color": "#121212", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -142,15 +144,15 @@ async def read_index(response: Response):
 async def get_fixtures(response: Response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     active_slate = [
-        {"leg": 1, "match": "Chelsea vs Newcastle", "selection": "Chelsea Win", "market": "1X2", "odds": 1.75, "status": "UPCOMING"},
-        {"leg": 2, "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win", "market": "1X2", "odds": 1.50, "status": "UPCOMING"},
-        {"leg": 3, "match": "West Ham vs Manchester United", "selection": "Over 2.5 Goals", "market": "Total Goals", "odds": 1.70, "status": "UPCOMING"},
-        {"leg": 4, "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "status": "UPCOMING"},
-        {"leg": 5, "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "status": "UPCOMING"},
-        {"leg": 6, "match": "Monaco vs Lyon", "selection": "Both Teams to Score", "market": "BTTS", "odds": 1.65, "status": "UPCOMING"},
-        {"leg": 7, "match": "Ajax vs Feyenoord", "selection": "Over 2.5 Goals", "market": "Total Goals", "odds": 1.60, "status": "UPCOMING"},
-        {"leg": 8, "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "status": "UPCOMING"},
-        {"leg": 9, "match": "Sporting CP vs Braga", "selection": "Sporting CP Win", "market": "1X2", "odds": 1.55, "status": "UPCOMING"}
+        {"leg": 1, "match": "Chelsea vs Newcastle", "selection": "Chelsea Win", "market": "1X2", "odds": 1.75, "scoreai_conf": 84, "status": "UPCOMING"},
+        {"leg": 2, "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win", "market": "1X2", "odds": 1.50, "scoreai_conf": 89, "status": "UPCOMING"},
+        {"leg": 3, "match": "West Ham vs Manchester United", "selection": "Over 2.5 Goals", "market": "Total Goals", "odds": 1.70, "scoreai_conf": 79, "status": "UPCOMING"},
+        {"leg": 4, "match": "Real Madrid vs Barcelona", "selection": "Over 1.5 Goals", "market": "Goals", "odds": 1.22, "scoreai_conf": 92, "status": "UPCOMING"},
+        {"leg": 5, "match": "Inter Milan vs Juventus", "selection": "Inter Milan Win or Draw", "market": "Double Chance", "odds": 1.30, "scoreai_conf": 86, "status": "UPCOMING"},
+        {"leg": 6, "match": "Monaco vs Lyon", "selection": "Both Teams to Score", "market": "BTTS", "odds": 1.65, "scoreai_conf": 81, "status": "UPCOMING"},
+        {"leg": 7, "match": "Ajax vs Feyenoord", "selection": "Over 2.5 Goals", "market": "Total Goals", "odds": 1.60, "scoreai_conf": 78, "status": "UPCOMING"},
+        {"leg": 8, "match": "Benfica vs Porto", "selection": "Benfica Win or Draw", "market": "Double Chance", "odds": 1.28, "scoreai_conf": 88, "status": "UPCOMING"},
+        {"leg": 9, "match": "Sporting CP vs Braga", "selection": "Sporting CP Win", "market": "1X2", "odds": 1.55, "scoreai_conf": 85, "status": "UPCOMING"}
     ]
     return {
         "status": "success",
