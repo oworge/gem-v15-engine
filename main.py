@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.responses import HTMLResponse
 from datetime import datetime
 
@@ -10,6 +10,9 @@ HTML_CONTENT = """
 <head>
     <title>GEM V15.0 ENGINE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; max-width: 800px; margin: auto; }
         .card { background: #1e1e1e; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #00ff88; }
@@ -27,7 +30,7 @@ HTML_CONTENT = """
             const container = document.getElementById('fixtures-container');
             const accContainer = document.getElementById('acc-container');
             try {
-                const response = await fetch('/api/fixtures?v=' + new Date().getTime());
+                const response = await fetch('/api/fixtures?cb=' + new Date().getTime(), { cache: 'no-store' });
                 const result = await response.json();
 
                 accContainer.innerHTML = \
@@ -60,11 +63,18 @@ HTML_CONTENT = """
 """
 
 @app.get("/", response_class=HTMLResponse)
-async def read_index():
+async def read_index(response: Response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return HTML_CONTENT
 
 @app.get("/api/fixtures")
-async def get_fixtures():
+async def get_fixtures(response: Response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
     active_slate = [
         {"leg": 1, "match": "Chelsea vs Newcastle", "selection": "Chelsea Win", "market": "1X2", "odds": 1.75},
         {"leg": 2, "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win", "market": "1X2", "odds": 1.50},
