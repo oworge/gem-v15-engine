@@ -58,7 +58,7 @@ def calculate_poisson_edge(home_xg, away_xg):
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Daily Calendar Terminal</title>
+    <title>GEM V15.0 Daily 3-6-9 Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -89,8 +89,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         .tab.ledger-tab.active { background: #00bfff; color: #0d1117; }
 
         .acc-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .acc-box { background: var(--card-bg); padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); }
+        .acc-box { background: var(--card-bg); padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); cursor: pointer; transition: all 0.2s; }
         .acc-box.elite { border-left-color: var(--gold); background: linear-gradient(135deg, #161b22 0%, #1f241c 100%); }
+        .acc-box:hover { border-color: var(--accent); }
 
         .card { background: var(--card-bg); padding: 12px 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
         .card.elite { border-left-color: var(--gold); }
@@ -113,8 +114,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 TERMINAL</h1>
-            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Daily Calendar & Poisson Quant Engine</p>
+            <h1>GEM V15.0 QUANT TERMINAL</h1>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Automated Daily 3-6-9 Fold Engine</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
@@ -125,15 +126,16 @@ HTML_CONTENT = """<!DOCTYPE html>
             <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
         </div>
         <div class="metric-card">
-            <label>System Status</label>
-            <div class="val" style="font-size:14px; margin-top:4px;">🟢 Live Calendar</div>
+            <label>System Mode</label>
+            <div class="val" style="font-size:14px; margin-top:4px;">⚡ Daily 3-6-9 Active</div>
         </div>
     </div>
 
     <div class="tabs">
         <div class="tab active" onclick="switchTab('all', this)">🔥 Full Slate</div>
-        <div class="tab daily-tab" onclick="switchTab('today', this)">⚡ Today's Pick</div>
-        <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold</div>
+        <div class="tab daily-tab" onclick="switchTab('today', this)">⚡ Today's Games</div>
+        <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold Tier</div>
+        <div class="tab" onclick="switchTab('six', this)">⚡ 6-Fold Tier</div>
         <div class="tab ledger-tab" onclick="switchTab('ledger', this)">📊 Ledger</div>
     </div>
 
@@ -176,6 +178,10 @@ HTML_CONTENT = """<!DOCTYPE html>
                 body: JSON.stringify({tier_name: tierName, stake: stake, odds: oddsVal, return_amt: retAmt})
             });
             fetchLedger();
+            const toast = document.getElementById('toast');
+            toast.innerText = tierName + " logged to SQLite ledger!";
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
         }
 
         async function updateBetStatus(id, status) {
@@ -200,15 +206,36 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             const threeRet = (stake * globalData.accumulators.three_fold.odds).toFixed(2);
             const sixRet = (stake * globalData.accumulators.six_fold.odds).toFixed(2);
+            const nineRet = (stake * globalData.accumulators.nine_fold.odds).toFixed(2);
 
             document.getElementById('acc-container').innerHTML = 
-                '<div class="acc-box elite" onclick="logBetToLedger(\'3-Fold Anchor\', ' + globalData.accumulators.three_fold.odds + ')" style="cursor:pointer;" title="Tap to Log Bet">' +
+                '<div class="acc-box elite" onclick="logBetToLedger(\'3-Fold Anchor\', ' + globalData.accumulators.three_fold.odds + ')">' +
                     '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ANCHOR (Tap to Log)</div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ANCHOR (Legs 1-3) &bull; Tap to Log</div>' +
                         '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
                     '</div>' +
                     '<div style="text-align:right;">' +
                         '<div style="font-size:16px; font-weight:800; color:var(--gold);">£' + threeRet + '</div>' +
+                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="acc-box" onclick="logBetToLedger(\'6-Fold Multiplier\', ' + globalData.accumulators.six_fold.odds + ')">' +
+                    '<div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD MULTIPLIER (Legs 1-6) &bull; Tap to Log</div>' +
+                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + sixRet + '</div>' +
+                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="acc-box" onclick="logBetToLedger(\'9-Fold Full Slate\', ' + globalData.accumulators.nine_fold.odds + ')">' +
+                    '<div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">🔥 9-FOLD FULL SLATE (Legs 1-9) &bull; Tap to Log</div>' +
+                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + nineRet + '</div>' +
                         '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
                     '</div>' +
                 '</div>';
@@ -222,7 +249,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (currentTab === 'ledger') {
                 titleEl.innerText = "📊 Self-Learning Performance Ledger";
                 if (ledgerData.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap the 3-Fold accumulator above to log your bet slip!</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap any 3-6-9 fold tier box above to log your accumulator!</div>';
                     return;
                 }
                 
@@ -267,12 +294,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             } else if (currentTab === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
                 titleEl.innerText = "🎯 3-Fold Anchor Selections (Legs 1-3)";
+            } else if (currentTab === 'six') {
+                filteredSlate = globalData.slate.filter(i => i.leg <= 6);
+                titleEl.innerText = "⚡ 6-Fold Multiplier Selections (Legs 1-6)";
             } else {
                 titleEl.innerText = "🔥 Full Automated Slate (Legs 1-9)";
             }
 
             if (filteredSlate.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No fixtures scheduled for this filter today.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No fixtures scheduled for this filter.</div>';
                 return;
             }
 
@@ -304,15 +334,16 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function copyBetSlip() {
             if (!globalData) return;
-            logBetToLedger('Daily Slip', globalData.accumulators.three_fold.odds);
+            logBetToLedger('Full Slate Slip', globalData.accumulators.nine_fold.odds);
             
-            let text = "=== GEM V15.0 DAILY CALENDAR SLIP ===\\n\\n";
+            let text = "=== GEM V15.0 DAILY 3-6-9 SLIP ===\\n\\n";
             globalData.slate.forEach(i => {
                 text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%) @ " + i.odds + "\\n";
             });
             
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
+                toast.innerText = "Bet slip copied & logged to ledger!";
                 toast.style.display = 'block';
                 setTimeout(() => { toast.style.display = 'none'; }, 2000);
             });
@@ -326,7 +357,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Calendar", "short_name": "GEM Cal", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 Daily", "short_name": "GEM Daily", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -337,7 +368,6 @@ async def read_index(response: Response):
 async def get_fixtures(response: Response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     
-    # Tagged with day_group so 'today' shows current date games dynamically
     raw_fixtures = [
         {"leg": 1, "date": "Today, 15:00", "day_group": "today", "match": "Chelsea vs Newcastle", "selection": "Chelsea Win or Draw (DC)", "market": "Double Chance", "odds": 1.25, "scoreai_conf": 91, "clv_edge": 4.2, "home_xg": 1.85, "away_xg": 0.92},
         {"leg": 2, "date": "Today, 17:30", "day_group": "today", "match": "Crystal Palace vs Liverpool", "selection": "Liverpool Win or Draw (DC)", "market": "Double Chance", "odds": 1.18, "scoreai_conf": 94, "clv_edge": 5.1, "home_xg": 2.10, "away_xg": 0.75},
