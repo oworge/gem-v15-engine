@@ -8,7 +8,7 @@ app = FastAPI()
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Elite 90%+ Engine</title>
+    <title>GEM V15.0 Elite Trading Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -17,49 +17,86 @@ HTML_CONTENT = """<!DOCTYPE html>
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #fff; padding: 15px; max-width: 800px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ff88; padding-bottom: 10px; margin-bottom: 15px; }
-        h1 { color: #00ff88; margin: 0; font-size: 22px; }
-        .btn { background: #00ff88; color: #121212; border: none; padding: 10px 15px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        .btn:active { background: #00cc6a; }
-        .stake-box { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #333; }
-        .stake-box input { background: #121212; border: 1px solid #00ff88; color: #fff; padding: 8px; width: 90px; border-radius: 4px; font-size: 16px; text-align: right; font-weight: bold; }
-        .acc-box { background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #00ff88; }
-        .card { background: #1e1e1e; padding: 12px 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #00ff88; display: flex; justify-content: space-between; align-items: center; }
-        .card.elite { border-left-color: #ffaa00; background: #181d18; }
-        .badges { display: flex; gap: 4px; margin-top: 4px; justify-content: flex-end; flex-wrap: wrap; }
-        .badge { font-size: 9px; padding: 2px 5px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
-        .badge-upcoming { background: #333; color: #aaa; }
-        .badge-scoreai { background: #00ff88; color: #121212; }
-        .badge-clv { background: #ffaa00; color: #121212; }
-        .badge-xg { background: #00bfff; color: #121212; }
-        .badge-elite { background: #ffaa00; color: #121212; font-weight: 900; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00ff88; color: #121212; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        :root { --bg: #0d1117; --card-bg: #161b22; --accent: #00ff88; --accent-glow: rgba(0,255,136,0.15); --gold: #f0b429; --text: #f0f6fc; --text-dim: #8b949e; --border: #30363d; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 12px; max-width: 850px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 12px; margin-bottom: 12px; }
+        h1 { color: var(--accent); margin: 0; font-size: 20px; letter-spacing: 0.5px; }
+        .btn { background: var(--accent); color: #0d1117; border: none; padding: 10px 16px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 13px; box-shadow: 0 0 15px var(--accent-glow); transition: all 0.2s; }
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
+        
+        /* Dashboard Metrics Grid */
+        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        .metric-card { background: var(--card-bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; }
+        .metric-card label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
+        .metric-card input { background: var(--bg); border: 1px solid var(--border); color: var(--accent); padding: 6px 10px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; box-sizing: border-box; text-align: right; }
+        .metric-card .val { font-size: 18px; font-weight: 800; color: var(--accent); }
+
+        /* Filter Tabs */
+        .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); }
+
+        /* Tier Boxes */
+        .acc-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .acc-box { background: var(--card-bg); padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); }
+        .acc-box.elite { border-left-color: var(--gold); background: linear-gradient(135deg, #161b22 0%, #1f241c 100%); }
+
+        /* Fixture Cards */
+        .card { background: var(--card-bg); padding: 12px 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
+        .card.elite { border-left-color: var(--gold); }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        
+        /* Progress Bar */
+        .progress-bar-bg { background: var(--bg); height: 6px; border-radius: 3px; width: 100%; margin-top: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+        .progress-bar-fill.elite { background: var(--gold); }
+
+        .badges { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
+        .badge-scoreai { background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
+        .badge-clv { background: rgba(240,180,41,0.15); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+        .badge-xg { background: rgba(0,191,255,0.15); color: #00bfff; border: 1px solid rgba(0,191,255,0.3); }
+        .badge-elite { background: var(--gold); color: #0d1117; }
+
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #0d1117; padding: 10px 22px; border-radius: 20px; font-weight: 800; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.6); z-index: 1000; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 ELITE 90%+</h1>
-            <p style="margin:2px 0 0 0; font-size:12px; color:#aaa;">Scheduled Slate & High-Confidence Filter</p>
+            <h1>GEM V15.0 TERMINAL</h1>
+            <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Global Quantitative Engine & 90%+ Filter</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
     </div>
 
-    <div class="stake-box">
-        <span><b>Base Stake (£):</b></span>
-        <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <label>Base Stake (£)</label>
+            <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
+        </div>
+        <div class="metric-card">
+            <label>System Status</label>
+            <div class="val" style="font-size:14px; margin-top:4px;">🟢 Operational</div>
+        </div>
     </div>
 
-    <div id="acc-container"></div>
+    <div class="tabs">
+        <div class="tab active" onclick="filterTier('all', this)">All Legs (9)</div>
+        <div class="tab" onclick="filterTier('elite', this)">⭐ Elite 90%+ Only</div>
+        <div class="tab" onclick="filterTier('anchors', this)">🎯 3-Fold Anchor</div>
+    </div>
 
-    <h3 style="margin-bottom:10px;">Elite Scheduled Slate (9 Legs)</h3>
-    <div id="fixtures-container">Loading slate...</div>
+    <div class="acc-container" id="acc-container"></div>
+
+    <h3 style="margin: 15px 0 10px 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Active Quant Slate</h3>
+    <div id="fixtures-container">Loading terminal...</div>
 
     <div id="toast" class="toast">Bet slip copied to clipboard!</div>
 
     <script>
         let globalData = null;
+        let currentFilter = 'all';
 
         async function fetchFixtures() {
             try {
@@ -67,52 +104,90 @@ HTML_CONTENT = """<!DOCTYPE html>
                 globalData = await response.json();
                 renderApp();
             } catch (err) {
-                document.getElementById('fixtures-container').innerHTML = 'Error fetching slate.';
+                document.getElementById('fixtures-container').innerHTML = '<div style="color:#ff5555; text-align:center; padding:20px;">Terminal connection error.</div>';
             }
         }
 
+        function filterTier(type, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            currentFilter = type;
+            renderApp();
+        }
+
         function recalculateReturns() {
-            const stakeInput = parseFloat(document.getElementById('baseStake').value) || 0;
+            const stake = parseFloat(document.getElementById('baseStake').value) || 0;
             if (!globalData) return;
 
-            const threeReturn = (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2);
-            const sixReturn = (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2);
-            const nineReturn = (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2);
+            const threeRet = (stake * globalData.accumulators.three_fold.odds).toFixed(2);
+            const sixRet = (stake * globalData.accumulators.six_fold.odds).toFixed(2);
+            const nineRet = (stake * globalData.accumulators.nine_fold.odds).toFixed(2);
 
             document.getElementById('acc-container').innerHTML = 
-                '<div class="acc-box">' +
-                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">🎯 3-FOLD ELITE ANCHOR (Legs 1-3)</h3>' +
-                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ➔ Return: <b style="color:#00ff88;">£' + threeReturn + '</b></p>' +
+                '<div class="acc-box elite">' +
+                    '<div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ELITE ANCHOR (Legs 1-3)</div>' +
+                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<div style="font-size:16px; font-weight:800; color:var(--gold);">£' + threeRet + '</div>' +
+                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
+                    '</div>' +
                 '</div>' +
                 '<div class="acc-box">' +
-                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">⚡ 6-FOLD ACCUMULATOR (Legs 1-6)</h3>' +
-                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ➔ Return: <b style="color:#00ff88;">£' + sixReturn + '</b></p>' +
+                    '<div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">⚡ 6-FOLD ACCUMULATOR (Legs 1-6)</div>' +
+                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.six_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + sixRet + '</div>' +
+                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
+                    '</div>' +
                 '</div>' +
                 '<div class="acc-box">' +
-                    '<h3 style="color:#00ff88; margin-top:0; font-size:15px;">🔥 9-FOLD ACCUMULATOR (Legs 1-9)</h3>' +
-                    '<p style="margin:4px 0; font-size:13px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: <b>£' + stakeInput.toFixed(2) + '</b> ➔ Return: <b style="color:#00ff88;">£' + nineReturn + '</b></p>' +
+                    '<div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--accent);">🔥 9-FOLD ACCUMULATOR (Legs 1-9)</div>' +
+                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.nine_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<div style="font-size:16px; font-weight:800; color:var(--accent);">£' + nineRet + '</div>' +
+                        '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
+                    '</div>' +
                 '</div>';
         }
 
         function renderApp() {
             recalculateReturns();
             const container = document.getElementById('fixtures-container');
-            container.innerHTML = globalData.slate.map(item => {
+            
+            let filteredSlate = globalData.slate;
+            if (currentFilter === 'elite') {
+                filteredSlate = globalData.slate.filter(i => i.scoreai_conf >= 90);
+            } else if (currentFilter === 'anchors') {
+                filteredSlate = globalData.slate.filter(i => i.leg <= 3);
+            }
+
+            container.innerHTML = filteredSlate.map(item => {
                 const isElite = item.scoreai_conf >= 90;
                 return '<div class="card ' + (isElite ? 'elite' : '') + '">' +
-                    '<div>' +
-                        '<div style="font-size:11px; color:#888; margin-bottom:2px;">LEG ' + item.leg + ' | 📅 ' + item.date + '</div>' +
-                        '<b style="font-size:14px;">' + item.match + '</b><br/>' +
-                        '<span style="font-size:13px; color:#00ff88;">' + item.selection + '</span> <span style="font-size:12px; color:#aaa;">(' + item.market + ')</span>' +
-                    '</div>' +
-                    '<div style="text-align:right;">' +
-                        '<div style="font-size:15px; font-weight:bold;">@ ' + item.odds + '</div>' +
-                        '<div class="badges">' +
-                            (isElite ? '<span class="badge badge-elite">⭐ 90%+ ELITE</span>' : '') +
-                            '<span class="badge badge-scoreai">AI: ' + item.scoreai_conf + '%</span>' +
-                            '<span class="badge badge-clv">CLV: +' + item.clv_edge + '%</span>' +
-                            '<span class="badge badge-xg">xG: ' + item.xg_ratio + '</span>' +
+                    '<div class="card-top">' +
+                        '<div>' +
+                            '<div style="font-size:10px; color:var(--text-dim); font-weight:700; margin-bottom:2px;">LEG ' + item.leg + ' &bull; 📅 ' + item.date + '</div>' +
+                            '<b style="font-size:14px; font-weight:700;">' + item.match + '</b><br/>' +
+                            '<span style="font-size:12px; color:var(--accent); font-weight:600;">' + item.selection + '</span> <span style="font-size:11px; color:var(--text-dim);">(' + item.market + ')</span>' +
                         '</div>' +
+                        '<div style="text-align:right;">' +
+                            '<div style="font-size:16px; font-weight:900; color:' + (isElite ? 'var(--gold)' : 'var(--accent)') + ';">@ ' + item.odds + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="progress-bar-bg">' +
+                        '<div class="progress-bar-fill ' + (isElite ? 'elite' : '') + '" style="width: ' + item.scoreai_conf + '%;"></div>' +
+                    '</div>' +
+                    '<div class="badges">' +
+                        (isElite ? '<span class="badge badge-elite">⭐ 90%+ ELITE</span>' : '') +
+                        '<span class="badge badge-scoreai">AI: ' + item.scoreai_conf + '%</span>' +
+                        '<span class="badge badge-clv">CLV: +' + item.clv_edge + '%</span>' +
+                        '<span class="badge badge-xg">xG: ' + item.xg_ratio + '</span>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -120,11 +195,11 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function copyBetSlip() {
             if (!globalData) return;
-            const stakeInput = parseFloat(document.getElementById('baseStake').value) || 10;
-            let text = "=== GEM V15.0 ELITE SCHEDULED SLIP ===\\n\\n";
-            text += "🎯 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
-            text += "⚡ 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
-            text += "🔥 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stakeInput * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
+            const stake = parseFloat(document.getElementById('baseStake').value) || 10;
+            let text = "=== GEM V15.0 ELITE TERMINAL SLIP ===\\n\\n";
+            text += "🎯 3-Fold Odds: " + globalData.accumulators.three_fold.odds + " | Return: £" + (stake * globalData.accumulators.three_fold.odds).toFixed(2) + "\\n";
+            text += "⚡ 6-Fold Odds: " + globalData.accumulators.six_fold.odds + " | Return: £" + (stake * globalData.accumulators.six_fold.odds).toFixed(2) + "\\n";
+            text += "🔥 9-Fold Odds: " + globalData.accumulators.nine_fold.odds + " | Return: £" + (stake * globalData.accumulators.nine_fold.odds).toFixed(2) + "\\n\\nSELECTIONS:\\n";
             globalData.slate.forEach(i => {
                 text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (AI: " + i.scoreai_conf + "%, CLV: +" + i.clv_edge + "%, xG: " + i.xg_ratio + ") @ " + i.odds + "\\n";
             });
@@ -143,7 +218,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 Elite", "short_name": "GEM Elite", "start_url": "/", "display": "standalone", "background_color": "#121212", "theme_color": "#00ff88", "icons": []}
+    return {"name": "GEM V15.0 Terminal", "short_name": "GEM Terminal", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
