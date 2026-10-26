@@ -2,9 +2,8 @@ import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="GEM V15.0 Engine & Correct Score Matrix")
+app = FastAPI(title="AI Scorecast PRO - Analytics Dashboard")
 
-# 1. ACCUMULATOR SLATE WITH 4 BET BUILDER SELECTIONS PER GAME
 ACCUMULATOR_SLATE = [
     {
         "leg": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.84, "agreement": 0.92, "time": "20:00 GMT",
@@ -53,7 +52,6 @@ ACCUMULATOR_SLATE = [
     }
 ]
 
-# 2. CORRECT SCORE MATRIX DATA
 CORRECT_SCORE_DATA = [
     {"date": "2026-10-26", "match": "Sevilla vs. Osasuna", "xg": "1.65 - 0.85", "predicted_score": "1 - 0", "alt_score": "2 - 0", "score_odds": 6.50, "model_prob": "18.5%"},
     {"date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "xg": "1.85 - 1.45", "predicted_score": "2 - 1", "alt_score": "1 - 1", "score_odds": 8.00, "model_prob": "14.2%"},
@@ -66,7 +64,6 @@ CORRECT_SCORE_DATA = [
     {"date": "2026-10-28", "match": "Bournemouth vs. Aston Villa", "xg": "1.45 - 1.55", "predicted_score": "1 - 1", "alt_score": "2 - 2", "score_odds": 7.00, "model_prob": "15.2%"}
 ]
 
-# 3. GLOBAL FIXTURE POOL (For EV Scanner)
 GLOBAL_FIXTURE_POOL = [
     {"date": "2026-10-26", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": 0.75, "time": "18:00 GMT"},
     {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.85, "time": "20:00 GMT"},
@@ -126,90 +123,124 @@ HTML_CONTENT = f"""<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEM V15.0 Engine & Correct Score Matrix</title>
+    <title>AI Scorecast PRO - Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }}
-        .container {{ max-width: 1150px; margin: 0 auto; }}
-        h1 {{ color: #38bdf8; text-align: center; margin-bottom: 20px; }}
-        .tab-bar {{ display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #334155; padding-bottom: 5px; overflow-x: auto; }}
-        .tab-btn {{ background: #1e293b; color: #94a3b8; border: none; padding: 12px 20px; font-size: 14px; font-weight: bold; border-radius: 6px 6px 0 0; cursor: pointer; transition: 0.2s; white-space: nowrap; }}
-        .tab-btn.active {{ background: #38bdf8; color: #0f172a; }}
+        body {{ background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
+        .bg-stadium {{ background: linear-gradient(to bottom, rgba(11, 15, 25, 0.4), rgba(11, 15, 25, 0.95)), url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop') center/cover no-repeat; }}
+        .tab-btn {{ background: #1e293b; color: #94a3b8; border: none; padding: 10px 18px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; white-space: nowrap; }}
+        .tab-btn.active {{ background: #eab308; color: #0b0f19; }}
         .tab-content {{ display: none; }}
         .tab-content.active {{ display: block; }}
-        .card {{ background: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }}
-        .tier-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }}
-        .tier-card {{ background: #334155; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8; }}
-        .tier-card h3 {{ margin-top: 0; color: #38bdf8; }}
-        table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
-        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #475569; vertical-align: top; }}
-        th {{ background: #334155; color: #94a3b8; }}
-        input[type="number"] {{ background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; font-size: 16px; }}
-        .ev-badge {{ background: #166534; color: #4ade80; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }}
-        .tier-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 6px; border-radius: 4px; font-size: 11px; }}
-        .rating-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }}
-        .rating-badge.ultra {{ background: #166534; color: #4ade80; }}
-        .score-badge {{ background: #b45309; color: #fef3c7; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; }}
-        .builder-box {{ background: #0f172a; border-radius: 6px; padding: 8px; margin-top: 4px; font-size: 11px; border-left: 3px solid #f59e0b; }}
+        table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+        th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #1e293b; vertical-align: top; }}
+        th {{ background: #111827; color: #9ca3af; }}
+        .ev-badge {{ background: #065f46; color: #34d399; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-block; }}
+        .tier-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 8px; border-radius: 6px; font-size: 11px; }}
+        .score-badge {{ background: #b45309; color: #fef3c7; padding: 4px 8px; border-radius: 6px; font-weight: bold; }}
+        .builder-box {{ background: #0f172a; border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 11px; border-left: 3px solid #eab308; }}
         .builder-box ul {{ margin: 4px 0 0 15px; padding: 0; color: #cbd5e1; }}
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>GEM V15.0 Quantitative Pipeline</h1>
+<body class="bg-stadium min-h-screen pb-12">
 
-        <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('slateTab', this)">Active 9-Leg Slate</button>
-            <button class="tab-btn" onclick="switchTab('valueTab', this)">🔥 Daily Pick Value (+EV)</button>
+    <!-- Top Header Bar -->
+    <div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
+            <span>👑</span> AI ANALYSIS ENGINE ACTIVE
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span class="text-xs font-medium text-slate-300">10K Active Users</span>
+        </div>
+    </div>
+
+    <!-- Main Title Header -->
+    <div class="max-w-6xl mx-auto px-4 text-center mt-4">
+        <h1 class="text-3xl font-extrabold tracking-tight text-white">
+            AI Scorecast <span class="text-amber-400">PRO</span>
+        </h1>
+        <p class="text-sm text-slate-300 mt-1">
+            Manage your predictions more consciously with AI-powered VIP analyses.
+        </p>
+    </div>
+
+    <!-- Feature Quick Pills -->
+    <div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">Live Predictions</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">Goal Count Predictions</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">AI Combo Access</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">Corner Predictions</span>
+        </div>
+    </div>
+
+    <!-- Navigation Tab Bar -->
+    <div class="max-w-6xl mx-auto px-4 mt-8">
+        <div class="flex gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-800 overflow-x-auto">
+            <button class="tab-btn active" onclick="switchTab('slateTab', this)">⚡ Active 9-Leg Slate & Bet Builders</button>
+            <button class="tab-btn" onclick="switchTab('valueTab', this)">🔥 Daily Pick Value (+EV Scanner)</button>
             <button class="tab-btn" onclick="switchTab('scoreTab', this)">🎯 Correct Score Matrix</button>
         </div>
+    </div>
 
-        <!-- TAB 1: 9-LEG SLATE -->
-        <div id="slateTab" class="tab-content active">
-            <div class="card">
-                <label><strong>Base Stake (£):</strong> </label>
-                <input type="number" id="baseStake" value="10" min="1" oninput="calculateReturns()">
+    <!-- TAB 1: 9-LEG SLATE & BET BUILDERS -->
+    <div id="slateTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-6 flex flex-wrap gap-6 items-center justify-between">
+            <div>
+                <label class="text-sm font-semibold text-slate-300">Base Stake (£):</label>
+                <input type="number" id="baseStake" value="10" min="1" oninput="calculateReturns()" class="ml-3 bg-slate-950 border border-slate-700 text-white p-2 rounded-lg w-28 text-center font-bold">
             </div>
-
-            <div class="tier-grid">
-                <div class="tier-card">
-                    <h3>3-Fold Anchor Tier</h3>
-                    <p>Combined Odds: <strong id="odds3">--</strong></p>
-                    <p>Est. Return: <strong id="return3">--</strong></p>
+            <div class="flex gap-4">
+                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
+                    <p class="text-[10px] text-slate-400">3-Fold Anchor</p>
+                    <p class="text-sm font-bold text-amber-400" id="odds3">--</p>
+                    <p class="text-xs text-slate-300" id="return3">--</p>
                 </div>
-                <div class="tier-card">
-                    <h3>6-Fold Mid Tier</h3>
-                    <p>Combined Odds: <strong id="odds6">--</strong></p>
-                    <p>Est. Return: <strong id="return6">--</strong></p>
+                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
+                    <p class="text-[10px] text-slate-400">6-Fold Mid</p>
+                    <p class="text-sm font-bold text-amber-400" id="odds6">--</p>
+                    <p class="text-xs text-slate-300" id="return6">--</p>
                 </div>
-                <div class="tier-card">
-                    <h3>9-Fold Full Slate</h3>
-                    <p>Combined Odds: <strong id="odds9">--</strong></p>
-                    <p>Est. Return: <strong id="return9">--</strong></p>
+                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
+                    <p class="text-[10px] text-slate-400">9-Fold Full</p>
+                    <p class="text-sm font-bold text-amber-400" id="odds9">--</p>
+                    <p class="text-xs text-slate-300" id="return9">--</p>
                 </div>
-            </div>
-
-            <div class="card">
-                <h2>Active 9-Leg Slate & 4-Leg Bet Builders</h2>
-                <div id="slateContainer">Loading slate...</div>
             </div>
         </div>
 
-        <!-- TAB 2: DAILY VALUE SCANNER -->
-        <div id="valueTab" class="tab-content">
-            <div class="card">
-                <h2>Global High-Value Picks (EV &ge; +4.0%)</h2>
-                <p style="color: #94a3b8;">Strict value finder filtering out low-margin noise across global fixtures.</p>
-                <div id="valueContainer">Loading value picks...</div>
-            </div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Active Slate & 4-Leg Bet Builders</h2>
+            <div class="overflow-x-auto" id="slateContainer">Loading slate...</div>
         </div>
+    </div>
 
-        <!-- TAB 3: CORRECT SCORE MATRIX -->
-        <div id="scoreTab" class="tab-content">
-            <div class="card">
-                <h2>🎯 Poisson Model Correct Score Projections</h2>
-                <p style="color: #94a3b8;">Expected goals (xG) and most probable full-time scorelines calculated by the quantitative engine.</p>
-                <div id="scoreContainer">Loading correct scores...</div>
-            </div>
+    <!-- TAB 2: DAILY VALUE SCANNER -->
+    <div id="valueTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-1">Global High-Value Picks (EV &ge; +4.0%)</h2>
+            <p class="text-xs text-slate-400 mb-4">Strict value finder filtering out low-margin noise across global fixtures.</p>
+            <div class="overflow-x-auto" id="valueContainer">Loading value picks...</div>
+        </div>
+    </div>
+
+    <!-- TAB 3: CORRECT SCORE MATRIX -->
+    <div id="scoreTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-1">🎯 Poisson Model Correct Score Projections</h2>
+            <p class="text-xs text-slate-400 mb-4">Expected goals (xG) and most probable full-time scorelines calculated by the AI engine.</p>
+            <div class="overflow-x-auto" id="scoreContainer">Loading correct scores...</div>
         </div>
     </div>
 
@@ -235,12 +266,12 @@ HTML_CONTENT = f"""<!DOCTYPE html>
                 builderHtml += '</ul></div>';
 
                 html += `<tr>
-                    <td>` + f.leg + `</td>
+                    <td class="font-bold text-amber-400">#` + f.leg + `</td>
                     <td>` + f.date + `</td>
-                    <td>` + f.match + `</td>
+                    <td class="font-semibold">` + f.match + `</td>
                     <td><strong>` + f.selection + `</strong>` + builderHtml + `</td>
                     <td>` + f.odds.toFixed(2) + `</td>
-                    <td><strong>` + f.builder_odds.toFixed(2) + `</strong></td>
+                    <td><strong class="text-amber-400">` + f.builder_odds.toFixed(2) + `</strong></td>
                     <td><span class="ev-badge">` + f.ev_str + `</span></td>
                     <td><span class="tier-badge">` + f.tier_assignment + `</span></td>
                 </tr>`;
@@ -252,16 +283,15 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         function renderValueTable() {{
             let html = '<table><thead><tr><th>Date</th><th>League</th><th>Match</th><th>Selection</th><th>Bookie Odds</th><th>Model Prob</th><th>EV Edge</th><th>Rating</th></tr></thead><tbody>';
             valueData.forEach(f => {{
-                const ratingClass = f.ev_val >= 6.0 ? 'ultra' : '';
                 html += `<tr>
                     <td>` + f.date + `</td>
                     <td>` + f.league + `</td>
-                    <td>` + f.match + `</td>
+                    <td class="font-semibold">` + f.match + `</td>
                     <td><strong>` + f.selection + `</strong></td>
                     <td>` + f.odds.toFixed(2) + `</td>
                     <td>` + f.model_prob_str + `</td>
                     <td><span class="ev-badge">` + f.ev_str + `</span></td>
-                    <td><span class="rating-badge ` + ratingClass + `">` + f.edge_rating + `</span></td>
+                    <td><span class="tier-badge bg-amber-500/20 text-amber-400">` + f.edge_rating + `</span></td>
                 </tr>`;
             }});
             html += '</tbody></table>';
@@ -273,7 +303,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
             scoreData.forEach(s => {{
                 html += `<tr>
                     <td>` + s.date + `</td>
-                    <td><strong>` + s.match + `</strong></td>
+                    <td class="font-semibold">` + s.match + `</td>
                     <td>` + s.xg + `</td>
                     <td><span class="score-badge">` + s.predicted_score + `</span></td>
                     <td>` + s.alt_score + `</td>
@@ -286,7 +316,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         }}
 
         function calculateReturns() {{
-            const stake = parseFloat(defaultVal = document.getElementById('baseStake').value) || 0;
+            const stake = parseFloat(document.getElementById('baseStake').value) || 0;
             const calcOdds = (count) => slateData.slice(0, count).reduce((acc, item) => acc * item.odds, 1);
 
             const odds3 = calcOdds(3);
