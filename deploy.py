@@ -23,11 +23,11 @@ html_code = """<!DOCTYPE html>
 <body class="bg-slate-950 min-h-screen pb-12">
     <div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
         <div class="px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-            AI ANALYSIS ENGINE ACTIVE
+            PERMANENT ENGINE ACTIVE
         </div>
         <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span class="text-xs text-slate-300">Correct Score Matrix Online</span>
+            <span class="text-xs text-slate-300">All Modules Locked & Loaded</span>
         </div>
     </div>
 
@@ -35,7 +35,7 @@ html_code = """<!DOCTYPE html>
         <h1 class="text-3xl font-extrabold text-white">
             AI Scorecast <span class="text-amber-400">PRO</span>
         </h1>
-        <p class="text-sm text-slate-300 mt-1">Manage predictions with AI VIP analyses & exact score projections.</p>
+        <p class="text-sm text-slate-300 mt-1">Permanent high-performance quantitative analytics platform.</p>
     </div>
 
     <div class="max-w-6xl mx-auto px-4 mt-8">
@@ -271,4 +271,4 @@ for file_name in ["main.py", "app.py", "server.py"]:
     with open(file_name, "w", encoding="utf-8") as f:
         f.write(py_code)
 
-print("Correct Score tab successfully deployed.")
+print("Permanent files generated successfully.")
