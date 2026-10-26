@@ -1,12 +1,31 @@
+import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
 app = FastAPI(title="AI Scorecast PRO")
 
+CORRECT_SCORES = [
+    {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "correct_score": "2 - 0", "odds": 7.50, "model_prob": "18.5%", "ev_edge": "+38.75%"},
+    {"date": "2026-10-26", "league": "Super Lig", "match": "Galatasaray vs. Fenerbahce", "correct_score": "2 - 1", "odds": 8.20, "model_prob": "16.2%", "ev_edge": "+32.84%"},
+    {"date": "2026-10-27", "league": "EFL Trophy", "match": "Fleetwood vs. Arsenal", "correct_score": "0 - 3", "odds": 6.80, "model_prob": "21.0%", "ev_edge": "+42.80%"},
+    {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "correct_score": "2 - 1", "odds": 8.00, "model_prob": "17.4%", "ev_edge": "+39.20%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Manchester City vs. Brighton", "correct_score": "3 - 1", "odds": 9.50, "model_prob": "14.5%", "ev_edge": "+37.75%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "correct_score": "2 - 2", "odds": 11.00, "model_prob": "12.0%", "ev_edge": "+32.00%"}
+]
+
+DAILY_VALUE_PICKS = [
+    {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win", "odds": 2.10, "model_prob": "54.0%", "ev_edge": "+13.40%", "rating": "A+ VALUE"},
+    {"date": "2026-10-26", "league": "Super Lig", "match": "Galatasaray vs. Fenerbahce", "selection": "Both Teams to Score & Over 2.5", "odds": 1.95, "model_prob": "58.0%", "ev_edge": "+13.10%", "rating": "A+ VALUE"},
+    {"date": "2026-10-27", "league": "EFL Trophy", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal -1.5 Handicap", "odds": 1.82, "model_prob": "62.0%", "ev_edge": "+12.74%", "rating": "A VALUE"},
+    {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "selection": "Real Madrid Win", "odds": 1.75, "model_prob": "64.0%", "ev_edge": "+12.00%", "rating": "A VALUE"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Manchester City vs. Brighton", "selection": "Man City -1.0 Handicap", "odds": 1.90, "model_prob": "59.0%", "ev_edge": "+12.10%", "rating": "A VALUE"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "selection": "Over 2.5 Goals", "odds": 1.55, "model_prob": "72.0%", "ev_edge": "+11.60%", "rating": "B+ VALUE"}
+]
+
 COMBO_BANKERS = [
-    {"banker": 1, "date": "2026-10-27", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "confidence": "HIGH BANKER"},
-    {"banker": 2, "date": "2026-10-27", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Match Goals", "odds": 1.30, "model_prob": "82.0%", "ev_edge": "+6.60%", "confidence": "HIGH BANKER"},
-    {"banker": 3, "date": "2026-10-27", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": "77.0%", "ev_edge": "+4.72%", "confidence": "SOLID BANKER"},
+    {"banker": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "confidence": "HIGH BANKER"},
+    {"banker": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Match Goals", "odds": 1.30, "model_prob": "82.0%", "ev_edge": "+6.60%", "confidence": "HIGH BANKER"},
+    {"banker": 3, "date": "2026-10-26", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": "77.0%", "ev_edge": "+4.72%", "confidence": "SOLID BANKER"},
     {"banker": 4, "date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": "91.0%", "ev_edge": "+7.38%", "confidence": "HIGH BANKER"},
     {"banker": 5, "date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Match Goals", "odds": 1.40, "model_prob": "76.0%", "ev_edge": "+6.40%", "confidence": "SOLID BANKER"},
     {"banker": 6, "date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "Over 1.5 Match Goals", "odds": 1.22, "model_prob": "85.0%", "ev_edge": "+5.25%", "confidence": "HIGH BANKER"},
@@ -14,7 +33,7 @@ COMBO_BANKERS = [
 ]
 
 GOAL_COUNT_VALUE = [
-    {"date": "2026-10-27", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": "75.0%", "xg_projected": "3.20", "ev_edge": "+17.75%"},
+    {"date": "2026-10-26", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": "75.0%", "xg_projected": "3.20", "ev_edge": "+17.75%"},
     {"date": "2026-10-27", "league": "Friendly", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": "76.0%", "xg_projected": "3.35", "ev_edge": "+6.40%"},
     {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "selection": "Over 2.5 Goals", "odds": 1.68, "model_prob": "68.0%", "xg_projected": "2.95", "ev_edge": "+14.24%"},
     {"date": "2026-10-28", "league": "EFL Cup", "match": "Bournemouth vs. Aston Villa", "selection": "Over 2.5 Goals", "odds": 1.62, "model_prob": "70.0%", "xg_projected": "3.10", "ev_edge": "+13.40%"},
@@ -23,8 +42,8 @@ GOAL_COUNT_VALUE = [
 ]
 
 CORNER_PREDICTIONS = [
-    {"date": "2026-10-27", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Over 4.5 Corners", "odds": 1.44, "model_prob": "78.0%", "avg_corners": "6.2", "ev_edge": "+12.32%"},
-    {"date": "2026-10-27", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 9.5 Match Corners", "odds": 1.72, "model_prob": "65.0%", "avg_corners": "11.4", "ev_edge": "+11.80%"},
+    {"date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Over 4.5 Corners", "odds": 1.44, "model_prob": "78.0%", "avg_corners": "6.2", "ev_edge": "+12.32%"},
+    {"date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 9.5 Match Corners", "odds": 1.72, "model_prob": "65.0%", "avg_corners": "11.4", "ev_edge": "+11.80%"},
     {"date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "PSG Over 5.5 Corners", "odds": 1.65, "model_prob": "67.0%", "avg_corners": "7.1", "ev_edge": "+10.55%"},
     {"date": "2026-10-28", "match": "Liverpool vs. Chelsea", "selection": "Over 9.5 Match Corners", "odds": 1.60, "model_prob": "69.0%", "avg_corners": "10.8", "ev_edge": "+10.40%"},
     {"date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Man City Over 6.5 Corners", "odds": 1.53, "model_prob": "72.0%", "avg_corners": "8.3", "ev_edge": "+10.16%"}
@@ -42,6 +61,12 @@ BET_BUILDERS = [
     {"match": "Liverpool vs. Chelsea", "builder": "Over 2.5 Goals + Over 9.5 Match Corners + Salah 1+ Shot on Target", "combined_odds": 3.10, "ev_edge": "+14.50%"}
 ]
 
+@app.get("/api/correct-scores")
+def get_correct_scores(): return CORRECT_SCORES
+
+@app.get("/api/value-picks")
+def get_value_picks(): return DAILY_VALUE_PICKS
+
 @app.get("/api/bankers")
 def get_bankers(): return COMBO_BANKERS
 
@@ -58,4 +83,6 @@ def get_goal_count(): return GOAL_COUNT_VALUE
 def get_corners(): return CORNER_PREDICTIONS
 
 @app.get("/")
-def read_root(): return FileResponse("index.html")
+def read_root():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return FileResponse(os.path.join(base_dir, "index.html"))

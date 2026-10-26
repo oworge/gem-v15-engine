@@ -27,7 +27,7 @@ html_code = """<!DOCTYPE html>
         </div>
         <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span class="text-xs text-slate-300">10K Active Users</span>
+            <span class="text-xs text-slate-300">Correct Score Matrix Online</span>
         </div>
     </div>
 
@@ -35,20 +35,36 @@ html_code = """<!DOCTYPE html>
         <h1 class="text-3xl font-extrabold text-white">
             AI Scorecast <span class="text-amber-400">PRO</span>
         </h1>
-        <p class="text-sm text-slate-300 mt-1">Manage predictions with AI VIP analyses.</p>
+        <p class="text-sm text-slate-300 mt-1">Manage predictions with AI VIP analyses & exact score projections.</p>
     </div>
 
     <div class="max-w-6xl mx-auto px-4 mt-8">
         <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 overflow-x-auto">
-            <button class="tab-btn active" onclick="switchTab('bTab', this)">AI Combo Banker (7)</button>
+            <button class="tab-btn active" onclick="switchTab('csTab', this)">🎯 Correct Score Matrix</button>
+            <button class="tab-btn" onclick="switchTab('vTab', this)">🔥 Daily Value Finder</button>
+            <button class="tab-btn" onclick="switchTab('bTab', this)">AI Combo Banker (7)</button>
             <button class="tab-btn" onclick="switchTab('fTab', this)">3-6-9 Fold Slate</button>
             <button class="tab-btn" onclick="switchTab('bbTab', this)">Bet Builder</button>
-            <button class="tab-btn" onclick="switchTab('gTab', this)">Goal Count (Over 2.5 Value)</button>
-            <button class="tab-btn" onclick="switchTab('cTab', this)">Corner Predictions</button>
+            <button class="tab-btn" onclick="switchTab('gTab', this)">Goal Count</button>
+            <button class="tab-btn" onclick="switchTab('cTab', this)">Corners</button>
         </div>
     </div>
 
-    <div id="bTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
+    <div id="csTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">AI Correct Score Projections</h2>
+            <div id="csCon" class="overflow-x-auto text-slate-400">Loading score matrix...</div>
+        </div>
+    </div>
+
+    <div id="vTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">Daily Automated Value Finder</h2>
+            <div id="vCon" class="overflow-x-auto text-slate-400">Loading value picks...</div>
+        </div>
+    </div>
+
+    <div id="bTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h2 class="text-lg font-bold text-white mb-2">7 AI Automated Selected Bankers</h2>
             <div id="bCon" class="overflow-x-auto text-slate-400">Loading bankers...</div>
@@ -71,7 +87,7 @@ html_code = """<!DOCTYPE html>
 
     <div id="gTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-2">Goal Count Predictions (Over 2.5 Value Finder)</h2>
+            <h2 class="text-lg font-bold text-white mb-2">Goal Count Predictions</h2>
             <div id="gCon" class="overflow-x-auto text-slate-400">Loading goal predictions...</div>
         </div>
     </div>
@@ -107,13 +123,25 @@ html_code = """<!DOCTYPE html>
 
         function loadData() {
             Promise.all([
+                fetch('/api/correct-scores').then(function(r){ return r.json(); }),
+                fetch('/api/value-picks').then(function(r){ return r.json(); }),
                 fetch('/api/bankers').then(function(r){ return r.json(); }),
                 fetch('/api/folds').then(function(r){ return r.json(); }),
                 fetch('/api/bet-builders').then(function(r){ return r.json(); }),
                 fetch('/api/goal-count').then(function(r){ return r.json(); }),
                 fetch('/api/corners').then(function(r){ return r.json(); })
             ]).then(function(res) {
-                var b = res[0], f = res[1], bb = res[2], g = res[3], c = res[4];
+                var cs = res[0], v = res[1], b = res[2], f = res[3], bb = res[4], g = res[5], c = res[6];
+
+                var csRows = cs.map(function(x){
+                    return [x.date, x.league, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400 font-bold text-base">' + x.correct_score + '</strong>', x.odds.toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>'];
+                });
+                document.getElementById('csCon').innerHTML = renderTable(['Date', 'League', 'Match', 'Projected Score', 'Odds', 'Probability', 'EV Edge'], csRows);
+
+                var vRows = v.map(function(x){
+                    return [x.date, x.league, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.selection + '</strong>', x.odds.toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>', '<span class="badge-gold">' + x.rating + '</span>'];
+                });
+                document.getElementById('vCon').innerHTML = renderTable(['Date', 'League', 'Match', 'Selection', 'Odds', 'Model Prob', 'EV Edge', 'Rating'], vRows);
 
                 var bRows = b.map(function(x){
                     return ['<span class="font-bold text-amber-400">#' + x.banker + '</span>', x.date, '<span class="font-semibold">' + x.match + '</span>', '<strong>' + x.selection + '</strong>', x.odds.toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>', '<span class="badge-gold">' + x.confidence + '</span>'];
@@ -146,15 +174,34 @@ html_code = """<!DOCTYPE html>
 </body>
 </html>"""
 
-py_code = """from fastapi import FastAPI
+py_code = """import os
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
 app = FastAPI(title="AI Scorecast PRO")
 
+CORRECT_SCORES = [
+    {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "correct_score": "2 - 0", "odds": 7.50, "model_prob": "18.5%", "ev_edge": "+38.75%"},
+    {"date": "2026-10-26", "league": "Super Lig", "match": "Galatasaray vs. Fenerbahce", "correct_score": "2 - 1", "odds": 8.20, "model_prob": "16.2%", "ev_edge": "+32.84%"},
+    {"date": "2026-10-27", "league": "EFL Trophy", "match": "Fleetwood vs. Arsenal", "correct_score": "0 - 3", "odds": 6.80, "model_prob": "21.0%", "ev_edge": "+42.80%"},
+    {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "correct_score": "2 - 1", "odds": 8.00, "model_prob": "17.4%", "ev_edge": "+39.20%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Manchester City vs. Brighton", "correct_score": "3 - 1", "odds": 9.50, "model_prob": "14.5%", "ev_edge": "+37.75%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "correct_score": "2 - 2", "odds": 11.00, "model_prob": "12.0%", "ev_edge": "+32.00%"}
+]
+
+DAILY_VALUE_PICKS = [
+    {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win", "odds": 2.10, "model_prob": "54.0%", "ev_edge": "+13.40%", "rating": "A+ VALUE"},
+    {"date": "2026-10-26", "league": "Super Lig", "match": "Galatasaray vs. Fenerbahce", "selection": "Both Teams to Score & Over 2.5", "odds": 1.95, "model_prob": "58.0%", "ev_edge": "+13.10%", "rating": "A+ VALUE"},
+    {"date": "2026-10-27", "league": "EFL Trophy", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal -1.5 Handicap", "odds": 1.82, "model_prob": "62.0%", "ev_edge": "+12.74%", "rating": "A VALUE"},
+    {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "selection": "Real Madrid Win", "odds": 1.75, "model_prob": "64.0%", "ev_edge": "+12.00%", "rating": "A VALUE"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Manchester City vs. Brighton", "selection": "Man City -1.0 Handicap", "odds": 1.90, "model_prob": "59.0%", "ev_edge": "+12.10%", "rating": "A VALUE"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "selection": "Over 2.5 Goals", "odds": 1.55, "model_prob": "72.0%", "ev_edge": "+11.60%", "rating": "B+ VALUE"}
+]
+
 COMBO_BANKERS = [
-    {"banker": 1, "date": "2026-10-27", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "confidence": "HIGH BANKER"},
-    {"banker": 2, "date": "2026-10-27", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Match Goals", "odds": 1.30, "model_prob": "82.0%", "ev_edge": "+6.60%", "confidence": "HIGH BANKER"},
-    {"banker": 3, "date": "2026-10-27", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": "77.0%", "ev_edge": "+4.72%", "confidence": "SOLID BANKER"},
+    {"banker": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "confidence": "HIGH BANKER"},
+    {"banker": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Match Goals", "odds": 1.30, "model_prob": "82.0%", "ev_edge": "+6.60%", "confidence": "HIGH BANKER"},
+    {"banker": 3, "date": "2026-10-26", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": "77.0%", "ev_edge": "+4.72%", "confidence": "SOLID BANKER"},
     {"banker": 4, "date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": "91.0%", "ev_edge": "+7.38%", "confidence": "HIGH BANKER"},
     {"banker": 5, "date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Match Goals", "odds": 1.40, "model_prob": "76.0%", "ev_edge": "+6.40%", "confidence": "SOLID BANKER"},
     {"banker": 6, "date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "Over 1.5 Match Goals", "odds": 1.22, "model_prob": "85.0%", "ev_edge": "+5.25%", "confidence": "HIGH BANKER"},
@@ -162,7 +209,7 @@ COMBO_BANKERS = [
 ]
 
 GOAL_COUNT_VALUE = [
-    {"date": "2026-10-27", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": "75.0%", "xg_projected": "3.20", "ev_edge": "+17.75%"},
+    {"date": "2026-10-26", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": "75.0%", "xg_projected": "3.20", "ev_edge": "+17.75%"},
     {"date": "2026-10-27", "league": "Friendly", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": "76.0%", "xg_projected": "3.35", "ev_edge": "+6.40%"},
     {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "selection": "Over 2.5 Goals", "odds": 1.68, "model_prob": "68.0%", "xg_projected": "2.95", "ev_edge": "+14.24%"},
     {"date": "2026-10-28", "league": "EFL Cup", "match": "Bournemouth vs. Aston Villa", "selection": "Over 2.5 Goals", "odds": 1.62, "model_prob": "70.0%", "xg_projected": "3.10", "ev_edge": "+13.40%"},
@@ -171,8 +218,8 @@ GOAL_COUNT_VALUE = [
 ]
 
 CORNER_PREDICTIONS = [
-    {"date": "2026-10-27", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Over 4.5 Corners", "odds": 1.44, "model_prob": "78.0%", "avg_corners": "6.2", "ev_edge": "+12.32%"},
-    {"date": "2026-10-27", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 9.5 Match Corners", "odds": 1.72, "model_prob": "65.0%", "avg_corners": "11.4", "ev_edge": "+11.80%"},
+    {"date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Over 4.5 Corners", "odds": 1.44, "model_prob": "78.0%", "avg_corners": "6.2", "ev_edge": "+12.32%"},
+    {"date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 9.5 Match Corners", "odds": 1.72, "model_prob": "65.0%", "avg_corners": "11.4", "ev_edge": "+11.80%"},
     {"date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "PSG Over 5.5 Corners", "odds": 1.65, "model_prob": "67.0%", "avg_corners": "7.1", "ev_edge": "+10.55%"},
     {"date": "2026-10-28", "match": "Liverpool vs. Chelsea", "selection": "Over 9.5 Match Corners", "odds": 1.60, "model_prob": "69.0%", "avg_corners": "10.8", "ev_edge": "+10.40%"},
     {"date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Man City Over 6.5 Corners", "odds": 1.53, "model_prob": "72.0%", "avg_corners": "8.3", "ev_edge": "+10.16%"}
@@ -190,6 +237,12 @@ BET_BUILDERS = [
     {"match": "Liverpool vs. Chelsea", "builder": "Over 2.5 Goals + Over 9.5 Match Corners + Salah 1+ Shot on Target", "combined_odds": 3.10, "ev_edge": "+14.50%"}
 ]
 
+@app.get("/api/correct-scores")
+def get_correct_scores(): return CORRECT_SCORES
+
+@app.get("/api/value-picks")
+def get_value_picks(): return DAILY_VALUE_PICKS
+
 @app.get("/api/bankers")
 def get_bankers(): return COMBO_BANKERS
 
@@ -206,7 +259,9 @@ def get_goal_count(): return GOAL_COUNT_VALUE
 def get_corners(): return CORNER_PREDICTIONS
 
 @app.get("/")
-def read_root(): return FileResponse("index.html")
+def read_root():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return FileResponse(os.path.join(base_dir, "index.html"))
 """
 
 with open("index.html", "w", encoding="utf-8") as f:
@@ -216,4 +271,4 @@ for file_name in ["main.py", "app.py", "server.py"]:
     with open(file_name, "w", encoding="utf-8") as f:
         f.write(py_code)
 
-print("Generator executed successfully.")
+print("Correct Score tab successfully deployed.")
