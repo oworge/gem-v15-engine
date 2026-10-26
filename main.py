@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ï»¿# -*- coding: utf-8 -*-
 from fastapi import FastAPI, Response, Request
 from fastapi.responses import HTMLResponse
 from datetime import datetime
@@ -67,7 +67,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <div class="metrics-grid">
         <div class="metric-card">
-            <label>Base Stake (£)</label>
+            <label>Base Stake (Â£)</label>
             <input type="number" id="baseStake" value="10" min="1" oninput="renderApp()">
         </div>
         <div class="metric-card">
@@ -143,10 +143,10 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="acc-box" onclick="logBet('3-Fold Anchor', )">
                     <div>
                         <div style="font-size:12px; font-weight:800; color:var(--gold);">?? 3-FOLD ANCHOR &bull; Tap to Log</div>
-                        <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b></b> | Stake: £</div>
+                        <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b></b> | Stake: Â£</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:16px; font-weight:800; color:var(--gold);">£</div>
+                        <div style="font-size:16px; font-weight:800; color:var(--gold);">Â£</div>
                         <div style="font-size:10px; color:var(--text-dim);">Est. Return</div>
                     </div>
                 </div>
@@ -166,7 +166,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                         <div class="card-top">
                             <div>
                                 <b></b><br/>
-                                <span style="font-size:12px; color:var(--text-dim);">Stake: £ | Odds: @ &? Ret: £</span>
+                                <span style="font-size:12px; color:var(--text-dim);">Stake: Â£ | Odds: @ &? Ret: Â£</span>
                             </div>
                             <span class="badge" style="background:var(--gold); color:#0d1117;"></span>
                         </div>
@@ -264,6 +264,7 @@ def root_head():
 @app.head('/')
 def root_head():
     return ''
+
 
 
 
