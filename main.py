@@ -260,3 +260,8 @@ async def log_bet(request: Request):
 def root_head():
     return ''
 
+
+@app.head('/')
+def root_head():
+    return ''
+
