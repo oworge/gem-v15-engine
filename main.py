@@ -2,20 +2,103 @@ import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="GEM V15.0 Value Finder Engine")
+app = FastAPI(title="GEM V15.0 Engine & Value Finder")
 
+# 1. ACCUMULATOR SLATE WITH 4 BET BUILDER SELECTIONS PER GAME
 ACCUMULATOR_SLATE = [
-    {"leg": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.84, "agreement": 0.92, "time": "20:00 GMT"},
-    {"leg": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "model_prob": 0.82, "agreement": 0.88, "time": "18:30 GMT"},
-    {"leg": 3, "date": "2026-10-26", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": 0.77, "agreement": 0.85, "time": "18:45 GMT"},
-    {"leg": 4, "date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": 0.91, "agreement": 0.95, "time": "19:45 GMT"},
-    {"leg": 5, "date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": 0.76, "agreement": 0.79, "time": "17:45 GMT"},
-    {"leg": 6, "date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "Over 1.5 Goals", "odds": 1.22, "model_prob": 0.85, "agreement": 0.90, "time": "20:00 GMT"},
-    {"leg": 7, "date": "2026-10-28", "match": "Liverpool vs. Chelsea", "selection": "Over 1.5 Goals", "odds": 1.24, "model_prob": 0.83, "agreement": 0.87, "time": "19:45 GMT"},
-    {"leg": 8, "date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Manchester City Win", "odds": 1.32, "model_prob": 0.80, "agreement": 0.84, "time": "19:45 GMT"},
-    {"leg": 9, "date": "2026-10-28", "match": "Bournemouth vs. Aston Villa", "selection": "Both Teams to Score", "odds": 1.50, "model_prob": 0.72, "agreement": 0.75, "time": "19:45 GMT"}
+    {
+        "leg": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.84, "agreement": 0.92, "time": "20:00 GMT",
+        "bet_builder": [
+            "Sevilla Double Chance (1X)",
+            "Under 3.5 Match Goals",
+            "Sevilla Over 3.5 Team Corners",
+            "Osasuna Over 1.5 Team Cards"
+        ],
+        "builder_odds": 2.40
+    },
+    {
+        "leg": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "model_prob": 0.82, "agreement": 0.88, "time": "18:30 GMT",
+        "bet_builder": [
+            "Over 1.5 Match Goals",
+            "Both Teams to Score (Yes)",
+            "Over 4.5 Match Cards",
+            "Galatasaray Over 4.5 Corners"
+        ],
+        "builder_odds": 2.85
+    },
+    {
+        "leg": 3, "date": "2026-10-26", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": 0.77, "agreement": 0.85, "time": "18:45 GMT",
+        "bet_builder": [
+            "Benfica Match Winner",
+            "Over 1.5 Match Goals",
+            "Benfica Over 1.5 Team Goals",
+            "Santa Clara Over 1.5 Cards"
+        ],
+        "builder_odds": 2.50
+    },
+    {
+        "leg": 4, "date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": 0.91, "agreement": 0.95, "time": "19:45 GMT",
+        "bet_builder": [
+            "Arsenal Match Winner",
+            "Arsenal HT/FT",
+            "Over 2.5 Match Goals",
+            "Fleetwood Under 3.5 Corners"
+        ],
+        "builder_odds": 2.10
+    },
+    {
+        "leg": 5, "date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": 0.76, "agreement": 0.79, "time": "17:45 GMT",
+        "bet_builder": [
+            "Over 2.5 Match Goals",
+            "Dortmund Over 1.5 First Half Goals",
+            "Dortmund Win Either Half",
+            "Over 8.5 Match Corners"
+        ],
+        "builder_odds": 2.65
+    },
+    {
+        "leg": 6, "date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "Over 1.5 Goals", "odds": 1.22, "model_prob": 0.85, "agreement": 0.90, "time": "20:00 GMT",
+        "bet_builder": [
+            "Over 1.5 Match Goals",
+            "Both Teams to Score (Yes)",
+            "PSG Over 3.5 Team Corners",
+            "Barcelona Over 1.5 Cards"
+        ],
+        "builder_odds": 2.35
+    },
+    {
+        "leg": 7, "date": "2026-10-28", "match": "Liverpool vs. Chelsea", "selection": "Over 1.5 Goals", "odds": 1.24, "model_prob": 0.83, "agreement": 0.87, "time": "19:45 GMT",
+        "bet_builder": [
+            "Over 1.5 Match Goals",
+            "Liverpool Double Chance (1X)",
+            "Over 9.5 Match Corners",
+            "Over 3.5 Match Cards"
+        ],
+        "builder_odds": 2.45
+    },
+    {
+        "leg": 8, "date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Manchester City Win", "odds": 1.32, "model_prob": 0.80, "agreement": 0.84, "time": "19:45 GMT",
+        "bet_builder": [
+            "Man City Match Winner",
+            "Over 2.5 Match Goals",
+            "Man City Over 5.5 Team Corners",
+            "Brighton Over 1.5 Cards"
+        ],
+        "builder_odds": 2.55
+    },
+    {
+        "leg": 9, "date": "2026-10-28", "match": "Bournemouth vs. Aston Villa", "selection": "Both Teams to Score", "odds": 1.50, "model_prob": 0.72, "agreement": 0.75, "time": "19:45 GMT",
+        "bet_builder": [
+            "Both Teams to Score (Yes)",
+            "Over 2.5 Match Goals",
+            "Aston Villa Double Chance (X2)",
+            "Over 8.5 Match Corners"
+        ],
+        "builder_odds": 3.10
+    }
 ]
 
+# 2. GLOBAL FIXTURE POOL (For Corrected Daily Value Finder)
 GLOBAL_FIXTURE_POOL = [
     {"date": "2026-10-26", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": 0.75, "time": "18:00 GMT"},
     {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.85, "time": "20:00 GMT"},
@@ -23,7 +106,6 @@ GLOBAL_FIXTURE_POOL = [
     {"date": "2026-10-26", "league": "Romania Liga I", "match": "Sepsi OSK vs. U Craiova", "selection": "Away Win", "odds": 1.50, "model_prob": 0.715, "time": "18:00 GMT"},
     {"date": "2026-10-26", "league": "Argentina Liga Prof", "match": "Union Santa Fe vs. Estudiantes", "selection": "Double Chance (12)", "odds": 1.36, "model_prob": 0.77, "time": "22:00 GMT"},
     {"date": "2026-10-27", "league": "Serie A (Italy)", "match": "Torino vs. Como", "selection": "Como Win", "odds": 1.73, "model_prob": 0.64, "time": "19:45 GMT"},
-    {"date": "2026-10-27", "league": "Serie B (Italy)", "match": "Ascoli vs. Sampdoria", "selection": "Ascoli Win", "odds": 2.28, "model_prob": 0.48, "time": "12:00 GMT"},
     {"date": "2026-10-27", "league": "EFL Cup", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": 0.91, "time": "19:45 GMT"},
     {"date": "2026-10-27", "league": "Friendly", "match": "Sabah vs. Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": 0.76, "time": "17:45 GMT"},
     {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "selection": "Over 1.5 Goals", "odds": 1.24, "model_prob": 0.83, "time": "19:45 GMT"},
@@ -53,7 +135,7 @@ def process_value_picks(fixtures, min_ev_threshold=4.0):
         implied_prob = round(1.0 / odds, 4)
         ev = round(((prob * odds) - 1.0) * 100, 2)
         
-        # TIGHTENED FILTER: Strict threshold of EV >= +4.0%
+        # CORRECTED STRICT EV FILTER (EV >= +4.0%)
         if ev >= min_ev_threshold:
             value_picks.append({
                 **f,
@@ -92,13 +174,15 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         .tier-card {{ background: #334155; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8; }}
         .tier-card h3 {{ margin-top: 0; color: #38bdf8; }}
         table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
-        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #475569; }}
+        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #475569; vertical-align: top; }}
         th {{ background: #334155; color: #94a3b8; }}
         input[type="number"] {{ background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; font-size: 16px; }}
         .ev-badge {{ background: #166534; color: #4ade80; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }}
         .tier-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 6px; border-radius: 4px; font-size: 11px; }}
         .rating-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }}
         .rating-badge.ultra {{ background: #166534; color: #4ade80; }}
+        .builder-box {{ background: #0f172a; border-radius: 6px; padding: 8px; margin-top: 4px; font-size: 11px; border-left: 3px solid #f59e0b; }}
+        .builder-box ul {{ margin: 4px 0 0 15px; padding: 0; color: #cbd5e1; }}
     </style>
 </head>
 <body>
@@ -143,7 +227,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         <div id="valueTab" class="tab-content">
             <div class="card">
                 <h2>Global High-Value Picks (EV &ge; +4.0%)</h2>
-                <p style="color: #94a3b8;">Strict value scanner filtering out low-margin noise. Displays only high-confidence statistical edges across global matches.</p>
+                <p style="color: #94a3b8;">Strict value finder filtering out low-margin noise. Displays only true positive expected value matches across global fixtures.</p>
                 <div id="valueContainer">Loading value picks...</div>
             </div>
         </div>
@@ -161,14 +245,21 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         }}
 
         function renderSlateTable() {{
-            let html = '<table><thead><tr><th>Leg</th><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>EV Edge</th><th>Tier Auto-Route</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Leg</th><th>Date</th><th>Match</th><th>Selection & 4-Leg Bet Builder</th><th>Single Odds</th><th>Builder Odds</th><th>EV Edge</th><th>Tier Auto-Route</th></tr></thead><tbody>';
             slateData.forEach(f => {{
+                let builderHtml = '<div class="builder-box"><strong>⚡ 4-Leg Bet Builder:</strong><ul>';
+                f.bet_builder.forEach(item => {{
+                    builderHtml += '<li>' + item + '</li>';
+                }});
+                builderHtml += '</ul></div>';
+
                 html += `<tr>
                     <td>` + f.leg + `</td>
                     <td>` + f.date + `</td>
                     <td>` + f.match + `</td>
-                    <td><strong>` + f.selection + `</strong></td>
+                    <td><strong>` + f.selection + `</strong>` + builderHtml + `</td>
                     <td>` + f.odds.toFixed(2) + `</td>
+                    <td><strong>` + f.builder_odds.toFixed(2) + `</strong></td>
                     <td><span class="ev-badge">` + f.ev_str + `</span></td>
                     <td><span class="tier-badge">` + f.tier_assignment + `</span></td>
                 </tr>`;
