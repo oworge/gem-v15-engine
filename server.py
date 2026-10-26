@@ -2,7 +2,7 @@ import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="SlateMetrics AI - Quantitative Analytics Dashboard")
+app = FastAPI(title="AI Scorecast PRO - Quantitative Analytics Dashboard")
 
 COMBO_BANKERS = [
     {"banker": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "confidence": "HIGH BANKER"},
@@ -31,135 +31,87 @@ CORNER_PREDICTIONS = [
     {"date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Man City Over 6.5 Corners", "odds": 1.53, "model_prob": "72.0%", "avg_corners": "8.3", "ev_edge": "+10.16%"}
 ]
 
-json_bankers = json.dumps(COMBO_BANKERS)
-json_goals = json.dumps(GOAL_COUNT_VALUE)
-json_corners = json.dumps(CORNER_PREDICTIONS)
+b_json = json.dumps(COMBO_BANKERS)
+g_json = json.dumps(GOAL_COUNT_VALUE)
+c_json = json.dumps(CORNER_PREDICTIONS)
 
-HTML_CONTENT = f"""<!DOCTYPE html>
-<html lang="en">
+html = f"""<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SlateMetrics AI - Analytics Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {{ background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }}
-        .tab-btn {{ background: #1e293b; color: #94a3b8; border: none; padding: 10px 18px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; }}
-        .tab-btn.active {{ background: #eab308; color: #0b0f19; }}
-        .tab-content {{ display: none; }}
-        .tab-content.active {{ display: block; }}
-        table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
-        th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #1e293b; }}
-        th {{ background: #111827; color: #9ca3af; }}
-        .ev-badge {{ background: #065f46; color: #34d399; padding: 3px 8px; border-radius: 6px; font-weight: bold; inline-block; }}
-        .badge-gold {{ background: #b45309; color: #fef3c7; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Scorecast PRO</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body {{ background:#0b0f19; color:#f8fafc; font-family:sans-serif; }}
+.btn {{ background:#1e293b; color:#94a3b8; padding:10px 18px; font-size:13px; font-weight:bold; border-radius:8px; cursor:pointer; }}
+.btn.active {{ background:#eab308; color:#0b0f19; }}
+.tab {{ display:none; }}
+.tab.active {{ display:block; }}
+table {{ width:100%; border-collapse:collapse; font-size:13px; }}
+th, td {{ padding:12px; text-align:left; border-bottom:1px solid #1e293b; }}
+th {{ background:#111827; color:#9ca3af; }}
+.ev {{ background:#065f46; color:#34d399; padding:3px 8px; border-radius:6px; font-weight:bold; }}
+.gold {{ background:#b45309; color:#fef3c7; padding:3px 8px; border-radius:6px; font-weight:bold; font-size:11px; }}
+</style>
 </head>
 <body class="bg-slate-950 min-h-screen pb-12">
-    <div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
-        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-            <span>👑</span> AI ANALYSIS ENGINE ACTIVE
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span class="text-xs font-medium text-slate-300">10K Active Users</span>
-        </div>
+<div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
+    <div class="px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">?? AI ANALYSIS ENGINE ACTIVE</div>
+    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-xs text-slate-300">10K Active Users</span></div>
+</div>
+<div class="max-w-6xl mx-auto px-4 text-center mt-4">
+    <h1 class="text-3xl font-extrabold text-white">AI Scorecast <span class="text-amber-400">PRO</span></h1>
+    <p class="text-sm text-slate-300 mt-1">Manage predictions with AI VIP analyses.</p>
+</div>
+<div class="max-w-6xl mx-auto px-4 mt-8">
+    <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 overflow-x-auto">
+        <button class="btn active" onclick="sw('bTab',this)">? AI Combo Banker (7 Bankers)</button>
+        <button class="btn" onclick="sw('gTab',this)">? Goal Count Predictions (Over 2.5 Value)</button>
+        <button class="btn" onclick="sw('cTab',this)">?? Corner Count Predictions</button>
     </div>
-
-    <div class="max-w-6xl mx-auto px-4 text-center mt-4">
-        <h1 class="text-3xl font-extrabold tracking-tight text-white">
-            SlateMetrics <span class="text-amber-400">AI</span>
-        </h1>
-        <p class="text-sm text-slate-300 mt-1">Manage predictions with AI VIP analyses.</p>
-    </div>
-
-    <div class="max-w-6xl mx-auto px-4 mt-8">
-        <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 overflow-x-auto">
-            <button class="tab-btn active" onclick="switchTab('bankerTab', this)">⚡ AI Combo Banker (7 Bankers)</button>
-            <button class="tab-btn" onclick="switchTab('goalTab', this)">⚽ Goal Count Predictions (Over 2.5 Value)</button>
-            <button class="tab-btn" onclick="switchTab('cornerTab', this)">🚩 Corner Count Predictions</button>
-        </div>
-    </div>
-
-    <div id="bankerTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-1">7 AI Automated Selected Bankers</h2>
-            <div class="overflow-x-auto" id="bankerContainer">Loading...</div>
-        </div>
-    </div>
-
-    <div id="goalTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-1">Goal Count Predictions (Over 2.5 Value Finder)</h2>
-            <div class="overflow-x-auto" id="goalContainer">Loading...</div>
-        </div>
-    </div>
-
-    <div id="cornerTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-1">Corner Count Predictions</h2>
-            <div class="overflow-x-auto" id="cornerContainer">Loading...</div>
-        </div>
-    </div>
-
-    <script>
-        const bankerData = {json_bankers};
-        const goalData = {json_goals};
-        const cornerData = {json_corners};
-
-        function switchTab(tabId, btn) {{
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            if(btn) btn.classList.add('active');
-        }}
-
-        function renderBankerTable() {{
-            let html = '<table><thead><tr><th>Banker #</th><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model Prob</th><th>EV Edge</th><th>Confidence</th></tr></thead><tbody>';
-            bankerData.forEach(f => {{
-                html += `<tr><td class="font-bold text-amber-400">#` + f.banker + `</td><td>` + f.date + `</td><td class="font-semibold">` + f.match + `</td><td><strong>` + f.selection + `</strong></td><td>` + f.odds.toFixed(2) + `</td><td>` + f.model_prob + `</td><td><span class="ev-badge">` + f.ev_edge + `</span></td><td><span class="badge-gold">` + f.confidence + `</span></td></tr>`;
-            }});
-            html += '</tbody></table>';
-            document.getElementById('bankerContainer').innerHTML = html;
-        }}
-
-        function renderGoalTable() {{
-            let html = '<table><thead><tr><th>Date</th><th>League</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model xG</th><th>Model Prob</th><th>EV Edge</th></tr></thead><tbody>';
-            goalData.forEach(f => {{
-                html += `<tr><td>` + f.date + `</td><td>` + f.league + `</td><td class="font-semibold">` + f.match + `</td><td><strong class="text-amber-400">` + f.selection + `</strong></td><td>` + f.odds.toFixed(2) + `</td><td>` + f.xg_projected + `</td><td>` + f.model_prob + `</td><td><span class="ev-badge">` + f.ev_edge + `</span></td></tr>`;
-            }});
-            html += '</tbody></table>';
-            document.getElementById('goalContainer').innerHTML = html;
-        }}
-
-        function renderCornerTable() {{
-            let html = '<table><thead><tr><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model Avg Corners</th><th>Model Prob</th><th>EV Edge</th></tr></thead><tbody>';
-            cornerData.forEach(c => {{
-                html += `<tr><td>` + c.date + `</td><td class="font-semibold">` + c.match + `</td><td><strong class="text-amber-400">` + c.selection + `</strong></td><td>` + c.odds.toFixed(2) + `</td><td>` + c.avg_corners + `</td><td>` + c.model_prob + `</td><td><span class="ev-badge">` + c.ev_edge + `</span></td></tr>`;
-            }});
-            html += '</tbody></table>';
-            document.getElementById('cornerContainer').innerHTML = html;
-        }}
-
-        renderBankerTable();
-        renderGoalTable();
-        renderCornerTable();
-    </script>
+</div>
+<div id="bTab" class="tab active max-w-6xl mx-auto px-4 mt-6"><div class="bg-slate-900 border border-slate-800 rounded-2xl p-6"><h2 class="text-lg font-bold text-white mb-4">7 AI Automated Selected Bankers</h2><div id="bCon"></div></div></div>
+<div id="gTab" class="tab max-w-6xl mx-auto px-4 mt-6"><div class="bg-slate-900 border border-slate-800 rounded-2xl p-6"><h2 class="text-lg font-bold text-white mb-4">Goal Count Predictions (Over 2.5 Value Finder)</h2><div id="gCon"></div></div></div>
+<div id="cTab" class="tab max-w-6xl mx-auto px-4 mt-6"><div class="bg-slate-900 border border-slate-800 rounded-2xl p-6"><h2 class="text-lg font-bold text-white mb-4">Corner Count Predictions</h2><div id="cCon"></div></div></div>
+<script>
+const bD = {b_json};
+const gD = {g_json};
+const cD = {c_json};
+function sw(id, el) {{
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.btn').forEach(x => x.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(el) el.classList.add('active');
+}}
+function rB() {{
+    let h = '<table><thead><tr><th>Banker #</th><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model Prob</th><th>EV Edge</th><th>Confidence</th></tr></thead><tbody>';
+    bD.forEach(x => {{ h += <tr><td class="font-bold text-amber-400"># + x.banker + </td><td> + x.date + </td><td class="font-semibold"> + x.match + </td><td><strong> + x.selection + </strong></td><td> + x.odds.toFixed(2) + </td><td> + x.model_prob + </td><td><span class="ev"> + x.ev_edge + </span></td><td><span class="gold"> + x.confidence + </span></td></tr>; }});
+    document.getElementById('bCon').innerHTML = h + '</tbody></table>';
+}}
+function rG() {{
+    let h = '<table><thead><tr><th>Date</th><th>League</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model xG</th><th>Model Prob</th><th>EV Edge</th></tr></thead><tbody>';
+    gD.forEach(x => {{ h += <tr><td> + x.date + </td><td> + x.league + </td><td class="font-semibold"> + x.match + </td><td><strong class="text-amber-400"> + x.selection + </strong></td><td> + x.odds.toFixed(2) + </td><td> + x.xg_projected + </td><td> + x.model_prob + </td><td><span class="ev"> + x.ev_edge + </span></td></tr>; }});
+    document.getElementById('gCon').innerHTML = h + '</tbody></table>';
+}}
+function rC() {{
+    let h = '<table><thead><tr><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Avg Corners</th><th>Model Prob</th><th>EV Edge</th></tr></thead><tbody>';
+    cD.forEach(x => {{ h += <tr><td> + x.date + </td><td class="font-semibold"> + x.match + </td><td><strong class="text-amber-400"> + x.selection + </strong></td><td> + x.odds.toFixed(2) + </td><td> + x.avg_corners + </td><td> + x.model_prob + </td><td><span class="ev"> + x.ev_edge + </span></td></tr>; }});
+    document.getElementById('cCon').innerHTML = h + '</tbody></table>';
+}}
+rB(); rG(); rC();
+</script>
 </body>
 </html>"""
 
 @app.get("/api/bankers")
-def get_bankers():
-    return COMBO_BANKERS
+def get_bankers(): return COMBO_BANKERS
 
 @app.get("/api/goal-count")
-def get_goal_count():
-    return GOAL_COUNT_VALUE
+def get_goal_count(): return GOAL_COUNT_VALUE
 
 @app.get("/api/corners")
-def get_corners():
-    return CORNER_PREDICTIONS
+def get_corners(): return CORNER_PREDICTIONS
 
 @app.get("/", response_class=HTMLResponse)
-def read_root():
-    return HTML_CONTENT
+def read_root(): return html
