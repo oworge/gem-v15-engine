@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from fastapi import FastAPI, Response, Request
 from fastapi.responses import HTMLResponse
 from datetime import datetime
@@ -62,25 +62,25 @@ HTML_CONTENT = """<!DOCTYPE html>
             <h1>GEM V15.0 TERMINAL</h1>
             <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Quantitative Dashboard</p>
         </div>
-        <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
+        <button class="btn" onclick="copyBetSlip()">?? Copy Slip</button>
     </div>
 
     <div class="metrics-grid">
         <div class="metric-card">
-            <label>Base Stake (£)</label>
+            <label>Base Stake (�)</label>
             <input type="number" id="baseStake" value="10" min="1" oninput="renderApp()">
         </div>
         <div class="metric-card">
             <label>System Status</label>
-            <div style="font-size:14px; margin-top:6px; color:var(--accent); font-weight:800;">🟢 Online (Local)</div>
+            <div style="font-size:14px; margin-top:6px; color:var(--accent); font-weight:800;">?? Online (Cloud)</div>
         </div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('all', this)">🔥 All</div>
-        <div class="tab" onclick="switchTab('today', this)">⚡ Today</div>
-        <div class="tab" onclick="switchTab('futures', this)">🔮 Futures</div>
-        <div class="tab" onclick="switchTab('ledger', this)">📊 Ledger</div>
+        <div class="tab active" onclick="switchTab('all', this)">?? All</div>
+        <div class="tab" onclick="switchTab('today', this)">? Today</div>
+        <div class="tab" onclick="switchTab('futures', this)">?? Futures</div>
+        <div class="tab" onclick="switchTab('ledger', this)">?? Ledger</div>
     </div>
 
     <div id="acc-container"></div>
@@ -142,11 +142,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('acc-container').innerHTML = 
                 <div class="acc-box" onclick="logBet('3-Fold Anchor', )">
                     <div>
-                        <div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ANCHOR &bull; Tap to Log</div>
-                        <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b></b> | Stake: £</div>
+                        <div style="font-size:12px; font-weight:800; color:var(--gold);">?? 3-FOLD ANCHOR &bull; Tap to Log</div>
+                        <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b></b> | Stake: �</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:16px; font-weight:800; color:var(--gold);">£</div>
+                        <div style="font-size:16px; font-weight:800; color:var(--gold);">�</div>
                         <div style="font-size:10px; color:var(--text-dim);">Est. Return</div>
                     </div>
                 </div>
@@ -156,7 +156,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             const titleEl = document.getElementById('slate-title');
 
             if (currentTab === 'ledger') {
-                titleEl.innerText = "📊 Performance Ledger";
+                titleEl.innerText = "?? Performance Ledger";
                 if (ledgerData.length === 0) {
                     container.innerHTML = <div style="text-align:center; padding:20px; color:var(--text-dim);">No bets logged yet. Tap the 3-Fold Anchor above to log a bet!</div>;
                     return;
@@ -166,7 +166,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                         <div class="card-top">
                             <div>
                                 <b></b><br/>
-                                <span style="font-size:12px; color:var(--text-dim);">Stake: £ | Odds: @ &➔ Ret: £</span>
+                                <span style="font-size:12px; color:var(--text-dim);">Stake: � | Odds: @ &? Ret: �</span>
                             </div>
                             <span class="badge" style="background:var(--gold); color:#0d1117;"></span>
                         </div>
@@ -178,12 +178,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             let slate = globalData.slate;
             if (currentTab === 'today') {
                 slate = slate.filter(i => i.day_group === 'today');
-                titleEl.innerText = "⚡ Today's Games";
+                titleEl.innerText = "? Today's Games";
             } else if (currentTab === 'futures') {
                 slate = slate.filter(i => i.day_group === 'futures');
-                titleEl.innerText = "🔮 Futures Value";
+                titleEl.innerText = "?? Futures Value";
             } else {
-                titleEl.innerText = "🔥 Full Slate";
+                titleEl.innerText = "?? Full Slate";
             }
 
             container.innerHTML = slate.map(i => 
@@ -264,4 +264,5 @@ def root_head():
 @app.head('/')
 def root_head():
     return ''
+
 
