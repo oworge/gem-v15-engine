@@ -1,3 +1,4 @@
+# Force redeploy tag: 2026-10-26 20:18:02
 import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -78,7 +79,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
     <!-- Top Header Bar -->
     <div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
         <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-            <span>👑</span> AI ANALYSIS ENGINE ACTIVE
+            <span>ðŸ‘‘</span> AI ANALYSIS ENGINE ACTIVE
         </div>
         <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
@@ -99,19 +100,19 @@ HTML_CONTENT = f"""<!DOCTYPE html>
     <!-- Feature Quick Pills -->
     <div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
         <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5 cursor-pointer" onclick="switchTab('bankerTab', document.querySelectorAll('.tab-btn')[0])">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">âœ“</div>
             <span class="text-xs font-semibold text-slate-200">Combo Banker (7)</span>
         </div>
         <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5 cursor-pointer" onclick="switchTab('goalTab', document.querySelectorAll('.tab-btn')[1])">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">âœ“</div>
             <span class="text-xs font-semibold text-slate-200">Goal Count (Over 2.5)</span>
         </div>
         <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5 cursor-pointer" onclick="switchTab('cornerTab', document.querySelectorAll('.tab-btn')[2])">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">âœ“</div>
             <span class="text-xs font-semibold text-slate-200">Corner Predictions</span>
         </div>
         <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">âœ“</div>
             <span class="text-xs font-semibold text-slate-200">Live Predictions</span>
         </div>
     </div>
@@ -119,9 +120,9 @@ HTML_CONTENT = f"""<!DOCTYPE html>
     <!-- Navigation Tab Bar -->
     <div class="max-w-6xl mx-auto px-4 mt-8">
         <div class="flex gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-800 overflow-x-auto">
-            <button class="tab-btn active" onclick="switchTab('bankerTab', this)">⚡ AI Combo Banker (7 Bankers)</button>
-            <button class="tab-btn" onclick="switchTab('goalTab', this)">⚽ Goal Count Predictions (Over 2.5 Value)</button>
-            <button class="tab-btn" onclick="switchTab('cornerTab', this)">🚩 Corner Count Predictions</button>
+            <button class="tab-btn active" onclick="switchTab('bankerTab', this)">âš¡ AI Combo Banker (7 Bankers)</button>
+            <button class="tab-btn" onclick="switchTab('goalTab', this)">âš½ Goal Count Predictions (Over 2.5 Value)</button>
+            <button class="tab-btn" onclick="switchTab('cornerTab', this)">ðŸš© Corner Count Predictions</button>
         </div>
     </div>
 
