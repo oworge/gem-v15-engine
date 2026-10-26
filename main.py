@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="GEM V15.0 Advanced Engine")
 
-# RAW DATA INGESTION (Simulating Opta xG & Multi-Model Outputs)
 RAW_FIXTURES = [
     {"leg": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "xg_prob": 0.84, "model_agreement": 0.92, "time": "20:00 GMT"},
     {"leg": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "xg_prob": 0.82, "model_agreement": 0.88, "time": "18:30 GMT"},
@@ -25,19 +24,14 @@ def apply_advanced_analytics(fixtures):
         prob = f["xg_prob"]
         agreement = f["model_agreement"]
         
-        # 1. Dixon-Coles Low-Score Adjustment Factor (+1.5% calibration boost on low odds)
         calibrated_prob = min(round(prob * 1.015, 4), 0.98) if odds < 1.30 else prob
-        
-        # 2. Expected Value (EV) calculation
         ev = round(((calibrated_prob * odds) - 1.0) * 100, 2)
         
-        # 3. Fractional Kelly Criterion (Fractional 0.25 safety sizing)
         b = odds - 1.0
         p = calibrated_prob
         q = 1.0 - p
         kelly_fraction = max(0, round(((b * p - q) / b) * 0.25 * 100, 2))
         
-        # 4. Multi-Factor Tier Router (Requires EV + Model Agreement)
         if ev >= 5.0 and agreement >= 0.85:
             tier = "3-Fold Anchor"
         elif ev >= 2.0 and agreement >= 0.78:
@@ -120,16 +114,16 @@ HTML_CONTENT = f"""<!DOCTYPE html>
             let html = '<table><thead><tr><th>Leg</th><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>xG Prob</th><th>Agreement</th><th>EV Edge</th><th>Kelly Stake %</th><th>Tier Route</th></tr></thead><tbody>';
             data.forEach(f => {{
                 html += `<tr>
-                    <td>\${{f.leg}}</td>
-                    <td>\${{f.date}}</td>
-                    <td>\${{f.match}}</td>
-                    <td><strong>\${{f.selection}}</strong></td>
-                    <td>\${{f.odds.toFixed(2)}}</td>
-                    <td>\${{f.calibrated_prob}}</td>
-                    <td>\${{f.agreement_str}}</td>
-                    <td><span class="ev-badge">\${{f.ev_str}}</span></td>
-                    <td>\${{f.kelly_suggested}}</td>
-                    <td><span class="tier-badge">\${{f.tier_assignment}}</span></td>
+                    <td>` + f.leg + `</td>
+                    <td>` + f.date + `</td>
+                    <td>` + f.match + `</td>
+                    <td><strong>` + f.selection + `</strong></td>
+                    <td>` + f.odds.toFixed(2) + `</td>
+                    <td>` + f.calibrated_prob + `</td>
+                    <td>` + f.agreement_str + `</td>
+                    <td><span class="ev-badge">` + f.ev_str + `</span></td>
+                    <td>` + f.kelly_suggested + `</td>
+                    <td><span class="tier-badge">` + f.tier_assignment + `</span></td>
                 </tr>`;
             }});
             html += '</tbody></table>';
