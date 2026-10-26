@@ -2,132 +2,66 @@ import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="AI Scorecast PRO - Analytics Dashboard")
+app = FastAPI(title="SlateMetrics AI - Quantitative Analytics Dashboard")
 
-ACCUMULATOR_SLATE = [
-    {
-        "leg": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.84, "agreement": 0.92, "time": "20:00 GMT",
-        "bet_builder": ["Sevilla Double Chance (1X)", "Under 3.5 Match Goals", "Sevilla Over 3.5 Team Corners", "Osasuna Over 1.5 Team Cards"],
-        "builder_odds": 2.40
-    },
-    {
-        "leg": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "model_prob": 0.82, "agreement": 0.88, "time": "18:30 GMT",
-        "bet_builder": ["Over 1.5 Match Goals", "Both Teams to Score (Yes)", "Over 4.5 Match Cards", "Galatasaray Over 4.5 Corners"],
-        "builder_odds": 2.85
-    },
-    {
-        "leg": 3, "date": "2026-10-26", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": 0.77, "agreement": 0.85, "time": "18:45 GMT",
-        "bet_builder": ["Benfica Match Winner", "Over 1.5 Match Goals", "Benfica Over 1.5 Team Goals", "Santa Clara Over 1.5 Cards"],
-        "builder_odds": 2.50
-    },
-    {
-        "leg": 4, "date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": 0.91, "agreement": 0.95, "time": "19:45 GMT",
-        "bet_builder": ["Arsenal Match Winner", "Arsenal HT/FT", "Over 2.5 Match Goals", "Fleetwood Under 3.5 Corners"],
-        "builder_odds": 2.10
-    },
-    {
-        "leg": 5, "date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": 0.76, "agreement": 0.79, "time": "17:45 GMT",
-        "bet_builder": ["Over 2.5 Match Goals", "Dortmund Over 1.5 First Half Goals", "Dortmund Win Either Half", "Over 8.5 Match Corners"],
-        "builder_odds": 2.65
-    },
-    {
-        "leg": 6, "date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "Over 1.5 Goals", "odds": 1.22, "model_prob": 0.85, "agreement": 0.90, "time": "20:00 GMT",
-        "bet_builder": ["Over 1.5 Match Goals", "Both Teams to Score (Yes)", "PSG Over 3.5 Team Corners", "Barcelona Over 1.5 Cards"],
-        "builder_odds": 2.35
-    },
-    {
-        "leg": 7, "date": "2026-10-28", "match": "Liverpool vs. Chelsea", "selection": "Over 1.5 Goals", "odds": 1.24, "model_prob": 0.83, "agreement": 0.87, "time": "19:45 GMT",
-        "bet_builder": ["Over 1.5 Match Goals", "Liverpool Double Chance (1X)", "Over 9.5 Match Corners", "Over 3.5 Match Cards"],
-        "builder_odds": 2.45
-    },
-    {
-        "leg": 8, "date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Manchester City Win", "odds": 1.32, "model_prob": 0.80, "agreement": 0.84, "time": "19:45 GMT",
-        "bet_builder": ["Man City Match Winner", "Over 2.5 Match Goals", "Man City Over 5.5 Team Corners", "Brighton Over 1.5 Cards"],
-        "builder_odds": 2.55
-    },
-    {
-        "leg": 9, "date": "2026-10-28", "match": "Bournemouth vs. Aston Villa", "selection": "Both Teams to Score", "odds": 1.50, "model_prob": 0.72, "agreement": 0.75, "time": "19:45 GMT",
-        "bet_builder": ["Both Teams to Score (Yes)", "Over 2.5 Match Goals", "Aston Villa Double Chance (X2)", "Over 8.5 Match Corners"],
-        "builder_odds": 3.10
-    }
+# 1. 7 AI AUTOMATED COMBO BANKERS
+COMBO_BANKERS = [
+    {"banker": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "Here is the exact remaining HTML/JavaScript snippet starting right from where your terminal paste cut off (`display: inline-block;`), followed by the rest of `main.py` and the Git deployment commands to run in PowerShell:
+
+```powershell
+Set-Location "$HOME\gem-v15-engine"
+
+$mainPy = @'
+import json
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI(title="SlateMetrics AI - Quantitative Analytics Dashboard")
+
+# 1. 7 AI AUTOMATED COMBO BANKERS
+COMBO_BANKERS = [
+    {"banker": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": "84.0%", "ev_edge": "+5.00%", "confidence": "HIGH BANKER"},
+    {"banker": 2, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Match Goals", "odds": 1.30, "model_prob": "82.0%", "ev_edge": "+6.60%", "confidence": "HIGH BANKER"},
+    {"banker": 3, "date": "2026-10-26", "match": "Santa Clara vs. Benfica", "selection": "Benfica Win", "odds": 1.36, "model_prob": "77.0%", "ev_edge": "+4.72%", "confidence": "SOLID BANKER"},
+    {"banker": 4, "date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": "91.0%", "ev_edge": "+7.38%", "confidence": "HIGH BANKER"},
+    {"banker": 5, "date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Match Goals", "odds": 1.40, "model_prob": "76.0%", "ev_edge": "+6.40%", "confidence": "SOLID BANKER"},
+    {"banker": 6, "date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "Over 1.5 Match Goals", "odds": 1.22, "model_prob": "85.0%", "ev_edge": "+5.25%", "confidence": "HIGH BANKER"},
+    {"banker": 7, "date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Manchester City Win", "odds": 1.32, "model_prob": "80.0%", "ev_edge": "+5.60%", "confidence": "HIGH BANKER"}
 ]
 
-CORRECT_SCORE_DATA = [
-    {"date": "2026-10-26", "match": "Sevilla vs. Osasuna", "xg": "1.65 - 0.85", "predicted_score": "1 - 0", "alt_score": "2 - 0", "score_odds": 6.50, "model_prob": "18.5%"},
-    {"date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "xg": "1.85 - 1.45", "predicted_score": "2 - 1", "alt_score": "1 - 1", "score_odds": 8.00, "model_prob": "14.2%"},
-    {"date": "2026-10-26", "match": "Santa Clara vs. Benfica", "xg": "0.75 - 2.10", "predicted_score": "0 - 2", "alt_score": "0 - 3", "score_odds": 7.00, "model_prob": "16.8%"},
-    {"date": "2026-10-27", "match": "Fleetwood vs. Arsenal", "xg": "0.40 - 2.60", "predicted_score": "0 - 3", "alt_score": "0 - 2", "score_odds": 6.00, "model_prob": "22.0%"},
-    {"date": "2026-10-27", "match": "Sabah vs. Borussia Dortmund", "xg": "0.90 - 2.45", "predicted_score": "1 - 3", "alt_score": "1 - 2", "score_odds": 11.00, "model_prob": "11.5%"},
-    {"date": "2026-10-27", "match": "PSG vs. Barcelona", "xg": "1.95 - 1.70", "predicted_score": "2 - 2", "alt_score": "2 - 1", "score_odds": 12.00, "model_prob": "10.4%"},
-    {"date": "2026-10-28", "match": "Liverpool vs. Chelsea", "xg": "1.80 - 1.35", "predicted_score": "2 - 1", "alt_score": "1 - 1", "score_odds": 8.50, "model_prob": "13.8%"},
-    {"date": "2026-10-28", "match": "Manchester City vs. Brighton", "xg": "2.40 - 1.05", "predicted_score": "2 - 0", "alt_score": "3 - 1", "score_odds": 7.50, "model_prob": "15.6%"},
-    {"date": "2026-10-28", "match": "Bournemouth vs. Aston Villa", "xg": "1.45 - 1.55", "predicted_score": "1 - 1", "alt_score": "2 - 2", "score_odds": 7.00, "model_prob": "15.2%"}
+# 2. OVER 2.5 GOAL COUNT VALUE FINDER (6 SELECTIONS)
+GOAL_COUNT_VALUE = [
+    {"date": "2026-10-26", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": "75.0%", "xg_projected": "3.20", "ev_edge": "+17.75%"},
+    {"date": "2026-10-27", "league": "Friendly", "match": "Sabah vs. Borussia Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": "76.0%", "xg_projected": "3.35", "ev_edge": "+6.40%"},
+    {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "selection": "Over 2.5 Goals", "odds": 1.68, "model_prob": "68.0%", "xg_projected": "2.95", "ev_edge": "+14.24%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Bournemouth vs. Aston Villa", "selection": "Over 2.5 Goals", "odds": 1.62, "model_prob": "70.0%", "xg_projected": "3.10", "ev_edge": "+13.40%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Manchester City vs. Brighton", "selection": "Over 2.5 Goals", "odds": 1.50, "model_prob": "74.0%", "xg_projected": "3.45", "ev_edge": "+11.00%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "selection": "Over 2.5 Goals", "odds": 1.55, "model_prob": "72.0%", "xg_projected": "3.25", "ev_edge": "+11.60%"}
 ]
 
-GLOBAL_FIXTURE_POOL = [
-    {"date": "2026-10-26", "league": "Brazil Serie A U20", "match": "Cruzeiro U20 vs. Atletico Mineiro U20", "selection": "Over 2.5 Goals", "odds": 1.57, "model_prob": 0.75, "time": "18:00 GMT"},
-    {"date": "2026-10-26", "league": "La Liga", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.85, "time": "20:00 GMT"},
-    {"date": "2026-10-26", "league": "Super Lig", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "model_prob": 0.82, "time": "18:30 GMT"},
-    {"date": "2026-10-26", "league": "Romania Liga I", "match": "Sepsi OSK vs. U Craiova", "selection": "Away Win", "odds": 1.50, "model_prob": 0.715, "time": "18:00 GMT"},
-    {"date": "2026-10-26", "league": "Argentina Liga Prof", "match": "Union Santa Fe vs. Estudiantes", "selection": "Double Chance (12)", "odds": 1.36, "model_prob": 0.77, "time": "22:00 GMT"},
-    {"date": "2026-10-27", "league": "Serie A (Italy)", "match": "Torino vs. Como", "selection": "Como Win", "odds": 1.73, "model_prob": 0.64, "time": "19:45 GMT"},
-    {"date": "2026-10-27", "league": "EFL Cup", "match": "Fleetwood vs. Arsenal", "selection": "Arsenal Win", "odds": 1.18, "model_prob": 0.91, "time": "19:45 GMT"},
-    {"date": "2026-10-27", "league": "Friendly", "match": "Sabah vs. Dortmund", "selection": "Over 2.5 Goals", "odds": 1.40, "model_prob": 0.76, "time": "17:45 GMT"},
-    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "selection": "Over 1.5 Goals", "odds": 1.24, "model_prob": 0.83, "time": "19:45 GMT"},
-    {"date": "2026-10-28", "league": "EFL Cup", "match": "Man City vs. Brighton", "selection": "Man City Win", "odds": 1.32, "model_prob": 0.80, "time": "19:45 GMT"},
-    {"date": "2026-10-28", "league": "EFL Cup", "match": "Bournemouth vs. Aston Villa", "selection": "Both Teams to Score", "odds": 1.50, "model_prob": 0.72, "time": "19:45 GMT"}
+# 3. CORNER COUNT PREDICTIONS
+CORNER_PREDICTIONS = [
+    {"date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Over 4.5 Corners", "odds": 1.44, "model_prob": "78.0%", "avg_corners": "6.2", "ev_edge": "+12.32%"},
+    {"date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 9.5 Match Corners", "odds": 1.72, "model_prob": "65.0%", "avg_corners": "11.4", "ev_edge": "+11.80%"},
+    {"date": "2026-10-27", "match": "PSG vs. Barcelona", "selection": "PSG Over 5.5 Corners", "odds": 1.65, "model_prob": "67.0%", "avg_corners": "7.1", "ev_edge": "+10.55%"},
+    {"date": "2026-10-28", "match": "Liverpool vs. Chelsea", "selection": "Over 9.5 Match Corners", "odds": 1.60, "model_prob": "69.0%", "avg_corners": "10.8", "ev_edge": "+10.40%"},
+    {"date": "2026-10-28", "match": "Manchester City vs. Brighton", "selection": "Man City Over 6.5 Corners", "odds": 1.53, "model_prob": "72.0%", "avg_corners": "8.3", "ev_edge": "+10.16%"}
 ]
 
-def process_accumulator_slate(fixtures):
-    processed = []
-    for f in fixtures:
-        odds = f["odds"]
-        prob = f["model_prob"]
-        ev = round(((prob * odds) - 1.0) * 100, 2)
-        tier = "3-Fold Anchor" if ev >= 6.0 and prob >= 0.80 else ("6-Fold Mid" if ev >= 4.0 else "9-Fold High-Yield")
-        processed.append({
-            **f,
-            "ev_str": f"+{ev}%" if ev > 0 else f"{ev}%",
-            "tier_assignment": tier
-        })
-    return processed
-
-def process_value_picks(fixtures, min_ev_threshold=4.0):
-    value_picks = []
-    for f in fixtures:
-        odds = f["odds"]
-        prob = f["model_prob"]
-        implied_prob = round(1.0 / odds, 4)
-        ev = round(((prob * odds) - 1.0) * 100, 2)
-        if ev >= min_ev_threshold:
-            value_picks.append({
-                **f,
-                "implied_prob_str": f"{round(implied_prob * 100, 1)}%",
-                "model_prob_str": f"{round(prob * 100, 1)}%",
-                "ev_val": ev,
-                "ev_str": f"+{ev}%",
-                "edge_rating": "ULTRA VALUE" if ev >= 6.0 else "SOLID VALUE"
-            })
-    value_picks.sort(key=lambda x: x["ev_val"], reverse=True)
-    return value_picks
-
-SLATE_DATA = process_accumulator_slate(ACCUMULATOR_SLATE)
-VALUE_PICKS_DATA = process_value_picks(GLOBAL_FIXTURE_POOL)
-
-json_slate = json.dumps(SLATE_DATA)
-json_value_picks = json.dumps(VALUE_PICKS_DATA)
-json_scores = json.dumps(CORRECT_SCORE_DATA)
+json_bankers = json.dumps(COMBO_BANKERS)
+json_goals = json.dumps(GOAL_COUNT_VALUE)
+json_corners = json.dumps(CORNER_PREDICTIONS)
 
 HTML_CONTENT = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Scorecast PRO - Analytics Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SlateMetrics AI - Analytics Dashboard</title>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
     <style>
         body {{ background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
-        .bg-stadium {{ background: linear-gradient(to bottom, rgba(11, 15, 25, 0.4), rgba(11, 15, 25, 0.95)), url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop') center/cover no-repeat; }}
+        .bg-stadium {{ background: linear-gradient(to bottom, rgba(11, 15, 25, 0.4), rgba(11, 15, 25, 0.95)), url('[https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop](https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop)') center/cover no-repeat; }}
         .tab-btn {{ background: #1e293b; color: #94a3b8; border: none; padding: 10px 18px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; white-space: nowrap; }}
         .tab-btn.active {{ background: #eab308; color: #0b0f19; }}
         .tab-content {{ display: none; }}
@@ -136,10 +70,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #1e293b; vertical-align: top; }}
         th {{ background: #111827; color: #9ca3af; }}
         .ev-badge {{ background: #065f46; color: #34d399; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-block; }}
-        .tier-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 8px; border-radius: 6px; font-size: 11px; }}
-        .score-badge {{ background: #b45309; color: #fef3c7; padding: 4px 8px; border-radius: 6px; font-weight: bold; }}
-        .builder-box {{ background: #0f172a; border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 11px; border-left: 3px solid #eab308; }}
-        .builder-box ul {{ margin: 4px 0 0 15px; padding: 0; color: #cbd5e1; }}
+        .badge-gold {{ background: #b45309; color: #fef3c7; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }}
     </style>
 </head>
 <body class="bg-stadium min-h-screen pb-12">
@@ -158,7 +89,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
     <!-- Main Title Header -->
     <div class="max-w-6xl mx-auto px-4 text-center mt-4">
         <h1 class="text-3xl font-extrabold tracking-tight text-white">
-            AI Scorecast <span class="text-amber-400">PRO</span>
+            SlateMetrics <span class="text-amber-400">AI</span>
         </h1>
         <p class="text-sm text-slate-300 mt-1">
             Manage your predictions more consciously with AI-powered VIP analyses.
@@ -167,191 +98,143 @@ HTML_CONTENT = f"""<!DOCTYPE html>
 
     <!-- Feature Quick Pills -->
     <div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5 cursor-pointer" onclick="switchTab('bankerTab', document.querySelectorAll('.tab-btn')[0])">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">Combo Banker (7)</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5 cursor-pointer" onclick="switchTab('goalTab', document.querySelectorAll('.tab-btn')[1])">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">Goal Count (Over 2.5)</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5 cursor-pointer" onclick="switchTab('cornerTab', document.querySelectorAll('.tab-btn')[2])">
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
+            <span class="text-xs font-semibold text-slate-200">Corner Predictions</span>
+        </div>
         <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
             <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
             <span class="text-xs font-semibold text-slate-200">Live Predictions</span>
-        </div>
-        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
-            <span class="text-xs font-semibold text-slate-200">Goal Count Predictions</span>
-        </div>
-        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
-            <span class="text-xs font-semibold text-slate-200">AI Combo Access</span>
-        </div>
-        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex items-center gap-2.5">
-            <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">✓</div>
-            <span class="text-xs font-semibold text-slate-200">Corner Predictions</span>
         </div>
     </div>
 
     <!-- Navigation Tab Bar -->
     <div class="max-w-6xl mx-auto px-4 mt-8">
         <div class="flex gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-800 overflow-x-auto">
-            <button class="tab-btn active" onclick="switchTab('slateTab', this)">⚡ Active 9-Leg Slate & Bet Builders</button>
-            <button class="tab-btn" onclick="switchTab('valueTab', this)">🔥 Daily Pick Value (+EV Scanner)</button>
-            <button class="tab-btn" onclick="switchTab('scoreTab', this)">🎯 Correct Score Matrix</button>
+            <button class="tab-btn active" onclick="switchTab('bankerTab', this)">⚡ AI Combo Banker (7 Bankers)</button>
+            <button class="tab-btn" onclick="switchTab('goalTab', this)">⚽ Goal Count Predictions (Over 2.5 Value)</button>
+            <button class="tab-btn" onclick="switchTab('cornerTab', this)">🚩 Corner Count Predictions</button>
         </div>
     </div>
 
-    <!-- TAB 1: 9-LEG SLATE & BET BUILDERS -->
-    <div id="slateTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-6 flex flex-wrap gap-6 items-center justify-between">
-            <div>
-                <label class="text-sm font-semibold text-slate-300">Base Stake (£):</label>
-                <input type="number" id="baseStake" value="10" min="1" oninput="calculateReturns()" class="ml-3 bg-slate-950 border border-slate-700 text-white p-2 rounded-lg w-28 text-center font-bold">
-            </div>
-            <div class="flex gap-4">
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
-                    <p class="text-[10px] text-slate-400">3-Fold Anchor</p>
-                    <p class="text-sm font-bold text-amber-400" id="odds3">--</p>
-                    <p class="text-xs text-slate-300" id="return3">--</p>
-                </div>
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
-                    <p class="text-[10px] text-slate-400">6-Fold Mid</p>
-                    <p class="text-sm font-bold text-amber-400" id="odds6">--</p>
-                    <p class="text-xs text-slate-300" id="return6">--</p>
-                </div>
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
-                    <p class="text-[10px] text-slate-400">9-Fold Full</p>
-                    <p class="text-sm font-bold text-amber-400" id="odds9">--</p>
-                    <p class="text-xs text-slate-300" id="return9">--</p>
-                </div>
-            </div>
-        </div>
-
+    <!-- TAB 1: COMBO BANKERS -->
+    <div id="bankerTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-4">Active Slate & 4-Leg Bet Builders</h2>
-            <div class="overflow-x-auto" id="slateContainer">Loading slate...</div>
+            <h2 class="text-lg font-bold text-white mb-1">7 AI Automated Selected Bankers</h2>
+            <p class="text-xs text-slate-400 mb-4">High-confidence model selections with strong probability agreement and positive expected value.</p>
+            <div class="overflow-x-auto" id="bankerContainer">Loading bankers...</div>
         </div>
     </div>
 
-    <!-- TAB 2: DAILY VALUE SCANNER -->
-    <div id="valueTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+    <!-- TAB 2: GOAL COUNT (OVER 2.5 VALUE) -->
+    <div id="goalTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-1">Global High-Value Picks (EV &ge; +4.0%)</h2>
-            <p class="text-xs text-slate-400 mb-4">Strict value finder filtering out low-margin noise across global fixtures.</p>
-            <div class="overflow-x-auto" id="valueContainer">Loading value picks...</div>
+            <h2 class="text-lg font-bold text-white mb-1">Goal Count Predictions (Over 2.5 Value Finder)</h2>
+            <p class="text-xs text-slate-400 mb-4">Fixtures with high projected xG exceeding market price expectations.</p>
+            <div class="overflow-x-auto" id="goalContainer">Loading goal picks...</div>
         </div>
     </div>
 
-    <!-- TAB 3: CORRECT SCORE MATRIX -->
-    <div id="scoreTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+    <!-- TAB 3: CORNER PREDICTIONS -->
+    <div id="cornerTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-1">🎯 Poisson Model Correct Score Projections</h2>
-            <p class="text-xs text-slate-400 mb-4">Expected goals (xG) and most probable full-time scorelines calculated by the AI engine.</p>
-            <div class="overflow-x-auto" id="scoreContainer">Loading correct scores...</div>
+            <h2 class="text-lg font-bold text-white mb-1">Corner Count Predictions</h2>
+            <p class="text-xs text-slate-400 mb-4">High-probability team and total match corner projections based on historical volumetric metrics.</p>
+            <div class="overflow-x-auto" id="cornerContainer">Loading corner picks...</div>
         </div>
     </div>
 
     <script>
-        const slateData = {json_slate};
-        const valueData = {json_value_picks};
-        const scoreData = {json_scores};
+        const bankerData = {json_bankers};
+        const goalData = {json_goals};
+        const cornerData = {json_corners};
 
         function switchTab(tabId, btn) {{
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
+            if(btn) btn.classList.add('active');
         }}
 
-        function renderSlateTable() {{
-            let html = '<table><thead><tr><th>Leg</th><th>Date</th><th>Match</th><th>Selection & 4-Leg Bet Builder</th><th>Single Odds</th><th>Builder Odds</th><th>EV Edge</th><th>Tier</th></tr></thead><tbody>';
-            slateData.forEach(f => {{
-                let builderHtml = '<div class="builder-box"><strong>⚡ 4-Leg Bet Builder:</strong><ul>';
-                f.bet_builder.forEach(item => {{
-                    builderHtml += '<li>' + item + '</li>';
-                }});
-                builderHtml += '</ul></div>';
-
+        function renderBankerTable() {{
+            let html = '<table><thead><tr><th>Banker #</th><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model Prob</th><th>EV Edge</th><th>Confidence</th></tr></thead><tbody>';
+            bankerData.forEach(f => {{
                 html += `<tr>
-                    <td class="font-bold text-amber-400">#` + f.leg + `</td>
+                    <td class="font-bold text-amber-400">#` + f.banker + `</td>
                     <td>` + f.date + `</td>
                     <td class="font-semibold">` + f.match + `</td>
-                    <td><strong>` + f.selection + `</strong>` + builderHtml + `</td>
+                    <td><strong>` + f.selection + `</strong></td>
                     <td>` + f.odds.toFixed(2) + `</td>
-                    <td><strong class="text-amber-400">` + f.builder_odds.toFixed(2) + `</strong></td>
-                    <td><span class="ev-badge">` + f.ev_str + `</span></td>
-                    <td><span class="tier-badge">` + f.tier_assignment + `</span></td>
+                    <td>` + f.model_prob + `</td>
+                    <td><span class="ev-badge">` + f.ev_edge + `</span></td>
+                    <td><span class="badge-gold">` + f.confidence + `</span></td>
                 </tr>`;
             }});
             html += '</tbody></table>';
-            document.getElementById('slateContainer').innerHTML = html;
+            document.getElementById('bankerContainer').innerHTML = html;
         }}
 
-        function renderValueTable() {{
-            let html = '<table><thead><tr><th>Date</th><th>League</th><th>Match</th><th>Selection</th><th>Bookie Odds</th><th>Model Prob</th><th>EV Edge</th><th>Rating</th></tr></thead><tbody>';
-            valueData.forEach(f => {{
+        function renderGoalTable() {{
+            let html = '<table><thead><tr><th>Date</th><th>League</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model xG</th><th>Model Prob</th><th>EV Edge</th></tr></thead><tbody>';
+            goalData.forEach(f => {{
                 html += `<tr>
                     <td>` + f.date + `</td>
                     <td>` + f.league + `</td>
                     <td class="font-semibold">` + f.match + `</td>
-                    <td><strong>` + f.selection + `</strong></td>
+                    <td><strong class="text-amber-400">` + f.selection + `</strong></td>
                     <td>` + f.odds.toFixed(2) + `</td>
-                    <td>` + f.model_prob_str + `</td>
-                    <td><span class="ev-badge">` + f.ev_str + `</span></td>
-                    <td><span class="tier-badge bg-amber-500/20 text-amber-400">` + f.edge_rating + `</span></td>
+                    <td>` + f.xg_projected + `</td>
+                    <td>` + f.model_prob + `</td>
+                    <td><span class="ev-badge">` + f.ev_edge + `</span></td>
                 </tr>`;
             }});
             html += '</tbody></table>';
-            document.getElementById('valueContainer').innerHTML = html;
+            document.getElementById('goalContainer').innerHTML = html;
         }}
 
-        function renderScoreTable() {{
-            let html = '<table><thead><tr><th>Date</th><th>Match</th><th>Model xG (H - A)</th><th>Predicted Score</th><th>Alt Score</th><th>Est. Odds</th><th>Model Prob</th></tr></thead><tbody>';
-            scoreData.forEach(s => {{
+        function renderCornerTable() {{
+            let html = '<table><thead><tr><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Model Avg Corners</th><th>Model Prob</th><th>EV Edge</th></tr></thead><tbody>';
+            cornerData.forEach(c => {{
                 html += `<tr>
-                    <td>` + s.date + `</td>
-                    <td class="font-semibold">` + s.match + `</td>
-                    <td>` + s.xg + `</td>
-                    <td><span class="score-badge">` + s.predicted_score + `</span></td>
-                    <td>` + s.alt_score + `</td>
-                    <td>` + s.score_odds.toFixed(2) + `</td>
-                    <td>` + s.model_prob + `</td>
+                    <td>` + c.date + `</td>
+                    <td class="font-semibold">` + c.match + `</td>
+                    <td><strong class="text-amber-400">` + c.selection + `</strong></td>
+                    <td>` + c.odds.toFixed(2) + `</td>
+                    <td>` + c.avg_corners + `</td>
+                    <td>` + c.model_prob + `</td>
+                    <td><span class="ev-badge">` + c.ev_edge + `</span></td>
                 </tr>`;
             }});
             html += '</tbody></table>';
-            document.getElementById('scoreContainer').innerHTML = html;
+            document.getElementById('cornerContainer').innerHTML = html;
         }}
 
-        function calculateReturns() {{
-            const stake = parseFloat(document.getElementById('baseStake').value) || 0;
-            const calcOdds = (count) => slateData.slice(0, count).reduce((acc, item) => acc * item.odds, 1);
-
-            const odds3 = calcOdds(3);
-            const odds6 = calcOdds(6);
-            const odds9 = calcOdds(9);
-
-            document.getElementById('odds3').innerText = odds3.toFixed(2);
-            document.getElementById('return3').innerText = '£' + (stake * odds3).toFixed(2);
-
-            document.getElementById('odds6').innerText = odds6.toFixed(2);
-            document.getElementById('return6').innerText = '£' + (stake * odds6).toFixed(2);
-
-            document.getElementById('odds9').innerText = odds9.toFixed(2);
-            document.getElementById('return9').innerText = '£' + (stake * odds9).toFixed(2);
-        }}
-
-        renderSlateTable();
-        renderValueTable();
-        renderScoreTable();
-        calculateReturns();
+        renderBankerTable();
+        renderGoalTable();
+        renderCornerTable();
     </script>
 </body>
 </html>"""
 
-@app.get("/api/slate")
-def get_slate():
-    return SLATE_DATA
+@app.get("/api/bankers")
+def get_bankers():
+    return COMBO_BANKERS
 
-@app.get("/api/value-picks")
-def get_value_picks():
-    return VALUE_PICKS_DATA
+@app.get("/api/goal-count")
+def get_goal_count():
+    return GOAL_COUNT_VALUE
 
-@app.get("/api/correct-scores")
-def get_correct_scores():
-    return CORRECT_SCORE_DATA
+@app.get("/api/corners")
+def get_corners():
+    return CORNER_PREDICTIONS
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
