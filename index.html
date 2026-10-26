@@ -1,181 +1,108 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEM V15.0 ENGINE - Football Accumulator Dashboard</title>
+    <title>GEM V15.0 Engine</title>
     <style>
-        :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-color: #c9d1d9;
-            --accent-color: #238636;
-            --gold-color: #d29922;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 25px;
-        }
-        h1 { color: #58a6ff; margin: 0 0 10px 0; }
-        .tiers {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .tier-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-        .tier-card h3 { margin-top: 0; color: var(--gold-color); }
-        .tier-odds { font-size: 1.8em; font-weight: bold; margin: 10px 0; }
-        .calculator {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        .calculator input {
-            background: #0d1117;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 1em;
-            width: 120px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        .fixture-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-        }
-        .leg-badge {
-            background-color: #1f6feb;
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-        .match-title { font-weight: bold; font-size: 1.1em; margin: 8px 0; }
-        .selection { color: #3fb950; font-weight: 500; }
-        .details {
-            font-size: 0.9em;
-            color: #8b949e;
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #38bdf8; text-align: center; }
+        .card { background: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        .tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .tier-card { background: #334155; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8; }
+        .tier-card h3 { margin-top: 0; color: #38bdf8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #475569; }
+        th { background: #334155; color: #94a3b8; }
+        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; }
+        .status { color: #4ade80; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>GEM V15.0 ENGINE</h1>
-            <p>9-Leg Tactical Football Accumulator Pipeline</p>
-        </header>
+        <h1>9-Leg Tactical Football Accumulator Pipeline</h1>
+        
+        <div class="card">
+            <label><strong>Base Stake (£):</strong> </label>
+            <input type="number" id="baseStake" value="10" min="1" oninput="calculateReturns()">
+        </div>
 
-        <div class="tiers" id="tiers-container">
+        <div class="tier-grid">
             <div class="tier-card">
                 <h3>3-Fold Tier</h3>
-                <div class="tier-odds" id="odds-3">--</div>
-                <div id="return-3">Est. Return: --</div>
+                <p>Combined Odds: <strong id="odds3">--</strong></p>
+                <p>Est. Return: <strong id="return3">--</strong></p>
             </div>
             <div class="tier-card">
                 <h3>6-Fold Tier</h3>
-                <div class="tier-odds" id="odds-6">--</div>
-                <div id="return-6">Est. Return: --</div>
+                <p>Combined Odds: <strong id="odds6">--</strong></p>
+                <p>Est. Return: <strong id="return6">--</strong></p>
             </div>
             <div class="tier-card">
                 <h3>9-Fold Tier</h3>
-                <div class="tier-odds" id="odds-9">--</div>
-                <div id="return-9">Est. Return: --</div>
+                <p>Combined Odds: <strong id="odds9">--</strong></p>
+                <p>Est. Return: <strong id="return9">--</strong></p>
             </div>
         </div>
 
-        <div class="calculator">
-            <label for="stake-input"><strong>Base Stake (£): </strong></label>
-            <input type="number" id="stake-input" value="10" min="1" step="1">
+        <div class="card">
+            <h2>Active 9-Leg Slate</h2>
+            <div id="slateContainer">Loading fixtures...</div>
         </div>
-
-        <h2>Active 9-Leg Slate</h2>
-        <div class="grid" id="fixtures-grid">Loading active fixtures...</div>
     </div>
 
     <script>
-        let globalOdds = { three: 0, six: 0, nine: 0 };
+        let fixturesData = [];
 
-        async function fetchSlate() {
+        async function loadFixtures() {
             try {
-                const res = await fetch('/api/fixtures');
-                const data = await res.json();
-                
-                globalOdds.three = data.accumulators.three_fold.odds;
-                globalOdds.six = data.accumulators.six_fold.odds;
-                globalOdds.nine = data.accumulators.nine_fold.odds;
-
-                document.getElementById('odds-3').innerText = globalOdds.three.toFixed(2);
-                document.getElementById('odds-6').innerText = globalOdds.six.toFixed(2);
-                document.getElementById('odds-9').innerText = globalOdds.nine.toFixed(2);
-
-                updateReturns();
-
-                const grid = document.getElementById('fixtures-grid');
-                grid.innerHTML = '';
-                
-                data.slate.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'fixture-card';
-                    card.innerHTML = `
-                        <div><span class="leg-badge">LEG ${item.leg}</span></div>
-                        <div class="match-title">${item.match}</div>
-                        <div class="selection">${item.selection}</div>
-                        <div class="details">
-                            <span>Odds: ${item.odds.toFixed(2)}</span>
-                            <span>${item.time}</span>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
+                const response = await fetch('/api/fixtures');
+                fixturesData = await response.json();
+                renderTable();
+                calculateReturns();
             } catch (err) {
-                console.error("Error loading fixtures:", err);
-                document.getElementById('fixtures-grid').innerText = "Failed to load fixture pipeline.";
+                document.getElementById('slateContainer').innerHTML = '<p style="color:#ef4444;">Failed to load fixture pipeline.</p>';
             }
         }
 
-        function updateReturns() {
-            const stake = parseFloat(document.getElementById('stake-input').value) || 0;
-            document.getElementById('return-3').innerText = `Est. Return: £${(stake * globalOdds.three).toFixed(2)}`;
-            document.getElementById('return-6').innerText = `Est. Return: £${(stake * globalOdds.six).toFixed(2)}`;
-            document.getElementById('return-9').innerText = `Est. Return: £${(stake * globalOdds.nine).toFixed(2)}`;
+        function renderTable() {
+            let html = '<table><thead><tr><th>Leg</th><th>Match</th><th>Selection</th><th>Odds</th><th>Time</th><th>Status</th></tr></thead><tbody>';
+            fixturesData.forEach(f => {
+                html += <tr>
+                    <td></td>
+                    <td></td>
+                    <td><strong></strong></td>
+                    <td></td>
+                    <td></td>
+                    <td class="status"></td>
+                </tr>;
+            });
+            html += '</tbody></table>';
+            document.getElementById('slateContainer').innerHTML = html;
         }
 
-        document.getElementById('stake-input').addEventListener('input', updateReturns);
-        fetchSlate();
+        function calculateReturns() {
+            if (!fixturesData.length) return;
+            const stake = parseFloat(document.getElementById('baseStake').value) || 0;
+
+            const calcOdds = (count) => fixturesData.slice(0, count).reduce((acc, item) => acc * item.odds, 1);
+
+            const odds3 = calcOdds(3);
+            const odds6 = calcOdds(Math.min(6, fixturesData.length));
+            const odds9 = calcOdds(fixturesData.length);
+
+            document.getElementById('odds3').innerText = odds3.toFixed(2);
+            document.getElementById('return3').innerText = '£' + (stake * odds3).toFixed(2);
+
+            document.getElementById('odds6').innerText = odds6.toFixed(2);
+            document.getElementById('return6').innerText = '£' + (stake * odds6).toFixed(2);
+
+            document.getElementById('odds9').innerText = odds9.toFixed(2);
+            document.getElementById('return9').innerText = '£' + (stake * odds9).toFixed(2);
+        }
+
+        loadFixtures();
     </script>
 </body>
 </html>
