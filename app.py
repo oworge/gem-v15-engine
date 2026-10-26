@@ -1,3 +1,4 @@
+﻿import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
@@ -58,4 +59,6 @@ def get_goal_count(): return GOAL_COUNT_VALUE
 def get_corners(): return CORNER_PREDICTIONS
 
 @app.get("/")
-def read_root(): return FileResponse("index.html")
+def read_root():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return FileResponse(os.path.join(base_dir, "index.html"))
