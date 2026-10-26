@@ -3,122 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEM V15.0 Engine</title>
+    <title>AI Scorecast PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: #38bdf8; text-align: center; margin-bottom: 25px; }
-        .card { background: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-        .tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .tier-card { background: #334155; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8; }
-        .tier-card h3 { margin-top: 0; color: #38bdf8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #475569; }
-        th { background: #334155; color: #94a3b8; }
-        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; font-size: 16px; }
-        .status { color: #4ade80; font-weight: bold; }
+        body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .tab-btn { background: #1e293b; color: #94a3b8; border: none; padding: 10px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+        .tab-btn.active { background: #eab308; color: #0b0f19; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #1e293b; }
+        th { background: #111827; color: #9ca3af; font-weight: 600; }
+        .ev-badge { background: #065f46; color: #34d399; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
+        .badge-gold { background: #b45309; color: #fef3c7; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>9-Leg Tactical Football Accumulator Pipeline</h1>
-        
-        <div class="card">
-            <label><strong>Base Stake (£):</strong> </label>
-            <input type="number" id="baseStake" value="10" min="1" oninput="calculateReturns()">
+<body class="bg-slate-950 min-h-screen pb-12">
+    <div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
+        <div class="px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
+            AI ANALYSIS ENGINE ACTIVE
         </div>
-
-        <div class="tier-grid">
-            <div class="tier-card">
-                <h3>3-Fold Tier</h3>
-                <p>Combined Odds: <strong id="odds3">--</strong></p>
-                <p>Est. Return: <strong id="return3">--</strong></p>
-            </div>
-            <div class="tier-card">
-                <h3>6-Fold Tier</h3>
-                <p>Combined Odds: <strong id="odds6">--</strong></p>
-                <p>Est. Return: <strong id="return6">--</strong></p>
-            </div>
-            <div class="tier-card">
-                <h3>9-Fold Tier</h3>
-                <p>Combined Odds: <strong id="odds9">--</strong></p>
-                <p>Est. Return: <strong id="return9">--</strong></p>
-            </div>
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span class="text-xs text-slate-300">10K Active Users</span>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>Active 9-Leg Slate</h2>
-            <div id="slateContainer">Loading fixtures...</div>
+    <div class="max-w-6xl mx-auto px-4 text-center mt-4">
+        <h1 class="text-3xl font-extrabold text-white">
+            AI Scorecast <span class="text-amber-400">PRO</span>
+        </h1>
+        <p class="text-sm text-slate-300 mt-1">Manage predictions with AI VIP analyses.</p>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 mt-8">
+        <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 overflow-x-auto">
+            <button class="tab-btn active" onclick="switchTab('bTab', this)">AI Combo Banker (7)</button>
+            <button class="tab-btn" onclick="switchTab('fTab', this)">3-6-9 Fold Slate</button>
+            <button class="tab-btn" onclick="switchTab('bbTab', this)">Bet Builder</button>
+            <button class="tab-btn" onclick="switchTab('gTab', this)">Goal Count (Over 2.5 Value)</button>
+            <button class="tab-btn" onclick="switchTab('cTab', this)">Corner Predictions</button>
+        </div>
+    </div>
+
+    <div id="bTab" class="tab-content active max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">7 AI Automated Selected Bankers</h2>
+            <div id="bCon" class="overflow-x-auto text-slate-400">Loading bankers...</div>
+        </div>
+    </div>
+
+    <div id="fTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">3-6-9 Fold Accumulator Tiers</h2>
+            <div id="fCon" class="overflow-x-auto text-slate-400">Loading accumulators...</div>
+        </div>
+    </div>
+
+    <div id="bbTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">AI Recommended Bet Builders</h2>
+            <div id="bbCon" class="overflow-x-auto text-slate-400">Loading bet builders...</div>
+        </div>
+    </div>
+
+    <div id="gTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">Goal Count Predictions (Over 2.5 Value Finder)</h2>
+            <div id="gCon" class="overflow-x-auto text-slate-400">Loading goal predictions...</div>
+        </div>
+    </div>
+
+    <div id="cTab" class="tab-content max-w-6xl mx-auto px-4 mt-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-2">Corner Count Predictions</h2>
+            <div id="cCon" class="overflow-x-auto text-slate-400">Loading corner predictions...</div>
         </div>
     </div>
 
     <script>
-        const FALLBACK_DATA = [
-            {"leg": 1, "match": "Arsenal vs. Chelsea", "selection": "Arsenal Win or Draw (1X)", "odds": 1.34, "time": "12:30 GMT", "status": "UPCOMING"},
-            {"leg": 2, "match": "Real Madrid vs. Sevilla", "selection": "Real Madrid Win", "odds": 1.42, "time": "15:00 GMT", "status": "UPCOMING"},
-            {"leg": 3, "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "time": "17:00 GMT", "status": "UPCOMING"},
-            {"leg": 4, "match": "Bayern Munich vs. Dortmund", "selection": "Over 2.5 Goals", "odds": 1.48, "time": "17:30 GMT", "status": "UPCOMING"},
-            {"leg": 5, "match": "Inter Milan vs. Juventus", "selection": "Inter Win or Draw (1X)", "odds": 1.28, "time": "19:45 GMT", "status": "UPCOMING"},
-            {"leg": 6, "match": "PSG vs. Marseille", "selection": "PSG Win", "odds": 1.38, "time": "20:00 GMT", "status": "UPCOMING"},
-            {"leg": 7, "match": "Barcelona vs. Athletic Bilbao", "selection": "Barcelona Win", "odds": 1.36, "time": "20:00 GMT", "status": "UPCOMING"},
-            {"leg": 8, "match": "Benfica vs. Sporting CP", "selection": "Over 1.5 Goals", "odds": 1.25, "time": "20:30 GMT", "status": "UPCOMING"},
-            {"leg": 9, "match": "Ajax vs. Feyenoord", "selection": "Both Teams to Score", "odds": 1.52, "time": "14:30 GMT", "status": "UPCOMING"}
-        ];
+        function switchTab(t, b) {
+            var tabs = document.getElementsByClassName('tab-content');
+            for(var i=0; i<tabs.length; i++) tabs[i].classList.remove('active');
+            var btns = document.getElementsByClassName('tab-btn');
+            for(var j=0; j<btns.length; j++) btns[j].classList.remove('active');
+            document.getElementById(t).classList.add('active');
+            if(b) b.classList.add('active');
+        }
 
-        let fixturesData = [];
-
-        async function initPipeline() {
-            try {
-                const response = await fetch('/api/fixtures');
-                if (response.ok) {
-                    fixturesData = await response.json();
-                } else {
-                    fixturesData = FALLBACK_DATA;
-                }
-            } catch (err) {
-                fixturesData = FALLBACK_DATA;
+        function renderTable(headers, rows) {
+            var html = '<table><thead><tr>';
+            for(var i=0; i<headers.length; i++) html += '<th>' + headers[i] + '</th>';
+            html += '</tr></thead><tbody>';
+            for(var j=0; j<rows.length; j++) {
+                html += '<tr>';
+                for(var k=0; k<rows[j].length; k++) html += '<td>' + rows[j][k] + '</td>';
+                html += '</tr>';
             }
-            renderTable();
-            calculateReturns();
+            return html + '</tbody></table>';
         }
 
-        function renderTable() {
-            let html = '<table><thead><tr><th>Leg</th><th>Match</th><th>Selection</th><th>Odds</th><th>Time</th><th>Status</th></tr></thead><tbody>';
-            fixturesData.forEach(f => {
-                html += <tr>
-                    <td></td>
-                    <td></td>
-                    <td><strong></strong></td>
-                    <td></td>
-                    <td></td>
-                    <td class="status"></td>
-                </tr>;
+        function loadData() {
+            Promise.all([
+                fetch('/api/bankers').then(function(r){ return r.json(); }),
+                fetch('/api/folds').then(function(r){ return r.json(); }),
+                fetch('/api/bet-builders').then(function(r){ return r.json(); }),
+                fetch('/api/goal-count').then(function(r){ return r.json(); }),
+                fetch('/api/corners').then(function(r){ return r.json(); })
+            ]).then(function(res) {
+                var b = res[0], f = res[1], bb = res[2], g = res[3], c = res[4];
+
+                var bRows = b.map(function(x){
+                    return ['<span class="font-bold text-amber-400">#' + x.banker + '</span>', x.date, '<span class="font-semibold">' + x.match + '</span>', '<strong>' + x.selection + '</strong>', x.odds.toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>', '<span class="badge-gold">' + x.confidence + '</span>'];
+                });
+                document.getElementById('bCon').innerHTML = renderTable(['Banker #', 'Date', 'Match', 'Selection', 'Odds', 'Model Prob', 'EV Edge', 'Confidence'], bRows);
+
+                var fRows = f.map(function(x){
+                    return ['<span class="font-bold text-amber-400">' + x.tier + '</span>', '<span class="font-bold text-white">' + x.odds + '</span>', x.combined_prob, x.legs];
+                });
+                document.getElementById('fCon').innerHTML = renderTable(['Tier', 'Combined Odds', 'Model Prob', 'Included Legs'], fRows);
+
+                var bbRows = bb.map(function(x){
+                    return ['<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.builder + '</strong>', '<span class="font-bold text-white">' + x.combined_odds.toFixed(2) + '</span>', '<span class="ev-badge">' + x.ev_edge + '</span>'];
+                });
+                document.getElementById('bbCon').innerHTML = renderTable(['Match', 'Bet Builder Combo', 'Combined Odds', 'EV Edge'], bbRows);
+
+                var gRows = g.map(function(x){
+                    return [x.date, x.league, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.selection + '</strong>', x.odds.toFixed(2), x.xg_projected, x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>'];
+                });
+                document.getElementById('gCon').innerHTML = renderTable(['Date', 'League', 'Match', 'Selection', 'Odds', 'Model xG', 'Model Prob', 'EV Edge'], gRows);
+
+                var cRows = c.map(function(x){
+                    return [x.date, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.selection + '</strong>', x.odds.toFixed(2), x.avg_corners, x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>'];
+                });
+                document.getElementById('cCon').innerHTML = renderTable(['Date', 'Match', 'Selection', 'Odds', 'Avg Corners', 'Model Prob', 'EV Edge'], cRows);
             });
-            html += '</tbody></table>';
-            document.getElementById('slateContainer').innerHTML = html;
         }
-
-        function calculateReturns() {
-            if (!fixturesData.length) return;
-            const stake = parseFloat(document.getElementById('baseStake').value) || 0;
-
-            const calcOdds = (count) => fixturesData.slice(0, count).reduce((acc, item) => acc * item.odds, 1);
-
-            const odds3 = calcOdds(3);
-            const odds6 = calcOdds(Math.min(6, fixturesData.length));
-            const odds9 = calcOdds(fixturesData.length);
-
-            document.getElementById('odds3').innerText = odds3.toFixed(2);
-            document.getElementById('return3').innerText = '£' + (stake * odds3).toFixed(2);
-
-            document.getElementById('odds6').innerText = odds6.toFixed(2);
-            document.getElementById('return6').innerText = '£' + (stake * odds6).toFixed(2);
-
-            document.getElementById('odds9').innerText = odds9.toFixed(2);
-            document.getElementById('return9').innerText = '£' + (stake * odds9).toFixed(2);
-        }
-
-        initPipeline();
+        window.onload = loadData;
     </script>
 </body>
 </html>
