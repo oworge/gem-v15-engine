@@ -2,7 +2,7 @@ import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="GEM V15.0 Value Engine")
+app = FastAPI(title="GEM V15.0 Value Finder Engine")
 
 ACCUMULATOR_SLATE = [
     {"leg": 1, "date": "2026-10-26", "match": "Sevilla vs. Osasuna", "selection": "Sevilla Win or Draw (1X)", "odds": 1.25, "model_prob": 0.84, "agreement": 0.92, "time": "20:00 GMT"},
@@ -37,7 +37,7 @@ def process_accumulator_slate(fixtures):
         odds = f["odds"]
         prob = f["model_prob"]
         ev = round(((prob * odds) - 1.0) * 100, 2)
-        tier = "3-Fold Anchor" if ev >= 5.0 and prob >= 0.80 else ("6-Fold Mid" if ev >= 2.0 else "9-Fold High-Yield")
+        tier = "3-Fold Anchor" if ev >= 6.0 and prob >= 0.80 else ("6-Fold Mid" if ev >= 4.0 else "9-Fold High-Yield")
         processed.append({
             **f,
             "ev_str": f"+{ev}%" if ev > 0 else f"{ev}%",
@@ -45,7 +45,7 @@ def process_accumulator_slate(fixtures):
         })
     return processed
 
-def process_value_picks(fixtures):
+def process_value_picks(fixtures, min_ev_threshold=4.0):
     value_picks = []
     for f in fixtures:
         odds = f["odds"]
@@ -53,14 +53,15 @@ def process_value_picks(fixtures):
         implied_prob = round(1.0 / odds, 4)
         ev = round(((prob * odds) - 1.0) * 100, 2)
         
-        if ev >= 2.0:
+        # TIGHTENED FILTER: Strict threshold of EV >= +4.0%
+        if ev >= min_ev_threshold:
             value_picks.append({
                 **f,
                 "implied_prob_str": f"{round(implied_prob * 100, 1)}%",
                 "model_prob_str": f"{round(prob * 100, 1)}%",
                 "ev_val": ev,
                 "ev_str": f"+{ev}%",
-                "edge_rating": "HIGH VALUE" if ev >= 6.0 else "MODERATE VALUE"
+                "edge_rating": "ULTRA VALUE" if ev >= 6.0 else "SOLID VALUE"
             })
     value_picks.sort(key=lambda x: x["ev_val"], reverse=True)
     return value_picks
@@ -96,8 +97,8 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         input[type="number"] {{ background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; font-size: 16px; }}
         .ev-badge {{ background: #166534; color: #4ade80; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }}
         .tier-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 6px; border-radius: 4px; font-size: 11px; }}
-        .rating-badge {{ background: #854d0e; color: #fef08a; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }}
-        .rating-badge.high {{ background: #166534; color: #4ade80; }}
+        .rating-badge {{ background: #1e3a8a; color: #93c5fd; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }}
+        .rating-badge.ultra {{ background: #166534; color: #4ade80; }}
     </style>
 </head>
 <body>
@@ -141,8 +142,8 @@ HTML_CONTENT = f"""<!DOCTYPE html>
 
         <div id="valueTab" class="tab-content">
             <div class="card">
-                <h2>Global +EV Value Picks (Matches Exceeding Implied Probability)</h2>
-                <p style="color: #94a3b8;">Filters global matches across dates, isolating only fixtures where model probability exceeds bookmaker price (EV &ge; +2.0%).</p>
+                <h2>Global High-Value Picks (EV &ge; +4.0%)</h2>
+                <p style="color: #94a3b8;">Strict value scanner filtering out low-margin noise. Displays only high-confidence statistical edges across global matches.</p>
                 <div id="valueContainer">Loading value picks...</div>
             </div>
         </div>
@@ -179,7 +180,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         function renderValueTable() {{
             let html = '<table><thead><tr><th>Date</th><th>League</th><th>Match</th><th>Selection</th><th>Bookie Odds</th><th>Bookie Prob</th><th>Model Prob</th><th>EV Edge</th><th>Edge Rating</th></tr></thead><tbody>';
             valueData.forEach(f => {{
-                const ratingClass = f.ev_val >= 6.0 ? 'high' : '';
+                const ratingClass = f.ev_val >= 6.0 ? 'ultra' : '';
                 html += `<tr>
                     <td>` + f.date + `</td>
                     <td>` + f.league + `</td>
