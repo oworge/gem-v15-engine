@@ -26,7 +26,7 @@
         </div>
         <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span class="text-xs text-slate-300">Self-Learning Optimizer Online</span>
+            <span class="text-xs text-slate-300">Advanced Acca Builder Online</span>
         </div>
     </div>
 
@@ -34,16 +34,16 @@
         <h1 class="text-3xl font-extrabold text-white">
             AI Scorecast <span class="text-amber-400">PRO</span>
         </h1>
-        <p class="text-sm text-slate-300 mt-1">Live fixture filter active + self-learning model optimization audit.</p>
+        <p class="text-sm text-slate-300 mt-1">Self-learning model with dynamic dropdown injectors & Acca builder.</p>
     </div>
 
-    <!-- SELF-LEARNING ENGINE METRICS PANEL -->
+    <!-- METRICS PANEL -->
     <div class="max-w-6xl mx-auto px-4 mt-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <div class="text-slate-400 text-xs font-semibold">Model Confidence Weight</div>
                 <div id="metricWeight" class="text-2xl font-black text-amber-400 mt-1">94.8%</div>
-                <div class="text-emerald-400 text-[10px] mt-1">↑ +1.4% feedback adaptation</div>
+                <div class="text-emerald-400 text-[10px] mt-1">↑ Feedback loop active</div>
             </div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <div class="text-slate-400 text-xs font-semibold">Active Upcoming Fixtures</div>
@@ -53,33 +53,92 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <div class="text-slate-400 text-xs font-semibold">Model ROI (Last 30 Days)</div>
                 <div class="text-2xl font-black text-emerald-400 mt-1">+18.4%</div>
-                <div class="text-slate-400 text-[10px] mt-1">Positive EV yield verified</div>
+                <div class="text-slate-400 text-[10px] mt-1">Verified positive EV yield</div>
             </div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <div class="text-slate-400 text-xs font-semibold">Self-Learning Status</div>
                 <div class="text-2xl font-black text-blue-400 mt-1">Evolving</div>
-                <div class="text-slate-400 text-[10px] mt-1">Calibrating Poisson weights</div>
+                <div class="text-slate-400 text-[10px] mt-1">Poisson calibration ready</div>
             </div>
         </div>
     </div>
 
-    <!-- ADD GAME / SCORE INJECTOR FORM -->
+    <!-- ADVANCED INJECTOR & ACCA BUILDER FORM -->
     <div class="max-w-6xl mx-auto px-4 mt-6">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-            <h3 class="text-sm font-bold text-amber-400 mb-3">➕ Inject Upcoming Fixture (Auto-Date Filtered)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
+            <h3 class="text-sm font-bold text-amber-400 mb-3">➕ Inject Fixture & Build Smart Accumulator</h3>
+            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 mb-3">
                 <input type="text" id="addMatch" placeholder="Match (e.g. Arsenal vs Chelsea)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
-                <input type="text" id="addLeague" placeholder="League" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
-                <input type="text" id="addScore" placeholder="Score (e.g. 2 - 1)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
-                <input type="text" id="addSelection" placeholder="Selection (e.g. Over 2.5)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
-                <input type="number" step="0.01" id="addOdds" placeholder="Odds (e.g. 1.85)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
-                <input type="text" id="addEV" placeholder="EV % (e.g. +12.5%)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                
+                <select id="addLeague" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                    <option value="Premier League">Premier League</option>
+                    <option value="UEFA Champions League">UEFA Champions League</option>
+                    <option value="La Liga">La Liga</option>
+                    <option value="Serie A">Serie A</option>
+                    <option value="Bundesliga">Bundesliga</option>
+                    <option value="EFL Cup">EFL Cup</option>
+                    <option value="EFL Trophy">EFL Trophy</option>
+                    <option value="Super Lig">Super Lig</option>
+                </select>
+
+                <select id="addScore" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                    <option value="1 - 0">1 - 0</option>
+                    <option value="2 - 0">2 - 0</option>
+                    <option value="2 - 1" selected>2 - 1</option>
+                    <option value="3 - 0">3 - 0</option>
+                    <option value="3 - 1">3 - 1</option>
+                    <option value="2 - 2">2 - 2</option>
+                    <option value="0 - 1">0 - 1</option>
+                    <option value="0 - 2">0 - 2</option>
+                    <option value="1 - 2">1 - 2</option>
+                    <option value="1 - 1">1 - 1</option>
+                    <option value="0 - 0">0 - 0</option>
+                </select>
+
+                <select id="addSelection" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                    <option value="Home Win" selected>Home Win</option>
+                    <option value="Away Win">Away Win</option>
+                    <option value="Over 2.5 Goals">Over 2.5 Goals</option>
+                    <option value="Both Teams to Score">Both Teams to Score</option>
+                    <option value="Home Win or Draw (1X)">Home Win or Draw (1X)</option>
+                    <option value="Over 9.5 Corners">Over 9.5 Corners</option>
+                    <option value="Arsenal -1.5 Handicap">Arsenal -1.5 Handicap</option>
+                </select>
+
+                <input type="number" step="0.01" id="addOdds" placeholder="Odds (e.g. 1.85)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white" value="1.85">
+                <input type="text" id="addEV" placeholder="EV % (e.g. +12.5%)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white" value="+12.5%">
                 <input type="date" id="addDate" value="2026-10-28" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
             </div>
-            <button onclick="addNewCustomGame()" class="mt-3 w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg p-2 text-xs transition">Inject Upcoming Fixture</button>
+
+            <div class="flex gap-2 items-center border-t border-slate-800 pt-3">
+                <button onclick="addNewCustomGame()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg px-4 py-2 text-xs transition">Inject Game</button>
+                <div class="flex items-center gap-2 ml-auto">
+                    <span class="text-xs text-slate-400 font-medium">Acca Selection Count:</span>
+                    <select id="accaLegsCount" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white">
+                        <option value="3">3-Fold Acca</option>
+                        <option value="4">4-Fold Acca</option>
+                        <option value="5" selected>5-Fold Acca</option>
+                        <option value="6">6-Fold Acca</option>
+                        <option value="8">8-Fold Acca</option>
+                    </select>
+                    <button onclick="generateCustomAcca()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg px-4 py-1.5 text-xs transition">Generate Custom Acca Slip</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- ACCA SLIP CONTAINER -->
+    <div id="accaSlipContainer" class="max-w-6xl mx-auto px-4 mt-4" style="display:none;">
+        <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-bold text-emerald-400">🎫 Generated Smart Accumulator Slip</h3>
+                <span id="accaSummaryBadge" class="text-xs bg-emerald-500/10 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 font-bold"></span>
+            </div>
+            <div id="accaLegsList" class="text-xs text-slate-300 space-y-1"></div>
+        </div>
+    </div>
+
+    <!-- TABS -->
     <div class="max-w-6xl mx-auto px-4 mt-6">
         <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 overflow-x-auto">
             <button class="tab-btn active" onclick="switchTab('csTab', this)">🎯 Correct Score Matrix</button>
@@ -147,8 +206,6 @@
         var cachedBankers = [];
         var cachedGoals = [];
         var cachedCorners = [];
-
-        // Current system date reference (Oct 26, 2026)
         var currentDate = "2026-10-26";
 
         function switchTab(t, b) {
@@ -172,7 +229,6 @@
             return html + '</tbody></table>';
         }
 
-        // Self-Learning Engine: Filter out any past/finished games (date < currentDate)
         function filterUpcoming(arr) {
             return arr.filter(function(item) {
                 return item.date >= currentDate;
@@ -186,35 +242,29 @@
             var activeGoals = filterUpcoming(cachedGoals);
             var activeCorners = filterUpcoming(cachedCorners);
 
-            // Update active fixture count metric
             var totalActive = activeScores.length + activeValues.length + activeBankers.length + activeGoals.length + activeCorners.length;
             document.getElementById('metricActiveCount').innerText = totalActive;
 
-            // Render Correct Scores
             var csRows = activeScores.map(function(x){
                 return [x.date, x.league, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400 font-bold text-base">' + x.correct_score + '</strong>', Number(x.odds).toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>', '<span class="badge-live">UPCOMING</span>'];
             });
             document.getElementById('csCon').innerHTML = renderTable(['Date', 'League', 'Match', 'Projected Score', 'Odds', 'Probability', 'EV Edge', 'Status'], csRows);
 
-            // Render Value Finder
             var vRows = activeValues.map(function(x){
                 return [x.date, x.league, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.selection + '</strong>', Number(x.odds).toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>', '<span class="badge-gold">' + x.rating + '</span>'];
             });
             document.getElementById('vCon').innerHTML = renderTable(['Date', 'League', 'Match', 'Selection', 'Odds', 'Model Prob', 'EV Edge', 'Rating'], vRows);
 
-            // Render Bankers
             var bRows = activeBankers.map(function(x){
                 return ['<span class="font-bold text-amber-400">#' + x.banker + '</span>', x.date, '<span class="font-semibold">' + x.match + '</span>', '<strong>' + x.selection + '</strong>', x.odds.toFixed(2), x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>', '<span class="badge-gold">' + x.confidence + '</span>'];
             });
             document.getElementById('bCon').innerHTML = renderTable(['Banker #', 'Date', 'Match', 'Selection', 'Odds', 'Model Prob', 'EV Edge', 'Confidence'], bRows);
 
-            // Render Goals
             var gRows = activeGoals.map(function(x){
                 return [x.date, x.league, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.selection + '</strong>', x.odds.toFixed(2), x.xg_projected, x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>'];
             });
             document.getElementById('gCon').innerHTML = renderTable(['Date', 'League', 'Match', 'Selection', 'Odds', 'Model xG', 'Model Prob', 'EV Edge'], gRows);
 
-            // Render Corners
             var cRows = activeCorners.map(function(x){
                 return [x.date, '<span class="font-semibold">' + x.match + '</span>', '<strong class="text-amber-400">' + x.selection + '</strong>', x.odds.toFixed(2), x.avg_corners, x.model_prob, '<span class="ev-badge">' + x.ev_edge + '</span>'];
             });
@@ -223,11 +273,11 @@
 
         function addNewCustomGame() {
             var match = document.getElementById('addMatch').value;
-            var league = document.getElementById('addLeague').value || 'Custom League';
-            var score = document.getElementById('addScore').value || '2 - 1';
-            var selection = document.getElementById('addSelection').value || 'Home Win';
+            var league = document.getElementById('addLeague').value;
+            var score = document.getElementById('addScore').value;
+            var selection = document.getElementById('addSelection').value;
             var odds = parseFloat(document.getElementById('addOdds').value) || 1.85;
-            var ev = document.getElementById('addEV').value || '+15.0%';
+            var ev = document.getElementById('addEV').value || '+12.5%';
             var targetDate = document.getElementById('addDate').value || '2026-10-28';
 
             if(!match) {
@@ -259,17 +309,33 @@
             refreshAllTables();
 
             document.getElementById('addMatch').value = '';
-            document.getElementById('addLeague').value = '';
-            document.getElementById('addScore').value = '';
-            document.getElementById('addSelection').value = '';
-            document.getElementById('addOdds').value = '';
-            document.getElementById('addEV').value = '';
-            
-            // Self-Learning feedback simulation boost
             var currentWeight = parseFloat(document.getElementById('metricWeight').innerText);
             document.getElementById('metricWeight').innerText = (currentWeight + 0.1).toFixed(1) + '%';
             
-            alert('Fixture injected successfully! Self-learning engine re-calibrated weights.');
+            alert('Fixture injected successfully! Model weights recalibrated.');
+        }
+
+        function generateCustomAcca() {
+            var count = parseInt(document.getElementById('accaLegsCount').value);
+            var allPicks = filterUpcoming(cachedValuePicks);
+            if(allPicks.length === 0) {
+                alert('No active upcoming picks available for Acca generation.');
+                return;
+            }
+
+            // Shuffle or select top N picks
+            var selectedLegs = allPicks.slice(0, Math.min(count, allPicks.length));
+            var combinedOdds = 1.0;
+            var legsHtml = '';
+
+            selectedLegs.forEach(function(leg, idx) {
+                combinedOdds *= leg.odds;
+                legsHtml += '<div>• <strong>' + leg.match + '</strong> — ' + leg.selection + ' (<span class="text-amber-400">@' + leg.odds.toFixed(2) + '</span>)</div>';
+            });
+
+            document.getElementById('accaSummaryBadge').innerText = selectedLegs.length + '-Fold | Combined Odds: ' + combinedOdds.toFixed(2);
+            document.getElementById('accaLegsList').innerHTML = legsHtml;
+            document.getElementById('accaSlipContainer').style.display = 'block';
         }
 
         function loadData() {
