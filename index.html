@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -118,7 +118,7 @@
         </div>
 
         <div class="calculator">
-            <label for="stake-input"><strong>Base Stake (£): </strong></label>
+            <label for="stake-input"><strong>Base Stake (Â£): </strong></label>
             <input type="number" id="stake-input" value="10" min="1" step="1">
         </div>
 
@@ -150,15 +150,15 @@
                 data.slate.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'fixture-card';
-                    card.innerHTML = 
-                        <div><span class="leg-badge">LEG </span></div>
-                        <div class="match-title"></div>
-                        <div class="selection"></div>
+                    card.innerHTML = `
+                        <div><span class="leg-badge">LEG ${item.leg}</span></div>
+                        <div class="match-title">${item.match}</div>
+                        <div class="selection">${item.selection}</div>
                         <div class="details">
-                            <span>Odds: </span>
-                            <span></span>
+                            <span>Odds: ${item.odds.toFixed(2)}</span>
+                            <span>${item.time}</span>
                         </div>
-                    ;
+                    `;
                     grid.appendChild(card);
                 });
             } catch (err) {
@@ -169,9 +169,9 @@
 
         function updateReturns() {
             const stake = parseFloat(document.getElementById('stake-input').value) || 0;
-            document.getElementById('return-3').innerText = Est. Return: £;
-            document.getElementById('return-6').innerText = Est. Return: £;
-            document.getElementById('return-9').innerText = Est. Return: £;
+            document.getElementById('return-3').innerText = `Est. Return: Â£${(stake * globalOdds.three).toFixed(2)}`;
+            document.getElementById('return-6').innerText = `Est. Return: Â£${(stake * globalOdds.six).toFixed(2)}`;
+            document.getElementById('return-9').innerText = `Est. Return: Â£${(stake * globalOdds.nine).toFixed(2)}`;
         }
 
         document.getElementById('stake-input').addEventListener('input', updateReturns);
