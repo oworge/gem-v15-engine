@@ -4,16 +4,17 @@ from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="GEM V15.0 Engine")
 
+# --- REPLACE THESE WITH YOUR DAILY FIXTURES & DATES ---
 FIXTURES_DATA = [
-    {"leg": 1, "match": "Arsenal vs. Chelsea", "selection": "Arsenal Win or Draw (1X)", "odds": 1.34, "time": "12:30 GMT", "status": "UPCOMING"},
-    {"leg": 2, "match": "Real Madrid vs. Sevilla", "selection": "Real Madrid Win", "odds": 1.42, "time": "15:00 GMT", "status": "UPCOMING"},
-    {"leg": 3, "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "time": "17:00 GMT", "status": "UPCOMING"},
-    {"leg": 4, "match": "Bayern Munich vs. Dortmund", "selection": "Over 2.5 Goals", "odds": 1.48, "time": "17:30 GMT", "status": "UPCOMING"},
-    {"leg": 5, "match": "Inter Milan vs. Juventus", "selection": "Inter Win or Draw (1X)", "odds": 1.28, "time": "19:45 GMT", "status": "UPCOMING"},
-    {"leg": 6, "match": "PSG vs. Marseille", "selection": "PSG Win", "odds": 1.38, "time": "20:00 GMT", "status": "UPCOMING"},
-    {"leg": 7, "match": "Barcelona vs. Athletic Bilbao", "selection": "Barcelona Win", "odds": 1.36, "time": "20:00 GMT", "status": "UPCOMING"},
-    {"leg": 8, "match": "Benfica vs. Sporting CP", "selection": "Over 1.5 Goals", "odds": 1.25, "time": "20:30 GMT", "status": "UPCOMING"},
-    {"leg": 9, "match": "Ajax vs. Feyenoord", "selection": "Both Teams to Score", "odds": 1.52, "time": "14:30 GMT", "status": "UPCOMING"}
+    {"leg": 1, "date": "2026-10-26", "match": "Arsenal vs. Chelsea", "selection": "Arsenal Win or Draw (1X)", "odds": 1.34, "time": "12:30 GMT", "status": "UPCOMING"},
+    {"leg": 2, "date": "2026-10-26", "match": "Real Madrid vs. Sevilla", "selection": "Real Madrid Win", "odds": 1.42, "time": "15:00 GMT", "status": "UPCOMING"},
+    {"leg": 3, "date": "2026-10-26", "match": "Galatasaray vs. Fenerbahce", "selection": "Over 1.5 Goals", "odds": 1.30, "time": "17:00 GMT", "status": "UPCOMING"},
+    {"leg": 4, "date": "2026-10-27", "match": "Bayern Munich vs. Dortmund", "selection": "Over 2.5 Goals", "odds": 1.48, "time": "17:30 GMT", "status": "UPCOMING"},
+    {"leg": 5, "date": "2026-10-27", "match": "Inter Milan vs. Juventus", "selection": "Inter Win or Draw (1X)", "odds": 1.28, "time": "19:45 GMT", "status": "UPCOMING"},
+    {"leg": 6, "date": "2026-10-27", "match": "PSG vs. Marseille", "selection": "PSG Win", "odds": 1.38, "time": "20:00 GMT", "status": "UPCOMING"},
+    {"leg": 7, "date": "2026-10-28", "match": "Barcelona vs. Athletic Bilbao", "selection": "Barcelona Win", "odds": 1.36, "time": "20:00 GMT", "status": "UPCOMING"},
+    {"leg": 8, "date": "2026-10-28", "match": "Benfica vs. Sporting CP", "selection": "Over 1.5 Goals", "odds": 1.25, "time": "20:30 GMT", "status": "UPCOMING"},
+    {"leg": 9, "date": "2026-10-28", "match": "Ajax vs. Feyenoord", "selection": "Both Teams to Score", "odds": 1.52, "time": "14:30 GMT", "status": "UPCOMING"}
 ]
 
 json_fixtures = json.dumps(FIXTURES_DATA)
@@ -26,7 +27,7 @@ HTML_CONTENT = f"""<!DOCTYPE html>
     <title>GEM V15.0 Engine</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }}
-        .container {{ max-width: 900px; margin: 0 auto; }}
+        .container {{ max-width: 950px; margin: 0 auto; }}
         h1 {{ color: #38bdf8; text-align: center; margin-bottom: 25px; }}
         .card {{ background: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }}
         .tier-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }}
@@ -76,10 +77,11 @@ HTML_CONTENT = f"""<!DOCTYPE html>
         const data = {json_fixtures};
 
         function renderTable() {{
-            let html = '<table><thead><tr><th>Leg</th><th>Match</th><th>Selection</th><th>Odds</th><th>Time</th><th>Status</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Leg</th><th>Date</th><th>Match</th><th>Selection</th><th>Odds</th><th>Time</th><th>Status</th></tr></thead><tbody>';
             data.forEach(f => {{
                 html += `<tr>
                     <td>${{f.leg}}</td>
+                    <td>${{f.date}}</td>
                     <td>${{f.match}}</td>
                     <td><strong>${{f.selection}}</strong></td>
                     <td>${{f.odds.toFixed(2)}}</td>
