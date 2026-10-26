@@ -255,3 +255,8 @@ async def log_bet(request: Request):
     conn.commit()
     conn.close()
     return {"status": "logged"}
+
+@app.head('/')
+def root_head():
+    return ''
+
