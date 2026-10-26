@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
@@ -15,25 +16,27 @@ FIXTURES_DATA = [
     {"leg": 9, "match": "Ajax vs. Feyenoord", "selection": "Both Teams to Score", "odds": 1.52, "time": "14:30 GMT", "status": "UPCOMING"}
 ]
 
-HTML_CONTENT = """<!DOCTYPE html>
+json_fixtures = json.dumps(FIXTURES_DATA)
+
+HTML_CONTENT = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEM V15.0 Engine</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: #38bdf8; text-align: center; margin-bottom: 25px; }
-        .card { background: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-        .tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .tier-card { background: #334155; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8; }
-        .tier-card h3 { margin-top: 0; color: #38bdf8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #475569; }
-        th { background: #334155; color: #94a3b8; }
-        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; font-size: 16px; }
-        .status { color: #4ade80; font-weight: bold; }
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }}
+        .container {{ max-width: 900px; margin: 0 auto; }}
+        h1 {{ color: #38bdf8; text-align: center; margin-bottom: 25px; }}
+        .card {{ background: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }}
+        .tier-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }}
+        .tier-card {{ background: #334155; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8; }}
+        .tier-card h3 {{ margin-top: 0; color: #38bdf8; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
+        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #475569; }}
+        th {{ background: #334155; color: #94a3b8; }}
+        input[type="number"] {{ background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 4px; width: 100px; font-size: 16px; }}
+        .status {{ color: #4ade80; font-weight: bold; }}
     </style>
 </head>
 <body>
@@ -70,25 +73,25 @@ HTML_CONTENT = """<!DOCTYPE html>
     </div>
 
     <script>
-        const data = """ + str(FIXTURES_DATA).replace("'", '"') + """;
+        const data = {json_fixtures};
 
-        function renderTable() {
+        function renderTable() {{
             let html = '<table><thead><tr><th>Leg</th><th>Match</th><th>Selection</th><th>Odds</th><th>Time</th><th>Status</th></tr></thead><tbody>';
-            data.forEach(f => {
-                html += <tr>
-                    <td></td>
-                    <td></td>
-                    <td><strong></strong></td>
-                    <td></td>
-                    <td></td>
-                    <td class="status"></td>
-                </tr>;
-            });
+            data.forEach(f => {{
+                html += `<tr>
+                    <td>${{f.leg}}</td>
+                    <td>${{f.match}}</td>
+                    <td><strong>${{f.selection}}</strong></td>
+                    <td>${{f.odds.toFixed(2)}}</td>
+                    <td>${{f.time}}</td>
+                    <td class="status">${{f.status}}</td>
+                </tr>`;
+            }});
             html += '</tbody></table>';
             document.getElementById('slateContainer').innerHTML = html;
-        }
+        }}
 
-        function calculateReturns() {
+        function calculateReturns() {{
             const stake = parseFloat(document.getElementById('baseStake').value) || 0;
             const calcOdds = (count) => data.slice(0, count).reduce((acc, item) => acc * item.odds, 1);
 
@@ -104,7 +107,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             document.getElementById('odds9').innerText = odds9.toFixed(2);
             document.getElementById('return9').innerText = '£' + (stake * odds9).toFixed(2);
-        }
+        }}
 
         renderTable();
         calculateReturns();
