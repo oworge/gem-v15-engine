@@ -1,4 +1,4 @@
-import json
+﻿import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
@@ -32,9 +32,9 @@ CORNER_PREDICTIONS = [
 ]
 
 FOLDS_369 = [
-    {"tier": "3-Fold Conservative", "odds": "2.21", "combined_prob": "45.2%", "legs": ["Sevilla 1X (1.25)", "Galatasaray Over 1.5 Goals (1.30)", "Arsenal Win (1.18)"]},
-    {"tier": "6-Fold Balanced", "odds": "5.62", "combined_prob": "22.8%", "legs": ["Sevilla 1X (1.25)", "Galatasaray Over 1.5 (1.30)", "Benfica Win (1.36)", "Arsenal Win (1.18)", "Dortmund Over 2.5 (1.40)", "PSG Over 1.5 (1.22)"]},
-    {"tier": "9-Fold High Yield Slate", "odds": "14.28", "combined_prob": "10.4%", "legs": ["Sevilla 1X (1.25)", "Galatasaray Over 1.5 (1.30)", "Benfica Win (1.36)", "Arsenal Win (1.18)", "Dortmund Over 2.5 (1.40)", "PSG Over 1.5 (1.22)", "Man City Win (1.32)", "Cruzeiro U20 Over 2.5 (1.57)", "Real Madrid Over 2.5 (1.68)"]}
+    {"tier": "3-Fold Conservative", "odds": "2.21", "combined_prob": "45.2%", "legs": "Sevilla 1X, Galatasaray Over 1.5, Arsenal Win"},
+    {"tier": "6-Fold Balanced", "odds": "5.62", "combined_prob": "22.8%", "legs": "Sevilla 1X, Galatasaray Over 1.5, Benfica Win, Arsenal Win, Dortmund Over 2.5, PSG Over 1.5"},
+    {"tier": "9-Fold High Yield Slate", "odds": "14.28", "combined_prob": "10.4%", "legs": "Sevilla 1X, Galatasaray Over 1.5, Benfica Win, Arsenal Win, Dortmund Over 2.5, PSG Over 1.5, Man City Win, Cruzeiro U20 Over 2.5, Real Madrid Over 2.5"}
 ]
 
 BET_BUILDERS = [
@@ -58,7 +58,7 @@ html = f"""<!DOCTYPE html>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body {{ background:#0b0f19; color:#f8fafc; font-family:sans-serif; }}
-.btn {{ background:#1e293b; color:#94a3b8; padding:10px 16px; font-size:13px; font-weight:bold; border-radius:8px; cursor:pointer; white-space:nowrap; }}
+.btn {{ background:#1e293b; color:#94a3b8; padding:10px 16px; font-size:13px; font-weight:bold; border-radius:8px; cursor:pointer; white-space:nowrap; border:none; }}
 .btn.active {{ background:#eab308; color:#0b0f19; }}
 .tab {{ display:none; }}
 .tab.active {{ display:block; }}
@@ -71,7 +71,7 @@ th {{ background:#111827; color:#9ca3af; }}
 </head>
 <body class="bg-slate-950 min-h-screen pb-12">
 <div class="max-w-6xl mx-auto px-4 pt-6 flex justify-between items-center">
-    <div class="px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">?? AI ANALYSIS ENGINE ACTIVE</div>
+    <div class="px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">AI ANALYSIS ENGINE ACTIVE</div>
     <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-xs text-slate-300">10K Active Users</span></div>
 </div>
 <div class="max-w-6xl mx-auto px-4 text-center mt-4">
@@ -80,11 +80,11 @@ th {{ background:#111827; color:#9ca3af; }}
 </div>
 <div class="max-w-6xl mx-auto px-4 mt-8">
     <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 overflow-x-auto">
-        <button class="btn active" onclick="sw('bTab',this)">? AI Combo Banker (7)</button>
-        <button class="btn" onclick="sw('fTab',this)">?? 3-6-9 Fold Slate</button>
-        <button class="btn" onclick="sw('bbTab',this)">??? Bet Builder</button>
-        <button class="btn" onclick="sw('gTab',this)">? Goal Count (Over 2.5 Value)</button>
-        <button class="btn" onclick="sw('cTab',this)">?? Corner Predictions</button>
+        <button class="btn active" onclick="sw('bTab',this)">AI Combo Banker (7)</button>
+        <button class="btn" onclick="sw('fTab',this)">3-6-9 Fold Slate</button>
+        <button class="btn" onclick="sw('bbTab',this)">Bet Builder</button>
+        <button class="btn" onclick="sw('gTab',this)">Goal Count (Over 2.5 Value)</button>
+        <button class="btn" onclick="sw('cTab',this)">Corner Predictions</button>
     </div>
 </div>
 
@@ -114,7 +114,7 @@ function rB() {{
 }}
 function rF() {{
     let h = '<table><thead><tr><th>Tier</th><th>Combined Odds</th><th>Model Prob</th><th>Included Legs</th></tr></thead><tbody>';
-    fD.forEach(x => {{ h += <tr><td class="font-bold text-amber-400"> + x.tier + </td><td class="font-bold text-white"> + x.odds + </td><td> + x.combined_prob + </td><td><ul class="list-disc pl-4 text-xs text-slate-300"> + x.legs.map(l => '<li>' + l + '</li>').join('') + </ul></td></tr>; }});
+    fD.forEach(x => {{ h += <tr><td class="font-bold text-amber-400"> + x.tier + </td><td class="font-bold text-white"> + x.odds + </td><td> + x.combined_prob + </td><td> + x.legs + </td></tr>; }});
     document.getElementById('fCon').innerHTML = h + '</tbody></table>';
 }}
 function rBB() {{
