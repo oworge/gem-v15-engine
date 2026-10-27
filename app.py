@@ -4,6 +4,13 @@ from fastapi.responses import FileResponse
 
 app = FastAPI(title="AI Scorecast PRO")
 
+LIVE_ODDS_FEED = [
+    {"date": "2026-10-27", "league": "EFL Trophy", "match": "Fleetwood vs. Arsenal", "market": "Arsenal -1.5", "bookmaker": "Pinnacle", "odds": 1.84, "ev_edge": "+13.20%"},
+    {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "market": "Real Madrid Win", "bookmaker": "Bet365", "odds": 1.76, "ev_edge": "+12.40%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Manchester City vs. Brighton", "market": "Man City -1.0", "bookmaker": "DraftKings", "odds": 1.92, "ev_edge": "+12.80%"},
+    {"date": "2026-10-28", "league": "EFL Cup", "match": "Liverpool vs. Chelsea", "market": "Over 2.5 Goals", "bookmaker": "Pinnacle", "odds": 1.57, "ev_edge": "+12.10%"}
+]
+
 CORRECT_SCORES = [
     {"date": "2026-10-27", "league": "EFL Trophy", "match": "Fleetwood vs. Arsenal", "correct_score": "0 - 3", "odds": 6.80, "model_prob": "21.0%", "ev_edge": "+42.80%"},
     {"date": "2026-10-27", "league": "UEFA Champions League", "match": "Real Madrid vs. Juventus", "correct_score": "2 - 1", "odds": 8.00, "model_prob": "17.4%", "ev_edge": "+39.20%"},
@@ -49,6 +56,9 @@ BET_BUILDERS = [
     {"match": "Real Madrid vs. Juventus", "builder": "Real Madrid Win + Over 2.5 Goals + Vinicius Jr 1+ Shot on Target", "combined_odds": 2.75, "ev_edge": "+13.20%"},
     {"match": "Liverpool vs. Chelsea", "builder": "Over 2.5 Goals + Over 9.5 Match Corners + Salah 1+ Shot on Target", "combined_odds": 3.10, "ev_edge": "+14.50%"}
 ]
+
+@app.get("/api/live-odds")
+def get_live_odds(): return LIVE_ODDS_FEED
 
 @app.get("/api/correct-scores")
 def get_correct_scores(): return CORRECT_SCORES
