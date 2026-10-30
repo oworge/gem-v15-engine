@@ -1,5 +1,4 @@
-﻿import os, json
-import urllib.request
+﻿import os, requests
 from datetime import datetime, timezone
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -33,42 +32,41 @@ def fetch_live_fixtures():
     for sport_key, league_name in LEAGUES:
         url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds/?apiKey={ODDS_API_KEY}&regions=uk&markets=h2h"
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=4) as response:
-                if response.status == 200:
-                    data = json.loads(response.read().decode('utf-8'))
-                    for item in data[:6]:
-                        home = item.get("home_team", "Home")
-                        away = item.get("away_team", "Away")
-                        raw_time = item.get("commence_time", "")
-                        
-                        formatted_date = "Today"
-                        if raw_time:
-                            try:
-                                dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
-                                formatted_date = dt.strftime("%d %b %H:%M")
-                            except Exception:
-                                formatted_date = raw_time[:10]
+            res = requests.get(url, timeout=3)
+            if res.status_code == 200:
+                data = res.json()
+                for item in data[:6]:
+                    home = item.get("home_team", "Home")
+                    away = item.get("away_team", "Away")
+                    raw_time = item.get("commence_time", "")
+                    
+                    formatted_date = "Today"
+                    if raw_time:
+                        try:
+                            dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+                            formatted_date = dt.strftime("%d %b %H:%M")
+                        except Exception:
+                            formatted_date = raw_time[:10]
 
-                        odds_val = "1.85"
-                        bookmakers = item.get("bookmakers", [])
-                        if bookmakers:
-                            markets = bookmakers[0].get("markets", [])
-                            if markets and "outcomes" in markets[0]:
-                                outcomes = markets[0]["outcomes"]
-                                for outcome in outcomes:
-                                    if outcome.get("name") == home:
-                                        odds_val = f"{outcome.get('price', 1.85):.2f}"
-                                        break
+                    odds_val = "1.85"
+                    bookmakers = item.get("bookmakers", [])
+                    if bookmakers:
+                        markets = bookmakers[0].get("markets", [])
+                        if markets and "outcomes" in markets[0]:
+                            outcomes = markets[0]["outcomes"]
+                            for outcome in outcomes:
+                                if outcome.get("name") == home:
+                                    odds_val = f"{outcome.get('price', 1.85):.2f}"
+                                    break
 
-                        live_fixtures.append({
-                            "date": formatted_date,
-                            "league": league_name,
-                            "match": f"{home} vs {away}",
-                            "prediction": f"{home} Win",
-                            "odds": odds_val,
-                            "banker": float(odds_val) <= 1.75
-                        })
+                    live_fixtures.append({
+                        "date": formatted_date,
+                        "league": league_name,
+                        "match": f"{home} vs {away}",
+                        "prediction": f"{home} Win",
+                        "odds": odds_val,
+                        "banker": float(odds_val) <= 1.75
+                    })
         except Exception as e:
             print(f"Fetch warning for {league_name}: {e}")
 
@@ -88,7 +86,7 @@ def get_engine_fixtures():
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def serve_index(request: Request):
-    options_html = "".join([f'<option value="{i}">{i}-Fold Slate</option>' for i in range(2, 21)])
+    options_html = "".join([f'<option value="{i}">{i}-Fold Ticket Slate</option>' for i in range(2, 21)])
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -151,7 +149,7 @@ async def serve_index(request: Request):
         function renderTable(items) {{
             if (!items || items.length === 0) return '<div class="alert alert-warning p-3">No matching live picks found.</div>';
             let html = '<div class="table-responsive"><table class="table table-dark table-hover align-middle"><thead><tr>';
-            html += '<th>KICKOFF</th><th>COMPETITION</th><th>MATCH FIXTURE</th><th>PREDICTION SELECTION</th><th>MODEL ODDS</th><th>+EV EDGE</th><th>ACTION</th>';
+            html += '<th>KICKOFF</th><th>COMPETITION</th><th>MATCH FIXTURE</th><th>SELECTION</th><th>MODEL ODDS</th><th>+EV EDGE</th><th>ACTION</th>';
             html += '</tr></thead><tbody>';
             items.forEach(item => {{
                 html += '<tr>';
