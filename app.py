@@ -1,3 +1,5 @@
+from flask import render_template, jsonify
+# -*- coding: utf-8 -*-
 # -*- coding: utf-8 -*-
 from fastapi import FastAPI, Response, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -170,27 +172,27 @@ HTML_CONTENT = """<!DOCTYPE html>
             <h1>Edgemetrix-Pro-26</h1>
             <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Advanced xG & Self-Learning ML Weights</p>
         </div>
-        <button class="btn" onclick="copyBetSlip()">📋 Copy Slip</button>
+        <button class="btn" onclick="copyBetSlip()">ðŸ“‹ Copy Slip</button>
     </div>
 
     <div class="metrics-grid">
         <div class="metric-card">
-            <label>Base Stake (£)</label>
+            <label>Base Stake (Â£)</label>
             <input type="number" id="baseStake" value="10" min="1" oninput="recalculateReturns()">
         </div>
         <div class="metric-card">
             <label>ML Optimizer</label>
-            <div class="val" style="font-size:14px; margin-top:4px; color:var(--cyan);">🧠 Active Tuning</div>
+            <div class="val" style="font-size:14px; margin-top:4px; color:var(--cyan);">ðŸ§  Active Tuning</div>
         </div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('all', this)">🔥 All</div>
-        <div class="tab daily-tab" onclick="switchTab('today', this)">⚡ Today</div>
-        <div class="tab futures-tab" onclick="switchTab('futures', this)">🔮 Futures</div>
-        <div class="tab" onclick="switchTab('three', this)">🎯 3-Fold</div>
-        <div class="tab ml-tab" onclick="switchTab('ml', this)">🧬 ML Weights</div>
-        <div class="tab ledger-tab" onclick="switchTab('ledger', this)">📊 Ledger</div>
+        <div class="tab active" onclick="switchTab('all', this)">ðŸ”¥ All</div>
+        <div class="tab daily-tab" onclick="switchTab('today', this)">âš¡ Today</div>
+        <div class="tab futures-tab" onclick="switchTab('futures', this)">ðŸ”® Futures</div>
+        <div class="tab" onclick="switchTab('three', this)">ðŸŽ¯ 3-Fold</div>
+        <div class="tab ml-tab" onclick="switchTab('ml', this)">ðŸ§¬ ML Weights</div>
+        <div class="tab ledger-tab" onclick="switchTab('ledger', this)">ðŸ“Š Ledger</div>
     </div>
 
     <div class="acc-container" id="acc-container"></div>
@@ -275,11 +277,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('acc-container').innerHTML = 
                 '<div class="acc-box elite" onclick="logBetToLedger(\'3-Fold Anchor\', ' + globalData.accumulators.three_fold.odds + ')">' +
                     '<div>' +
-                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">🎯 3-FOLD ANCHOR (Legs 1-3) &bull; Tap to Log</div>' +
-                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: £' + stake.toFixed(2) + '</div>' +
+                        '<div style="font-size:12px; font-weight:800; color:var(--gold);">ðŸŽ¯ 3-FOLD ANCHOR (Legs 1-3) &bull; Tap to Log</div>' +
+                        '<div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Odds: <b>' + globalData.accumulators.three_fold.odds + '</b> | Stake: Â£' + stake.toFixed(2) + '</div>' +
                     '</div>' +
                     '<div style="text-align:right;">' +
-                        '<div style="font-size:16px; font-weight:800; color:var(--gold);">£' + threeRet + '</div>' +
+                        '<div style="font-size:16px; font-weight:800; color:var(--gold);">Â£' + threeRet + '</div>' +
                         '<div style="font-size:10px; color:var(--text-dim);">Est. Return</div>' +
                     '</div>' +
                 '</div>';
@@ -291,7 +293,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             const titleEl = document.getElementById('slate-title');
             
             if (currentTab === 'ml') {
-                titleEl.innerText = "🧬 Self-Learning ML Coefficient Weights";
+                titleEl.innerText = "ðŸ§¬ Self-Learning ML Coefficient Weights";
                 container.innerHTML = '<div class="card" style="border-left-color:var(--cyan);">' +
                     '<b style="color:var(--cyan); font-size:14px;">Closed-Loop Feedback Optimizer</b>' +
                     '<p style="font-size:12px; color:var(--text-dim); margin:6px 0 12px 0;">The backend automatically retrains prediction weights based on settled bet outcomes in your SQLite ledger.</p>' +
@@ -305,7 +307,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
 
             if (currentTab === 'ledger') {
-                titleEl.innerText = "📊 Self-Learning Performance Ledger";
+                titleEl.innerText = "ðŸ“Š Self-Learning Performance Ledger";
                 if (ledgerData.length === 0) {
                     container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No logged bets yet. Tap the 3-Fold tier above to log your bet slip!</div>';
                     return;
@@ -320,8 +322,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                 let html = '<div class="card" style="border-left-color:var(--cyan);">' +
                     '<b style="color:var(--cyan); font-size:14px;">Ledger Performance Summary</b>' +
                     '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; margin-top:8px; text-align:center;">' +
-                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">STAKED</div><b>£' + totalStaked.toFixed(2) + '</b></div>' +
-                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">PROFIT</div><b style="color:' + (profit >= 0 ? 'var(--accent)' : 'var(--red)') + ';">£' + profit.toFixed(2) + '</b></div>' +
+                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">STAKED</div><b>Â£' + totalStaked.toFixed(2) + '</b></div>' +
+                        '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">PROFIT</div><b style="color:' + (profit >= 0 ? 'var(--accent)' : 'var(--red)') + ';">Â£' + profit.toFixed(2) + '</b></div>' +
                         '<div style="background:var(--bg); padding:8px; border-radius:6px;"><div style="font-size:10px; color:var(--text-dim);">STRIKE RATE</div><b>' + strikeRate + '%</b></div>' +
                     '</div>' +
                 '</div>';
@@ -332,13 +334,13 @@ HTML_CONTENT = """<!DOCTYPE html>
                             '<div>' +
                                 '<div style="font-size:10px; color:var(--text-dim);">' + item.timestamp + '</div>' +
                                 '<b style="font-size:14px;">' + item.tier_name + '</b><br/>' +
-                                '<span style="font-size:12px; color:var(--text-dim);">Stake: £' + item.stake.toFixed(2) + ' | Odds: @' + item.odds + ' ➔ Ret: £' + item.return_amt.toFixed(2) + '</span>' +
+                                '<span style="font-size:12px; color:var(--text-dim);">Stake: Â£' + item.stake.toFixed(2) + ' | Odds: @' + item.odds + ' âž” Ret: Â£' + item.return_amt.toFixed(2) + '</span>' +
                             '</div>' +
                             '<div style="text-align:right;">' +
                                 '<span class="badge" style="background:' + (item.status === 'WON' ? 'var(--accent)' : item.status === 'LOST' ? 'var(--red)' : 'var(--gold)') + '; color:#0d1117;">' + item.status + '</span>' +
                             '</div>' +
                         '</div>' +
-                        (item.status === 'PENDING' ? '<div style="margin-top:8px; display:flex; gap:6px;"><button class="btn" style="padding:4px 10px; font-size:11px; background:var(--accent);" onclick="updateBetStatus(' + item.id + ', \'WON\')">✅ Mark Won</button><button class="btn" style="padding:4px 10px; font-size:11px; background:var(--red); color:#fff;" onclick="updateBetStatus(' + item.id + ', \'LOST\')">❌ Mark Lost</button></div>' : '') +
+                        (item.status === 'PENDING' ? '<div style="margin-top:8px; display:flex; gap:6px;"><button class="btn" style="padding:4px 10px; font-size:11px; background:var(--accent);" onclick="updateBetStatus(' + item.id + ', \'WON\')">âœ… Mark Won</button><button class="btn" style="padding:4px 10px; font-size:11px; background:var(--red); color:#fff;" onclick="updateBetStatus(' + item.id + ', \'LOST\')">âŒ Mark Lost</button></div>' : '') +
                     '</div>'
                 ).join('');
                 container.innerHTML = html;
@@ -348,15 +350,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             let filteredSlate = globalData.slate;
             if (currentTab === 'today') {
                 filteredSlate = globalData.slate.filter(i => i.day_group === 'today');
-                titleEl.innerText = "⚡ Today's Active Games & xG Predictions";
+                titleEl.innerText = "âš¡ Today's Active Games & xG Predictions";
             } else if (currentTab === 'futures') {
                 filteredSlate = globalData.slate.filter(i => i.day_group === 'futures');
-                titleEl.innerText = "🔮 Futures (Advanced xG Value Edge)";
+                titleEl.innerText = "ðŸ”® Futures (Advanced xG Value Edge)";
             } else if (currentTab === 'three') {
                 filteredSlate = globalData.slate.filter(i => i.leg <= 3);
-                titleEl.innerText = "🎯 3-Fold Anchor Selections (Legs 1-3)";
+                titleEl.innerText = "ðŸŽ¯ 3-Fold Anchor Selections (Legs 1-3)";
             } else {
-                titleEl.innerText = "🔥 Full Automated xG Slate (Legs 1-9)";
+                titleEl.innerText = "ðŸ”¥ Full Automated xG Slate (Legs 1-9)";
             }
 
             if (filteredSlate.length === 0) {
@@ -370,7 +372,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 return '<div class="card ' + (isFutures ? 'futures-card' : isElite ? 'elite' : '') + '">' +
                     '<div class="card-top">' +
                         '<div>' +
-                            '<div style="font-size:10px; color:var(--text-dim); font-weight:700; margin-bottom:2px;">LEG ' + item.leg + ' &bull; 📅 ' + item.date + '</div>' +
+                            '<div style="font-size:10px; color:var(--text-dim); font-weight:700; margin-bottom:2px;">LEG ' + item.leg + ' &bull; ðŸ“… ' + item.date + '</div>' +
                             '<b style="font-size:14px; font-weight:700;">' + item.match + '</b><br/>' +
                             '<span style="font-size:12px; color:var(--accent); font-weight:600;">' + item.selection + '</span> <span style="font-size:11px; color:var(--text-dim);">(' + item.market + ')</span>' +
                         '</div>' +
@@ -382,8 +384,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                         '<div class="progress-bar-fill ' + (isFutures ? 'futures' : isElite ? 'elite' : '') + '" style="width: ' + item.scoreai_conf + '%;"></div>' +
                     '</div>' +
                     '<div class="badges">' +
-                        (isFutures ? '<span class="badge badge-futures">🔮 FUTURES</span>' : '') +
-                        (isElite ? '<span class="badge badge-elite">⭐ 90%+ ELITE</span>' : '') +
+                        (isFutures ? '<span class="badge badge-futures">ðŸ”® FUTURES</span>' : '') +
+                        (isElite ? '<span class="badge badge-elite">â­ 90%+ ELITE</span>' : '') +
                         '<span class="badge badge-scoreai">AI: ' + item.scoreai_conf + '%</span>' +
                         '<span class="badge badge-clv">CLV: +' + item.clv_edge + '%</span>' +
                         '<span class="badge badge-poisson">xG Model: ' + item.poisson_prob + '%</span>' +
@@ -538,10 +540,21 @@ def api_fixtures():
     return jsonify({
         "status": "ok",
         "data": [
-            {"id": 1, "kickoff": "19:45", "league": "?? Premier League", "home": "Arsenal", "away": "Chelsea", "market": "1 � Home", "prob": 62.4, "odds": 1.85, "ev": 7.1, "confidence": 0.88},
-            {"id": 2, "kickoff": "20:00", "league": "???? LaLiga", "home": "Real Madrid", "away": "Girona", "market": "O2.5 � Over", "prob": 68.1, "odds": 1.75, "ev": 5.8, "confidence": 0.91},
-            {"id": 3, "kickoff": "19:30", "league": "???? Bundesliga", "home": "Dortmund", "away": "Leipzig", "market": "BTTS � Yes", "prob": 59.3, "odds": 1.90, "ev": 3.2, "confidence": 0.74},
-            {"id": 4, "kickoff": "17:00", "league": "?? Premier League", "home": "Man City", "away": "Newcastle", "market": "1 � Home", "prob": 71.2, "odds": 1.62, "ev": 6.4, "confidence": 0.93},
-            {"id": 5, "kickoff": "15:00", "league": "???? Serie A", "home": "Inter Milan", "away": "Napoli", "market": "1 � Home", "prob": 58.0, "odds": 1.95, "ev": 4.5, "confidence": 0.78}
+
+# === DASHBOARD ROUTES ===
+@app.route('/dashboard')
+def dashboard():
+    return render_template('index.html')
+
+@app.route('/api/fixtures')
+def api_fixtures():
+    return jsonify({
+        "status": "ok",
+        "data": [
+            {"id": 1, "kickoff": "19:45", "league": "Premier League", "home": "Arsenal", "away": "Chelsea", "market": "1 - Home", "prob": 62.4, "odds": 1.85, "ev": 7.1, "confidence": 0.88},
+            {"id": 2, "kickoff": "20:00", "league": "LaLiga", "home": "Real Madrid", "away": "Girona", "market": "O2.5 - Over", "prob": 68.1, "odds": 1.75, "ev": 5.8, "confidence": 0.91},
+            {"id": 3, "kickoff": "19:30", "league": "Bundesliga", "home": "Dortmund", "away": "Leipzig", "market": "BTTS - Yes", "prob": 59.3, "odds": 1.90, "ev": 3.2, "confidence": 0.74},
+            {"id": 4, "kickoff": "17:00", "league": "Premier League", "home": "Man City", "away": "Newcastle", "market": "1 - Home", "prob": 71.2, "odds": 1.62, "ev": 6.4, "confidence": 0.93},
+            {"id": 5, "kickoff": "15:00", "league": "Serie A", "home": "Inter Milan", "away": "Napoli", "market": "1 - Home", "prob": 58.0, "odds": 1.95, "ev": 4.5, "confidence": 0.78}
         ]
     })
