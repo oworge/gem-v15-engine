@@ -1,4 +1,5 @@
-﻿import os, requests
+﻿import os, json
+import urllib.request
 from datetime import datetime, timezone
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -16,12 +17,20 @@ app.add_middleware(
 
 ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
 
+# Global European & Rest of the World Leagues Mapping
 LEAGUES = [
-    ("soccer_epl", "Premier League"),
-    ("soccer_spain_la_liga", "La Liga"),
-    ("soccer_italy_serie_a", "Serie A"),
-    ("soccer_germany_bundesliga", "Bundesliga"),
-    ("soccer_france_ligue_one", "Ligue 1")
+    ("soccer_epl", "Premier League (UK)"),
+    ("soccer_england_efl_champ", "Championship (UK)"),
+    ("soccer_spain_la_liga", "La Liga (Spain)"),
+    ("soccer_germany_bundesliga", "Bundesliga (Germany)"),
+    ("soccer_italy_serie_a", "Serie A (Italy)"),
+    ("soccer_france_ligue_one", "Ligue 1 (France)"),
+    ("soccer_uefa_champs_league", "Champions League (Europe)"),
+    ("soccer_uefa_europa_league", "Europa League (Europe)"),
+    ("soccer_netherlands_eredivisie", "Eredivisie (ROW)"),
+    ("soccer_portugal_primeira_liga", "Primeira Liga (ROW)"),
+    ("soccer_usa_mls", "MLS (ROW)"),
+    ("soccer_brazil_campeonato", "Brasileirão (ROW)")
 ]
 
 def fetch_live_fixtures():
@@ -32,41 +41,42 @@ def fetch_live_fixtures():
     for sport_key, league_name in LEAGUES:
         url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds/?apiKey={ODDS_API_KEY}&regions=uk&markets=h2h"
         try:
-            res = requests.get(url, timeout=3)
-            if res.status_code == 200:
-                data = res.json()
-                for item in data[:6]:
-                    home = item.get("home_team", "Home")
-                    away = item.get("away_team", "Away")
-                    raw_time = item.get("commence_time", "")
-                    
-                    formatted_date = "Today"
-                    if raw_time:
-                        try:
-                            dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
-                            formatted_date = dt.strftime("%d %b %H:%M")
-                        except Exception:
-                            formatted_date = raw_time[:10]
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=3) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    for item in data[:4]:
+                        home = item.get("home_team", "Home")
+                        away = item.get("away_team", "Away")
+                        raw_time = item.get("commence_time", "")
+                        
+                        formatted_date = "Today"
+                        if raw_time:
+                            try:
+                                dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+                                formatted_date = dt.strftime("%d %b %H:%M")
+                            except Exception:
+                                formatted_date = raw_time[:10]
 
-                    odds_val = "1.85"
-                    bookmakers = item.get("bookmakers", [])
-                    if bookmakers:
-                        markets = bookmakers[0].get("markets", [])
-                        if markets and "outcomes" in markets[0]:
-                            outcomes = markets[0]["outcomes"]
-                            for outcome in outcomes:
-                                if outcome.get("name") == home:
-                                    odds_val = f"{outcome.get('price', 1.85):.2f}"
-                                    break
+                        odds_val = "1.85"
+                        bookmakers = item.get("bookmakers", [])
+                        if bookmakers:
+                            markets = bookmakers[0].get("markets", [])
+                            if markets and "outcomes" in markets[0]:
+                                outcomes = markets[0]["outcomes"]
+                                for outcome in outcomes:
+                                    if outcome.get("name") == home:
+                                        odds_val = f"{outcome.get('price', 1.85):.2f}"
+                                        break
 
-                    live_fixtures.append({
-                        "date": formatted_date,
-                        "league": league_name,
-                        "match": f"{home} vs {away}",
-                        "prediction": f"{home} Win",
-                        "odds": odds_val,
-                        "banker": float(odds_val) <= 1.75
-                    })
+                        live_fixtures.append({
+                            "date": formatted_date,
+                            "league": league_name,
+                            "match": f"{home} vs {away}",
+                            "prediction": f"{home} Win",
+                            "odds": odds_val,
+                            "banker": float(odds_val) <= 1.75
+                        })
         except Exception as e:
             print(f"Fetch warning for {league_name}: {e}")
 
@@ -79,14 +89,118 @@ def get_engine_fixtures():
 
     today_str = datetime.now(timezone.utc).strftime("%d %b")
     return [
-        {"date": f"{today_str} 19:45", "league": "Premier League", "match": "Arsenal vs Chelsea", "prediction": "Arsenal Win", "odds": "1.85", "banker": True},
-        {"date": f"{today_str} 20:00", "league": "La Liga", "match": "Real Madrid vs Valencia", "prediction": "Real Madrid Win", "odds": "1.45", "banker": True},
-        {"date": f"{today_str} 20:45", "league": "Serie A", "match": "Inter Milan vs Roma", "prediction": "Inter Milan Win", "odds": "1.70", "banker": True}
+        {"date": f"{today_str} 19:45", "league": "Premier League (UK)", "match": "Arsenal vs Chelsea", "prediction": "Arsenal Win", "odds": "1.85", "banker": True},
+        {"date": f"{today_str} 20:00", "league": "La Liga (Spain)", "match": "Real Madrid vs Valencia", "prediction": "Real Madrid Win", "odds": "1.45", "banker": True},
+        {"date": f"{today_str} 20:30", "league": "Bundesliga (Germany)", "match": "Bayern Munich vs Dortmund", "prediction": "Bayern Munich Win", "odds": "1.65", "banker": True},
+        {"date": f"{today_str} 20:45", "league": "Serie A (Italy)", "match": "Inter Milan vs Roma", "prediction": "Inter Milan Win", "odds": "1.70", "banker": True},
+        {"date": f"{today_str} 21:00", "league": "Ligue 1 (France)", "match": "PSG vs Marseille", "prediction": "PSG Win", "odds": "1.50", "banker": True},
+        {"date": f"{today_str} 21:00", "league": "Champions League (Europe)", "match": "Barcelona vs Benfica", "prediction": "Barcelona Win", "odds": "1.40", "banker": True},
+        {"date": f"{today_str}
+
+@'
+import os, json
+import urllib.request
+from datetime import datetime, timezone
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(title="GEM V15.0 Quant Trading Terminal")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
+
+# Global European & Rest of the World Leagues Mapping
+LEAGUES = [
+    ("soccer_epl", "Premier League (UK)"),
+    ("soccer_england_efl_champ", "Championship (UK)"),
+    ("soccer_spain_la_liga", "La Liga (Spain)"),
+    ("soccer_germany_bundesliga", "Bundesliga (Germany)"),
+    ("soccer_italy_serie_a", "Serie A (Italy)"),
+    ("soccer_france_ligue_one", "Ligue 1 (France)"),
+    ("soccer_uefa_champs_league", "Champions League (Europe)"),
+    ("soccer_uefa_europa_league", "Europa League (Europe)"),
+    ("soccer_netherlands_eredivisie", "Eredivisie (ROW)"),
+    ("soccer_portugal_primeira_liga", "Primeira Liga (ROW)"),
+    ("soccer_usa_mls", "MLS (ROW)"),
+    ("soccer_brazil_campeonato", "Brasileirão (ROW)")
+]
+
+def fetch_live_fixtures():
+    if not ODDS_API_KEY:
+        return None
+    
+    live_fixtures = []
+    for sport_key, league_name in LEAGUES:
+        url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds/?apiKey={ODDS_API_KEY}&regions=uk&markets=h2h"
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=3) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    for item in data[:4]:
+                        home = item.get("home_team", "Home")
+                        away = item.get("away_team", "Away")
+                        raw_time = item.get("commence_time", "")
+                        
+                        formatted_date = "Today"
+                        if raw_time:
+                            try:
+                                dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+                                formatted_date = dt.strftime("%d %b %H:%M")
+                            except Exception:
+                                formatted_date = raw_time[:10]
+
+                        odds_val = "1.85"
+                        bookmakers = item.get("bookmakers", [])
+                        if bookmakers:
+                            markets = bookmakers[0].get("markets", [])
+                            if markets and "outcomes" in markets[0]:
+                                outcomes = markets[0]["outcomes"]
+                                for outcome in outcomes:
+                                    if outcome.get("name") == home:
+                                        odds_val = f"{outcome.get('price', 1.85):.2f}"
+                                        break
+
+                        live_fixtures.append({
+                            "date": formatted_date,
+                            "league": league_name,
+                            "match": f"{home} vs {away}",
+                            "prediction": f"{home} Win",
+                            "odds": odds_val,
+                            "banker": float(odds_val) <= 1.75
+                        })
+        except Exception as e:
+            print(f"Fetch warning for {league_name}: {e}")
+
+    return live_fixtures if live_fixtures else None
+
+def get_engine_fixtures():
+    live = fetch_live_fixtures()
+    if live:
+        return live
+
+    today_str = datetime.now(timezone.utc).strftime("%d %b")
+    return [
+        {"date": f"{today_str} 19:45", "league": "Premier League (UK)", "match": "Arsenal vs Chelsea", "prediction": "Arsenal Win", "odds": "1.85", "banker": True},
+        {"date": f"{today_str} 20:00", "league": "La Liga (Spain)", "match": "Real Madrid vs Valencia", "prediction": "Real Madrid Win", "odds": "1.45", "banker": True},
+        {"date": f"{today_str} 20:30", "league": "Bundesliga (Germany)", "match": "Bayern Munich vs Dortmund", "prediction": "Bayern Munich Win", "odds": "1.65", "banker": True},
+        {"date": f"{today_str} 20:45", "league": "Serie A (Italy)", "match": "Inter Milan vs Roma", "prediction": "Inter Milan Win", "odds": "1.70", "banker": True},
+        {"date": f"{today_str} 21:00", "league": "Ligue 1 (France)", "match": "PSG vs Marseille", "prediction": "PSG Win", "odds": "1.50", "banker": True},
+        {"date": f"{today_str} 21:00", "league": "Champions League (Europe)", "match": "Barcelona vs Benfica", "prediction": "Barcelona Win", "odds": "1.40", "banker": True},
+        {"date": f"{today_str} 22:00", "league": "MLS (ROW)", "match": "LAFC vs Inter Miami", "prediction": "Inter Miami Win", "odds": "2.10", "banker": False}
     ]
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def serve_index(request: Request):
-    options_html = "".join([f'<option value="{i}">{i}-Fold Ticket Slate</option>' for i in range(2, 21)])
+    options_html = "".join([f'<option value="{i}">{i}-Fold Slate</option>' for i in range(2, 21)])
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -149,7 +263,7 @@ async def serve_index(request: Request):
         function renderTable(items) {{
             if (!items || items.length === 0) return '<div class="alert alert-warning p-3">No matching live picks found.</div>';
             let html = '<div class="table-responsive"><table class="table table-dark table-hover align-middle"><thead><tr>';
-            html += '<th>KICKOFF</th><th>COMPETITION</th><th>MATCH FIXTURE</th><th>SELECTION</th><th>MODEL ODDS</th><th>+EV EDGE</th><th>ACTION</th>';
+            html += '<th>KICKOFF</th><th>COMPETITION</th><th>MATCH FIXTURE</th><th>PREDICTION SELECTION</th><th>MODEL ODDS</th><th>+EV EDGE</th><th>ACTION</th>';
             html += '</tr></thead><tbody>';
             items.forEach(item => {{
                 html += '<tr>';
