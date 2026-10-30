@@ -508,4 +508,15 @@ async def update_bet(request: Request):
     conn.commit()
     conn.close()
     optimize_ml_weights()
-    return {"status": "updated_and_optimized"}
+    return {"status": "updated_and_optimized"}
+
+
+
+@app.get("/api/data")
+@app.get("/api/slate")
+async def get_slate_data(slate: str = "bankers"):
+    try:
+        data = generate_predictions() if "generate_predictions" in globals() else {}
+        return data
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
