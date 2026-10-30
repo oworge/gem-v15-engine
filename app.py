@@ -1,4 +1,4 @@
-ï»¿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from fastapi import FastAPI, Response, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from datetime import datetime
@@ -104,7 +104,7 @@ def calculate_advanced_xg_poisson(home_xg, away_xg, home_xa, away_xa):
 HTML_CONTENT = """<!DOCTYPE html>
 <html>
 <head>
-    <title>GEM V15.0 Self-Learning ML Terminal</title>
+    <title>Edgemetrix-Pro-26 Self-Learning ML Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -167,7 +167,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>GEM V15.0 ML TERMINAL</h1>
+            <h1>Edgemetrix-Pro-26</h1>
             <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-dim);">Advanced xG & Self-Learning ML Weights</p>
         </div>
         <button class="btn" onclick="copyBetSlip()">ðŸ“‹ Copy Slip</button>
@@ -396,7 +396,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (!globalData) return;
             logBetToLedger('Full xG Slate Slip', globalData.accumulators.nine_fold.odds);
             
-            let text = "=== GEM V15.0 xG ML SLIP ===\\n\\n";
+            let text = "=== Edgemetrix-Pro-26 xG ML SLIP ===\\n\\n";
             globalData.slate.forEach(i => {
                 text += "Leg " + i.leg + " [" + i.date + "]: " + i.match + " -> " + i.selection + " (Model: " + i.poisson_prob + "%) @ " + i.odds + "\\n";
             });
@@ -417,7 +417,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name": "GEM V15.0 ML", "short_name": "GEM ML", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
+    return {"name": "Edgemetrix-Pro-26 ML", "short_name": "GEM ML", "start_url": "/", "display": "standalone", "background_color": "#0d1117", "theme_color": "#00ff88", "icons": []}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(response: Response):
@@ -512,11 +512,36 @@ async def update_bet(request: Request):
 
 
 
-@app.get("/api/data")
-@app.get("/api/slate")
+@app.api_route("/api/data", methods=["GET", "HEAD"])`n@app.api_route("/api/slate", methods=["GET", "HEAD"])
 async def get_slate_data(slate: str = "bankers"):
     try:
         data = generate_predictions() if "generate_predictions" in globals() else {}
         return data
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+@app.api_route("/api/health", methods=["GET", "HEAD"])
+async def edgemetrix_health():
+    return {
+        "status": "healthy",
+        "system": "Edgemetrix-Pro-26",
+        "version": "2.6.0",
+        "platform": "Render"
+    }
+# === DASHBOARD ROUTE ===
+@app.route('/dashboard')
+def dashboard():
+    return render_template('index.html')
+
+@app.route('/api/fixtures')
+def api_fixtures():
+    return jsonify({
+        "status": "ok",
+        "data": [
+            {"id": 1, "kickoff": "19:45", "league": "?? Premier League", "home": "Arsenal", "away": "Chelsea", "market": "1 — Home", "prob": 62.4, "odds": 1.85, "ev": 7.1, "confidence": 0.88},
+            {"id": 2, "kickoff": "20:00", "league": "???? LaLiga", "home": "Real Madrid", "away": "Girona", "market": "O2.5 — Over", "prob": 68.1, "odds": 1.75, "ev": 5.8, "confidence": 0.91},
+            {"id": 3, "kickoff": "19:30", "league": "???? Bundesliga", "home": "Dortmund", "away": "Leipzig", "market": "BTTS — Yes", "prob": 59.3, "odds": 1.90, "ev": 3.2, "confidence": 0.74},
+            {"id": 4, "kickoff": "17:00", "league": "?? Premier League", "home": "Man City", "away": "Newcastle", "market": "1 — Home", "prob": 71.2, "odds": 1.62, "ev": 6.4, "confidence": 0.93},
+            {"id": 5, "kickoff": "15:00", "league": "???? Serie A", "home": "Inter Milan", "away": "Napoli", "market": "1 — Home", "prob": 58.0, "odds": 1.95, "ev": 4.5, "confidence": 0.78}
+        ]
+    })
