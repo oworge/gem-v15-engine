@@ -302,19 +302,7 @@ async def log_bet(request: Request):
     now = datetime.utcnow().strftime("%d %b %H:%M")
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?, ?, ?)",
-
-cd C:\Users\georg\gem-v15-engine
-
-Set-Content -Path main.py -Value @"
-# -*- coding: utf-8 -*-
-from fastapi import FastAPI, Response, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from datetime import datetime
-import math
-import sqlite3
-
-app = FastAPI()
+    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?, ?, ?)", (timestamp, tier_name, stake, odds, return_amt))
 DB_FILE = "gem_ledger.db"
 
 def init_db():
@@ -575,8 +563,8 @@ async def log_bet(request: Request):
     now = datetime.utcnow().strftime("%d %b %H:%M")
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?, ?, ?)",
-                   (now, data.get("tier_name"), data.get("stake"), data.get("odds"), data.get("return_amt")))
+    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?, ?, ?)", (timestamp, tier_name, stake, odds, return_amt)), data.get("stake"), data.get("odds"), data.get("return_amt")))
     conn.commit()
     conn.close()
-    return {"status": "logged"}
+    return {"status": "logged"}
+
