@@ -302,7 +302,7 @@ async def log_bet(request: Request):
     now = datetime.utcnow().strftime("%d %b %H:%M")
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?,
+    cursor.execute("INSERT INTO ledger (timestamp, tier_name, stake, odds, return_amt) VALUES (?, ?, ?, ?, ?)",
 
 cd C:\Users\georg\gem-v15-engine
 
