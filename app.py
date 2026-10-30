@@ -59,158 +59,13 @@ def fetch_live_fixtures():
                                     odds_val = f"{outcome.get('price', 1.85):.2f}"
                                     break
 
-                    live_fixtures.append({
-                        "date": formatted_date,
-                        "league": league_name,
-                        "match": f"{home} vs {away}",
-                        "prediction": f"{home} Win",
-                        "odds": odds_val,
-                        "banker": float(odds_val) <= 1.75
-                    })
-        except Exception as e:
-            print(f"Fetch warning for {league_name}: {e}")
-
-    return live_fixtures if live_fixtures else None
-
-def get_engine_fixtures():
-    live = fetch_live_fixtures()
-    if live:
-        return live
-
-    today_str = datetime.now(timezone.utc).strftime("%d %b")
-    return [
-        {"date": f"{today_str} 19:45", "league": "Premier League", "match": "Arsenal vs Chelsea", "prediction": "Arsenal Win", "odds": "1.85", "banker": True},
-        {"date": f"{today_str} 20:00", "league": "La Liga", "match": "Real Madrid vs Valencia", "prediction": "Real Madrid Win", "odds": "1.45", "banker": True},
-        {"date": f"{today_str} 20:45", "league": "Serie A", "match": "Inter Milan vs Roma", "prediction": "Inter Milan Win", "odds": "1.70", "banker": True}
-    ]
-
-@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-async def serve_index(request: Request):
-    options_html = "".join([f'<option value="{i}">{i}-Fold Ticket Slate</option>' for i in range(2, 21)])
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDGEMETRIX-PRO-26 | GEM V15.0 Quant Terminal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {{ background-color: #0b0e14; color: #c9d1d9; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }}
-        .card {{ background-color: #161b22; border: 1px solid #30363d; }}
-        .nav-tabs .nav-link {{ color: #8b949e; border: none; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }}
-        .nav-tabs .nav-link.active {{ color: #58a6ff; background-color: #161b22; border-bottom: 2px solid #58a6ff; }}
-        .table-dark {{ --bs-table-bg: #161b22; --bs-table-border-color: #30363d; }}
-        .badge-ev {{ background-color: #238636; color: #fff; font-weight: bold; }}
-    </style>
-</head>
-<body class="p-3 p-md-4">
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h3 class="mb-0 text-white"><i class="fas fa-microchip text-primary"></i> EDGEMETRIX-PRO-26</h3>
-                <small class="text-muted">QUANTITATIVE SPORTS TRADING DESK</small>
-            </div>
-            <div class="text-end">
-                <span class="badge bg-success"><i class="fas fa-bolt"></i> PIPELINE: LIVE</span>
-                <span class="badge bg-primary ms-1"><i class="fas fa-database"></i> EV EDGE: +5% MIN</span>
-            </div>
-        </div>
-
-        <ul class="nav nav-tabs mb-3" id="terminalTabs">
-            <li class="nav-item"><a class="nav-link active" onclick="loadTab('bankers', this)" href="#">BANKERS</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadTab('daily', this)" href="#">DAILY PICKS</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadTab('acca-builder', this)" href="#">ACCA BUILDER</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadTab('builder', this)" href="#">BET BUILDER</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadTab('correct-score', this)" href="#">SCORE MATRIX</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadTab('10fold', this)" href="#">10-FOLD ACCAS</a></li>
-        </ul>
-
-        <div id="acca-controls" class="card p-3 mb-3" style="display:none;">
-            <div class="row g-3 align-items-center">
-                <div class="col-auto"><label for="accaLegs" class="col-form-label text-white">ACCUMULATOR LEGS:</label></div>
-                <div class="col-auto">
-                    <select id="accaLegs" class="form-select bg-dark text-white border-secondary" onchange="fetchCustomAcca()">
-                        {options_html}
-                    </select>
-                </div>
-                <div class="col-auto"><button class="btn btn-primary btn-sm" onclick="fetchCustomAcca()"><i class="fas fa-bolt"></i> GENERATE SLATE</button></div>
-            </div>
-        </div>
-
-        <div id="content-area" class="card p-3">
-            <div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Ingesting live market pipeline...</p></div>
-        </div>
-    </div>
-
-    <script>
-        let currentFixtures = [];
-
-        function renderTable(items) {{
-            if (!items || items.length === 0) return '<div class="alert alert-warning p-3">No matching live picks found.</div>';
-            let html = '<div class="table-responsive"><table class="table table-dark
-# Update app.py to include a dedicated Correct Score Matrix tab
-@'
-import os, requests
-from datetime import datetime, timezone
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI(title="GEM V15.0 Quant Trading Terminal")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
-
-LEAGUES = [
-    ("soccer_epl", "Premier League"),
-    ("soccer_spain_la_liga", "La Liga"),
-    ("soccer_italy_serie_a", "Serie A"),
-    ("soccer_germany_bundesliga", "Bundesliga"),
-    ("soccer_france_ligue_one", "Ligue 1")
-]
-
-def fetch_live_fixtures():
-    if not ODDS_API_KEY:
-        return None
-    
-    live_fixtures = []
-    for sport_key, league_name in LEAGUES:
-        url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds/?apiKey={ODDS_API_KEY}&regions=uk&markets=h2h"
-        try:
-            res = requests.get(url, timeout=3)
-            if res.status_code == 200:
-                data = res.json()
-                for item in data[:6]:
-                    home = item.get("home_team", "Home")
-                    away = item.get("away_team", "Away")
-                    raw_time = item.get("commence_time", "")
-                    
-                    formatted_date = "Today"
-                    if raw_time:
-                        try:
-                            dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
-                            formatted_date = dt.strftime("%d %b %H:%M")
-                        except Exception:
-                            formatted_date = raw_time[:10]
-
-                    odds_val = "1.85"
-                    bookmakers = item.get("bookmakers", [])
-                    if bookmakers:
-                        markets = bookmakers[0].get("markets", [])
-                        if markets and "outcomes" in markets[0]:
-                            outcomes = markets[0]["outcomes"]
-                            for outcome in outcomes:
-                                if outcome.get("name") == home:
-                                    odds_val = f"{outcome.get('price', 1.85):.2f}"
-                                    break
+                    # 4 correlated Bet Builder picks per fixture
+                    builder_picks = [
+                        {"pick": f"{home} Win", "odds": odds_val},
+                        {"pick": "Over 2.5 Goals", "odds": "1.65"},
+                        {"pick": "Both Teams to Score", "odds": "1.72"},
+                        {"pick": f"Over 4.5 {home} Corners", "odds": "1.50"}
+                    ]
 
                     live_fixtures.append({
                         "date": formatted_date,
@@ -220,6 +75,8 @@ def fetch_live_fixtures():
                         "correct_score": "2 - 1",
                         "odds": odds_val,
                         "score_odds": "8.50",
+                        "builder_picks": builder_picks,
+                        "builder_combined_odds": "5.40",
                         "banker": float(odds_val) <= 1.75
                     })
         except Exception as e:
@@ -234,9 +91,40 @@ def get_engine_fixtures():
 
     today_str = datetime.now(timezone.utc).strftime("%d %b")
     return [
-        {"date": f"{today_str} 19:45", "league": "Premier League", "match": "Arsenal vs Chelsea", "prediction": "Arsenal Win", "correct_score": "2 - 1", "odds": "1.85", "score_odds": "8.50", "banker": True},
-        {"date": f"{today_str} 20:00", "league": "La Liga", "match": "Real Madrid vs Valencia", "prediction": "Real Madrid Win", "correct_score": "3 - 0", "odds": "1.45", "score_odds": "6.50", "banker": True},
-        {"date": f"{today_str} 20:45", "league": "Serie A", "match": "Inter Milan vs Roma", "prediction": "Inter Milan Win", "correct_score": "1 - 0", "odds": "1.70", "score_odds": "7.00", "banker": True}
+        {
+            "date": f"{today_str} 19:45",
+            "league": "Premier League",
+            "match": "Arsenal vs Chelsea",
+            "prediction": "Arsenal Win",
+            "correct_score": "2 - 1",
+            "odds": "1.85",
+            "score_odds": "8.50",
+            "builder_picks": [
+                {"pick": "Arsenal Win", "odds": "1.85"},
+                {"pick": "Over 2.5 Goals", "odds": "1.65"},
+                {"pick": "Both Teams to Score", "odds": "1.75"},
+                {"pick": "Over 4.5 Arsenal Corners", "odds": "1.50"}
+            ],
+            "builder_combined_odds": "5.60",
+            "banker": True
+        },
+        {
+            "date": f"{today_str} 20:00",
+            "league": "La Liga",
+            "match": "Real Madrid vs Valencia",
+            "prediction": "Real Madrid Win",
+            "correct_score": "3 - 0",
+            "odds": "1.45",
+            "score_odds": "6.50",
+            "builder_picks": [
+                {"pick": "Real Madrid Win", "odds": "1.45"},
+                {"pick": "Over 1.5 Real Madrid Goals", "odds": "1.50"},
+                {"pick": "Valencia Under 3.5 Corners", "odds": "1.60"},
+                {"pick": "Real Madrid Most Cards: No", "odds": "1.40"}
+            ],
+            "builder_combined_odds": "4.85",
+            "banker": True
+        }
     ]
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
@@ -257,6 +145,7 @@ async def serve_index(request: Request):
         .nav-tabs .nav-link.active {{ color: #58a6ff; background-color: #161b22; border-bottom: 2px solid #58a6ff; }}
         .table-dark {{ --bs-table-bg: #161b22; --bs-table-border-color: #30363d; }}
         .badge-ev {{ background-color: #238636; color: #fff; font-weight: bold; }}
+        .builder-card {{ border-left: 4px solid #58a6ff; }}
     </style>
 </head>
 <body class="p-3 p-md-4">
@@ -275,9 +164,9 @@ async def serve_index(request: Request):
         <ul class="nav nav-tabs mb-3" id="terminalTabs">
             <li class="nav-item"><a class="nav-link active" onclick="loadTab('bankers', this)" href="#">BANKERS</a></li>
             <li class="nav-item"><a class="nav-link" onclick="loadTab('daily', this)" href="#">DAILY PICKS</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="loadTab('builder', this)" href="#">BET BUILDER</a></li>
             <li class="nav-item"><a class="nav-link" onclick="loadTab('correct-score', this)" href="#">CORRECT SCORE</a></li>
             <li class="nav-item"><a class="nav-link" onclick="loadTab('acca-builder', this)" href="#">ACCA BUILDER</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadTab('builder', this)" href="#">BET BUILDER</a></li>
             <li class="nav-item"><a class="nav-link" onclick="loadTab('10fold', this)" href="#">10-FOLD ACCAS</a></li>
         </ul>
 
@@ -300,6 +189,40 @@ async def serve_index(request: Request):
 
     <script>
         let currentFixtures = [];
+
+        function renderBetBuilder(items) {{
+            if (!items || items.length === 0) return '<div class="alert alert-warning p-3">No Bet Builder combinations available.</div>';
+            let html = '<div class="row g-3">';
+            items.forEach(item => {{
+                const picks = item.builder_picks || [
+                    {{pick: item.prediction || "Home Win", odds: item.odds || "1.85"}},
+                    {{pick: "Over 2.5 Goals", odds: "1.65"}},
+                    {{pick: "Both Teams to Score", odds: "1.75"}},
+                    {{pick: "Over 4.5 Corners", odds: "1.50"}}
+                ];
+                
+                html += '<div class="col-12 col-md-6"><div class="card builder-card p-3 h-100 bg-dark text-white border-secondary">';
+                html += '<div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">';
+                html += '<div><h5 class="mb-0 text-info"><i class="fas fa-futbol"></i> ' + (item.match || 'Match') + '</h5>';
+                html += '<small class="text-muted">' + (item.league || 'Competition') + ' | ' + (item.date || 'Today') + '</small></div>';
+                html += '<span class="badge bg-success fs-6">Combined Odds: ' + (item.builder_combined_odds || '5.50') + '</span>';
+                html += '</div>';
+                
+                html += '<ul class="list-group list-group-flush rounded mb-3">';
+                picks.slice(0, 4).forEach((p, idx) => {{
+                    html += '<li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center py-2">';
+                    html += '<div><span class="badge bg-secondary me-2">Leg ' + (idx + 1) + '</span> <strong>' + p.pick + '</strong></div>';
+                    html += '<span class="badge bg-primary">' + p.odds + '</span>';
+                    html += '</li>';
+                }});
+                html += '</ul>';
+                
+                html += '<button class="btn btn-sm btn-outline-success w-100"><i class="fas fa-copy me-1"></i> COPY BUILDER SLIP</button>';
+                html += '</div></div>';
+            }});
+            html += '</div>';
+            return html;
+        }}
 
         function renderTable(items, mode = 'standard') {{
             if (!items || items.length === 0) return '<div class="alert alert-warning p-3">No matching live picks found.</div>';
@@ -344,6 +267,11 @@ async def serve_index(request: Request):
 
             if (type === 'acca-builder') {{
                 fetchCustomAcca();
+                return;
+            }}
+
+            if (type === 'builder') {{
+                document.getElementById('content-area').innerHTML = renderBetBuilder(currentFixtures);
                 return;
             }}
 
