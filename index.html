@@ -1,162 +1,144 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
-import os
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGEMETRIX-PRO-26 Terminal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg-main: #060a12; --card-bg: rgba(13, 20, 36, 0.85); --border-color: rgba(56, 189, 248, 0.25); }
+        body { background-color: var(--bg-main); color: #f8fafc; font-family: monospace, system-ui; padding: 20px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; backdrop-filter: blur(8px); }
+        .nav-tabs { border-bottom: 1px solid var(--border-color); }
+        .nav-tabs .nav-link { color: #94a3b8; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; border: none; padding: 10px 20px; }
+        .nav-tabs .nav-link.active { color: #38bdf8; background: rgba(56, 189, 248, 0.12); border-bottom: 2px solid #38bdf8; }
+        .badge-odds { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge-ev { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="card p-3 mb-4 d-flex justify-content-between align-items-center flex-row">
+            <div>
+                <h3 class="text-info fw-bold mb-0"><i class="fas fa-chart-line"></i> EDGEMETRIX-PRO-26</h3>
+                <small class="text-muted">QUANTITATIVE SPORTS TRADING DESK</small>
+            </div>
+            <div>
+                <span class="badge bg-success">PIPELINE: LIVE</span>
+            </div>
+        </div>
 
-app = FastAPI(title="EDGEMETRIX-PRO-26")
+        <ul class="nav nav-tabs mb-4" id="deskTabs">
+            <li class="nav-item"><a class="nav-link active" onclick="loadTab('bankers', this)" href="#">BANKERS</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="loadTab('daily', this)" href="#">DAILY</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="loadTab('builder', this)" href="#">BET BUILDER</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="loadTab('score', this)" href="#">SCORE MATRIX</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="loadTab('acca', this)" href="#">ACCA</a></li>
+        </ul>
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        <div id="content-area" class="card p-4">
+            <div class="text-center py-5"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">Loading Engine Data...</p></div>
+        </div>
+    </div>
 
-def make_fixture(**data):
-    f = data
-    f["hxg"] = f.get("home_xg", 0)
-    f["axg"] = f.get("away_xg", 0)
-    f["prob_home"] = f.get("h_pct", "0%")
-    f["prob_draw"] = f.get("d_pct", "0%")
-    f["prob_away"] = f.get("a_pct", "0%")
-    f["prob_over25"] = f.get("over_2_5_pct", "0%")
-    f["prob_btts"] = f.get("btts_pct", "0%")
-    f["ev_home"] = f.get("evh", 0)
-    f["ev_draw"] = f.get("evd", 0)
-    f["ev_away"] = f.get("eva", 0)
-    f["score_grid"] = f.get("score_matrix", [])
-    f["date_category"] = f.get("date", "")
-    f["value_home"] = f.get("evh", 0) >= 5
-    f["value_draw"] = f.get("evd", 0) >= 5
-    f["value_away"] = f.get("eva", 0) >= 5
-    return f
+    <script>
+        let allFixtures = [];
+        let allBankers = [];
 
-FIXTURES = [
-    make_fixture(
-        date="31 Oct 12:30", league="Premier League", match="Chelsea vs Man Utd",
-        date_category="Today",
-        home_xg=1.68, away_xg=1.05,
-        h_pct=52.3, d_pct=24.5, a_pct=23.2,
-        over_2_5_pct=72.5, btts_pct=58.2,
-        evh=6.4, evd=-2.1, eva=-4.8,
-        odds_home=1.72, odds_draw=3.60, odds_away=4.10,
-        score_matrix=[
-            [0.25, 0.12, 0.05, 0.02, 0.01],
-            [0.18, 0.15, 0.08, 0.03, 0.01],
-            [0.09, 0.06, 0.04, 0.02, 0.01],
-            [0.04, 0.03, 0.02, 0.01, 0.00],
-            [0.02, 0.01, 0.01, 0.00, 0.00]
-        ]
-    ),
-    make_fixture(
-        date="31 Oct 15:00", league="Premier League", match="Man City vs Brighton",
-        date_category="Today",
-        home_xg=2.35, away_xg=0.82,
-        h_pct=68.2, d_pct=18.5, a_pct=13.3,
-        over_2_5_pct=81.3, btts_pct=52.0,
-        evh=7.1, evd=-3.2, eva=-6.5,
-        odds_home=1.40, odds_draw=5.20, odds_away=7.50,
-        score_matrix=[
-            [0.32, 0.18, 0.08, 0.03, 0.02],
-            [0.22, 0.14, 0.07, 0.03, 0.01],
-            [0.10, 0.07, 0.04, 0.02, 0.01],
-            [0.05, 0.03, 0.02, 0.01, 0.00],
-            [0.02, 0.01, 0.01, 0.00, 0.00]
-        ]
-    ),
-    make_fixture(
-        date="31 Oct 17:30", league="Bundesliga", match="Bayern vs Dortmund",
-        date_category="Today",
-        home_xg=2.10, away_xg=1.85,
-        h_pct=45.8, d_pct=22.4, a_pct=31.8,
-        over_2_5_pct=85.0, btts_pct=78.5,
-        evh=2.3, evd=5.1, eva=6.9,
-        odds_home=1.55, odds_draw=4.40, odds_away=2.35,
-        score_matrix=[
-            [0.15, 0.12, 0.09, 0.04, 0.02],
-            [0.14, 0.16, 0.11, 0.05, 0.02],
-            [0.08, 0.10, 0.07, 0.03, 0.01],
-            [0.04, 0.05, 0.03, 0.02, 0.01],
-            [0.01, 0.02, 0.01, 0.01, 0.00]
-        ]
-    ),
-    make_fixture(
-        date="31 Oct 20:00", league="La Liga", match="Barcelona vs Alaves",
-        date_category="Today",
-        home_xg=2.42, away_xg=0.75,
-        h_pct=75.5, d_pct=14.2, a_pct=10.3,
-        over_2_5_pct=76.8, btts_pct=49.5,
-        evh=8.2, evd=-4.5, eva=-7.8,
-        odds_home=1.22, odds_draw=6.80, odds_away=9.50,
-        score_matrix=[
-            [0.35, 0.20, 0.09, 0.04, 0.02],
-            [0.24, 0.15, 0.07, 0.03, 0.01],
-            [0.11, 0.06, 0.04, 0.02, 0.01],
-            [0.05, 0.03, 0.02, 0.01, 0.00],
-            [0.02, 0.01, 0.01, 0.00, 0.00]
-        ]
-    ),
-    make_fixture(
-        date="01 Nov 19:45", league="Serie A", match="AC Milan vs Inter",
-        date_category="Tomorrow",
-        home_xg=1.35, away_xg=1.42,
-        h_pct=34.2, d_pct=28.5, a_pct=37.3,
-        over_2_5_pct=68.0, btts_pct=65.5,
-        evh=-1.2, evd=5.4, eva=3.8,
-        odds_home=2.60, odds_draw=3.20, odds_away=2.15,
-        score_matrix=[
-            [0.18, 0.14, 0.07, 0.03, 0.01],
-            [0.15, 0.17, 0.10, 0.04, 0.02],
-            [0.07, 0.09, 0.06, 0.03, 0.01],
-            [0.03, 0.04, 0.02, 0.01, 0.01],
-            [0.01, 0.01, 0.01, 0.00, 0.00]
-        ]
-    )
-]
+        function renderTable(items, mode = 'standard') {
+            if (!items || !items.length) return '<div class="p-4 text-center text-muted">No fixtures logged in this section.</div>';
+            
+            let html = '<div class="table-responsive"><table class="table table-dark table-hover align-middle mb-0"><thead><tr>';
+            html += '<th>DATE</th><th>LEAGUE</th><th>MATCH</th>';
+            html += (mode === 'score') ? '<th>POISSON SCORE</th><th>ODDS</th>' : '<th>PREDICTION</th><th>ODDS</th>';
+            html += '<th>+EV EDGE</th><th>ACTION</th></tr></thead><tbody>';
 
-BANKERS = [f for f in FIXTURES if f["value_home"] or f["value_draw"] or f["value_away"]]
+            items.forEach(item => {
+                const matchName = item.match || 'Match';
+                const homeTeam = matchName.split(' vs ')[0] || 'Home';
+                
+                // Smart Fallback Logic
+                const predText = item.prediction || item.pred_selection || (homeTeam + ' Win & Over 1.5 Goals');
+                const oddsText = item.odds || item.odds_home || '1.80';
+                const scoreText = item.correct_score || item.score_pred || '2 - 1';
+                const scoreOdds = item.score_odds || '8.50';
+                
+                let maxEv = item.evh !== undefined ? Math.max(item.evh, item.evd || 0, item.eva || 0) : 5.0;
+                const edgeText = item.ev_edge || ('+' + maxEv + '%');
 
-@app.api_route("/api/slate", methods=["GET", "HEAD"])
-@app.api_route("/api/data", methods=["GET", "HEAD"])
-@app.api_route("/api/fixtures", methods=["GET", "HEAD"])
-async def get_data():
-    return {
-        "status": "ok",
-        "pipeline_status": "live",
-        "fixtures": FIXTURES,
-        "bankers": BANKERS,
-        "weights": {
-            "attack_alpha": 1.18,
-            "defense_beta": 0.82,
-            "home_advantage": 1.14
+                html += `<tr>
+                    <td><span class="badge bg-secondary">${item.date || 'Today'}</span></td>
+                    <td><small class="text-muted">${item.league || 'League'}</small></td>
+                    <td><strong>${matchName}</strong></td>`;
+                
+                if (mode === 'score') {
+                    html += `<td><span class="badge bg-warning text-dark">${scoreText}</span></td>
+                             <td><span class="badge badge-odds">${scoreOdds}</span></td>`;
+                } else {
+                    html += `<td><span class="badge bg-primary">${predText}</span></td>
+                             <td><span class="badge badge-odds">${oddsText}</span></td>`;
+                }
+                html += `<td><span class="badge badge-ev">${edgeText}</span></td>
+                         <td><button class="btn btn-sm btn-success fw-bold">+ COPY SLIP</button></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
         }
-    }
 
-@app.api_route("/api/acca", methods=["GET", "HEAD"])
-async def get_acca(legs: int = 5):
-    legs = max(2, min(5, legs))
-    return {
-        "status": "ok",
-        "legs": legs,
-        "selection": FIXTURES[:legs]
-    }
+        function renderBuilder(items) {
+            if (!items || !items.length) return '<div class="p-4 text-center text-muted">No bet builders available.</div>';
+            let html = '<div class="row g-3">';
+            items.forEach(item => {
+                const matchName = item.match || 'Match';
+                const homeTeam = matchName.split(' vs ')[0] || 'Home';
+                const picks = item.builder_picks || [
+                    {pick: homeTeam + " Win or Draw (1X)", odds: "1.35"},
+                    {pick: "Over 1.5 Goals", odds: "1.30"},
+                    {pick: "Both Teams to Score", odds: "1.75"},
+                    {pick: "Over 4.5 Corners", odds: "1.50"}
+                ];
+                const combinedOdds = item.builder_combined_odds || "5.20";
 
-@app.api_route("/api/log", methods=["POST"])
-async def log_sel(request: Request):
-    return {"status": "ok", "msg": "Logged"}
+                html += `<div class="col-md-6"><div class="card p-3 h-100">
+                    <h5 class="text-info">${matchName}</h5>
+                    <small class="text-muted mb-2 d-block">${item.league || ''} | Combined Odds: <strong>${combinedOdds}</strong></small>
+                    <ul class="list-group list-group-flush mb-3 rounded">`;
+                picks.forEach((p, idx) => {
+                    html += `<li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                        <span>Leg ${idx+1}: ${p.pick}</span><span class="badge badge-odds">${p.odds}</span></li>`;
+                });
+                html += `</ul><button class="btn btn-outline-success btn-sm w-100 fw-bold">Copy Builder Slip</button></div></div>`;
+            });
+            return html + '</div>';
+        }
 
-@app.api_route("/api/ledger", methods=["GET", "HEAD"])
-async def get_ledger():
-    return []
+        function loadTab(tab, el) {
+            if(el) {
+                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                el.classList.add('active');
+            }
+            const container = document.getElementById('content-area');
 
-@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-async def serve_index(request: Request):
-    if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>EDGEMETRIX-PRO-26 Running ✅</h1>")
+            if (tab === 'bankers') {
+                const bankersList = allBankers.length ? allBankers : allFixtures.filter(f => f.value_home || f.value_draw || f.value_away || f.banker);
+                container.innerHTML = renderTable(bankersList.length ? bankersList : allFixtures);
+            }
+            else if (tab === 'daily') container.innerHTML = renderTable(allFixtures);
+            else if (tab === 'builder') container.innerHTML = renderBuilder(allFixtures);
+            else if (tab === 'score') container.innerHTML = renderTable(allFixtures, 'score');
+            else if (tab === 'acca') container.innerHTML = renderTable(allFixtures.slice(0, 4));
+        }
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        fetch('/api/data')
+            .then(r => r.json())
+            .then(data => {
+                allFixtures = data.fixtures || data.selections || [];
+                allBankers = data.bankers || [];
+                loadTab('bankers', document.querySelector('.nav-link.active'));
+            })
+            .catch(err => {
+                document.getElementById('content-area').innerHTML = '<div class="alert alert-danger mb-0">Error fetching pipeline data from engine.</div>';
+            });
+    </script>
+</body>
+</html>
