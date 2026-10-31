@@ -15,7 +15,6 @@ app.add_middleware(
 
 def make_fixture(**data):
     f = data
-    # EXACT names matching index.html
     f["hxg"] = f.get("home_xg", 0)
     f["axg"] = f.get("away_xg", 0)
     f["prob_home"] = f.get("h_pct", "0%")
@@ -28,7 +27,6 @@ def make_fixture(**data):
     f["ev_away"] = f.get("eva", 0)
     f["score_grid"] = f.get("score_matrix", [])
     f["date_category"] = f.get("date", "")
-    # Value flags for selection logic
     f["value_home"] = f.get("evh", 0) >= 5
     f["value_draw"] = f.get("evd", 0) >= 5
     f["value_away"] = f.get("eva", 0) >= 5
@@ -117,7 +115,6 @@ FIXTURES = [
     )
 ]
 
-# Bankers = selections with EV >= 5%
 BANKERS = [f for f in FIXTURES if f["value_home"] or f["value_draw"] or f["value_away"]]
 
 @app.api_route("/api/slate", methods=["GET", "HEAD"])
