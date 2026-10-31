@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+﻿from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -17,7 +17,6 @@ def make_fixture(**data):
     f = data
     f["hxg"] = f.get("home_xg", 0)
     f["axg"] = f.get("away_xg", 0)
-    # ✅ FIXED: return plain NUMBERS, NOT strings with %
     f["prob_home"] = float(f.get("h_pct", 0))
     f["prob_draw"] = float(f.get("d_pct", 0))
     f["prob_away"] = float(f.get("a_pct", 0))
