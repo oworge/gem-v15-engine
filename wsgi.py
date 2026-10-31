@@ -34,7 +34,7 @@ def make_fixture(**data):
     f["value_away"] = f.get("eva", 0) >= 5
     f["banker"] = f["value_home"] or f["value_draw"] or f["value_away"]
 
-    # Explicit frontend UI mappings
+    # Explicit frontend UI mappings required by index.html JS
     f["prediction"] = f.get("pred_selection", f"{f.get('match', 'Match').split(' vs ')[0]} Win & Over 1.5 Goals")
     f["odds"] = str(f.get("odds_home", 1.80))
     f["correct_score"] = f.get("score_pred", "2 - 1")
@@ -116,7 +116,7 @@ FIXTURES = [
         match="Bayern vs Dortmund",
         date_category="Today",
         home_xg=2.10,
-        away_xg=1.85,
+away_xg=1.85,
         h_pct=45.8,
         d_pct=22.4,
         a_pct=31.8,
@@ -194,10 +194,6 @@ FIXTURES = [
             [0.01, 0.01, 0.01, 0.00, 0.00]
         ]
     )
-]
-
-@app.api_route("/api/
-)
 ]
 
 @app.api_route("/api/slate", methods=["GET", "HEAD"])
