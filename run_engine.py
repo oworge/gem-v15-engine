@@ -1,7 +1,7 @@
-﻿from fastapi import FastAPI, Request
+﻿import os
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
 app = FastAPI(title="EDGEMETRIX-PRO-26")
 
@@ -15,22 +15,42 @@ app.add_middleware(
 
 def make_fixture(**data):
     f = data
-    f["hxg"] = float(f.get("home_xg", 0))
-    f["axg"] = float(f.get("away_xg", 0))
-    # ✅ Keep as pure NUMBERS, not strings with %
-    f["prob_home"] = float(f.get("h_pct", 0))
-    f["prob_draw"] = float(f.get("d_pct", 0))
-    f["prob_away"] = float(f.get("a_pct", 0))
-    f["prob_over25"] = float(f.get("over_2_5_pct", 0))
-    f["prob_btts"] = float(f.get("btts_pct", 0))
-    f["ev_home"] = float(f.get("evh", 0))
-    f["ev_draw"] = float(f.get("evd", 0))
-    f["ev_away"] = float(f.get("eva", 0))
+    f["hxg"] = f.get("home_xg", 0)
+    f["axg"] = f.get("away_xg", 0)
+    f["prob_home"] = f.get("h_pct", "0%")
+    f["prob_draw"] = f.get("d_pct", "0%")
+    f["prob_away"] = f.get("a_pct", "0%")
+    f["prob_over25"] = f.get("over_2_5_pct", "0%")
+    f["prob_btts"] = f.get("btts_pct", "0%")
+    f["ev_home"] = f.get("evh", 0)
+    f["ev_draw"] = f.get("evd", 0)
+    f["ev_away"] = f.get("eva", 0)
     f["score_grid"] = f.get("score_matrix", [])
-    f["date_category"] = f.get("date_category", f.get("date", ""))
-    f["value_home"] = f["ev_home"] >= 5
-    f["value_draw"] = f["ev_draw"] >= 5
-    f["value_away"] = f["ev_away"] >= 5
+    f["date_category"] = f.get("date", "")
+    
+    # Value & Banker flags
+    f["value_home"] = f.get("evh", 0) >= 5
+    f["value_draw"] = f.get("evd", 0) >= 5
+    f["value_away"] = f.get("eva", 0) >= 5
+    f["banker"] = f["value_home"] or f["value_draw"] or f["value_away"]
+
+    # Dashboard display mappings
+    f["prediction"] = f.get("pred_selection", f"{f.get('match', 'Match').split(' vs ')[0]} Win & Over 1.5 Goals")
+    f["odds"] = str(f.get("odds_home", 1.80))
+    f["correct_score"] = f.get("score_pred", "2 - 1")
+    f["score_odds"] = "8.50"
+    f["ev_edge"] = f"+{max(f.get('evh', 0), f.get('evd', 0), f.get('eva', 0))}%"
+    
+    # Bet Builder selections
+    home_team = f.get('match', 'Home').split(' vs ')[0]
+    f["builder_picks"] = [
+        {"pick": f"{home_team} Win or Draw (1X)", "odds": str(round(f.get("odds_home", 1.80) * 0.75, 2))},
+        {"pick": "Over 1.5 Goals", "odds": "1.30"},
+        {"pick": "Both Teams to Score", "odds": "1.75"},
+        {"pick": f"Over 4.5 {home_team} Corners", "odds": "1.50"}
+    ]
+    f["builder_combined_odds"] = "5.20"
+
     return f
 
 FIXTURES = [
@@ -52,6 +72,8 @@ FIXTURES = [
         odds_home=1.72,
         odds_draw=3.60,
         odds_away=4.10,
+        pred_selection="Chelsea Win & Over 1.5 Goals",
+        score_pred="2 - 1",
         score_matrix=[
             [0.25, 0.12, 0.05, 0.02, 0.01],
             [0.18, 0.15, 0.08, 0.03, 0.01],
@@ -78,6 +100,8 @@ FIXTURES = [
         odds_home=1.40,
         odds_draw=5.20,
         odds_away=7.50,
+        pred_selection="Man City Win & Over 2.5 Goals",
+        score_pred="3 - 0",
         score_matrix=[
             [0.32, 0.18, 0.08, 0.03, 0.02],
             [0.22, 0.14, 0.07, 0.03, 0.01],
@@ -104,6 +128,8 @@ FIXTURES = [
         odds_home=1.55,
         odds_draw=4.40,
         odds_away=2.35,
+        pred_selection="Both Teams to Score & Over 2.5",
+        score_pred="2 - 2",
         score_matrix=[
             [0.15, 0.12, 0.09, 0.04, 0.02],
             [0.14, 0.16, 0.11, 0.05, 0.02],
@@ -130,6 +156,8 @@ FIXTURES = [
         odds_home=1.22,
         odds_draw=6.80,
         odds_away=9.50,
+        pred_selection="Barcelona Win & Over 2.5 Goals",
+        score_pred="3 - 1",
         score_matrix=[
             [0.35, 0.20, 0.09, 0.04, 0.02],
             [0.24, 0.15, 0.07, 0.03, 0.01],
@@ -156,6 +184,8 @@ FIXTURES = [
         odds_home=2.60,
         odds_draw=3.20,
         odds_away=2.15,
+        pred_selection="Draw or Inter (X2) & Over 1.5",
+        score_pred="1 - 1",
         score_matrix=[
             [0.18, 0.14, 0.07, 0.03, 0.01],
             [0.15, 0.17, 0.10, 0.04, 0.02],
@@ -166,7 +196,7 @@ FIXTURES = [
     )
 ]
 
-BANKERS = [f for f in FIXTURES if f["value_home"] or f["value_draw"] or f["value_away"]]
+BANKERS = [f for f in FIXTURES if f["banker"]]
 
 @app.api_route("/api/slate", methods=["GET", "HEAD"])
 @app.api_route("/api/data", methods=["GET", "HEAD"])
@@ -186,11 +216,11 @@ async def get_data():
 
 @app.api_route("/api/acca", methods=["GET", "HEAD"])
 async def get_acca(legs: int = 5):
-    legs = max(2, min(5, legs))
+    legs = max(2, min(len(FIXTURES), legs))
     return {
         "status": "ok",
         "legs": legs,
-        "selection": FIXTURES[:legs]
+        "selections": FIXTURES[:legs]
     }
 
 @app.api_route("/api/log", methods=["POST"])
