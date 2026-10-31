@@ -1,8 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-import os, json, math
-from datetime import datetime
+import os, math
 
 app = FastAPI(title="GEM V15.0")
 
@@ -14,38 +13,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
-
-class QuantEngine:
-    def __init__(self):
-        self.weights = {
-            "attack_alpha": 1.18,
-            "defense_beta": 0.82,
-            "home_advantage": 1.14,
-            "decay_lambda": 0.04
-        }
-        self.learning_rate = 0.015
-
-    def calculate_poisson_probability(self, home_rating, away_rating, max_goals=5):
-        exp_home_goals = home_rating * self.weights["attack_alpha"] * self.weights["home_advantage"]
-        exp_away_goals = away_rating * self.weights["defense_beta"]
-        home_win_prob = draw_prob = away_win_prob = 0.0
-        for h in range(max_goals + 1):
-            p_h = (math.pow(exp_home_goals, h) * math.exp(-exp_home_goals)) / math.factorial(h)
-            for a in range(max_goals + 1):
-                p_a = (math.pow(exp_away_goals, a) * math.exp(-exp_away_goals)) / math.factorial(a)
-                p_joint = p_h * p_a
-                if h > a: home_win_prob += p_joint
-                elif h == a: draw_prob += p_joint
-                else: away_win_prob += p_joint
-        return home_win_prob, draw_prob, away_win_prob
-
-    def find_ev_edge(self, model_prob, bookmaker_odds):
-        if bookmaker_odds <= 1.0: return 0.0
-        return round((model_prob * bookmaker_odds - 1.0) * 100, 2)
-
-GEM_Engine = QuantEngine()
-
 FIXTURES = [
     {
         "date": "31 Oct 12:30",
@@ -55,7 +22,19 @@ FIXTURES = [
         "correct_score": "2 - 1",
         "odds": "1.91",
         "ev_edge": "+6.4%",
-        "banker": True
+        "banker": True,
+        "home_xg": 1.68,
+        "away_xg": 1.05,
+        "over_2_5_pct": 72.5,
+        "btts_pct": 58.2,
+        "pick": "Chelsea Win",
+        "pick_odds": 1.72,
+        "builder_picks": [
+            {"pick": "Chelsea Win or Draw (1X)", "odds": "1.28"},
+            {"pick": "Over 1.5 Goals", "odds": "1.32"},
+            {"pick": "Both Teams to Score", "odds": "1.72"},
+            {"pick": "Over 4.5 Chelsea Corners", "odds": "1.50"}
+        ]
     },
     {
         "date": "31 Oct 15:00",
@@ -65,7 +44,19 @@ FIXTURES = [
         "correct_score": "3 - 0",
         "odds": "1.55",
         "ev_edge": "+7.1%",
-        "banker": True
+        "banker": True,
+        "home_xg": 2.35,
+        "away_xg": 0.82,
+        "over_2_5_pct": 81.3,
+        "btts_pct": 52.0,
+        "pick": "Man City Win",
+        "pick_odds": 1.40,
+        "builder_picks": [
+            {"pick": "Man City Win or Draw (1X)", "odds": "1.12"},
+            {"pick": "Over 2.5 Goals", "odds": "1.45"},
+            {"pick": "Man City Over 1.5 Goals", "odds": "1.60"},
+            {"pick": "Over 9.5 Total Corners", "odds": "1.55"}
+        ]
     },
     {
         "date": "31 Oct 17:30",
@@ -75,7 +66,19 @@ FIXTURES = [
         "correct_score": "2 - 2",
         "odds": "1.85",
         "ev_edge": "+6.9%",
-        "banker": False
+        "banker": False,
+        "home_xg": 2.10,
+        "away_xg": 1.85,
+        "over_2_5_pct": 85.0,
+        "btts_pct": 78.5,
+        "pick": "BTTS & O2.5",
+        "pick_odds": 1.95,
+        "builder_picks": [
+            {"pick": "Both Teams To Score", "odds": "1.62"},
+            {"pick": "Over 2.5 Goals", "odds": "1.48"},
+            {"pick": "Bayern Win", "odds": "1.55"},
+            {"pick": "Over 3.5 Goals", "odds": "2.20"}
+        ]
     },
     {
         "date": "31 Oct 20:00",
@@ -85,7 +88,19 @@ FIXTURES = [
         "correct_score": "3 - 1",
         "odds": "1.38",
         "ev_edge": "+8.2%",
-        "banker": True
+        "banker": True,
+        "home_xg": 2.42,
+        "away_xg": 0.75,
+        "over_2_5_pct": 76.8,
+        "btts_pct": 49.5,
+        "pick": "Barcelona Win",
+        "pick_odds": 1.22,
+        "builder_picks": [
+            {"pick": "Barcelona -1.5 Handicap", "odds": "1.85"},
+            {"pick": "Over 2.5 Goals", "odds": "1.52"},
+            {"pick": "Barcelona Win & BTTS", "odds": "2.45"},
+            {"pick": "Over 10.5 Total Corners", "odds": "1.60"}
+        ]
     },
     {
         "date": "01 Nov 19:45",
@@ -95,17 +110,21 @@ FIXTURES = [
         "correct_score": "1 - 1",
         "odds": "1.67",
         "ev_edge": "+5.4%",
-        "banker": False
+        "banker": False,
+        "home_xg": 1.35,
+        "away_xg": 1.42,
+        "over_2_5_pct": 68.0,
+        "btts_pct": 65.5,
+        "pick": "Draw or Inter",
+        "pick_odds": 1.78,
+        "builder_picks": [
+            {"pick": "Double Chance: Draw or Inter", "odds": "1.55"},
+            {"pick": "Both Teams To Score", "odds": "1.58"},
+            {"pick": "Over 2.5 Goals", "odds": "1.65"},
+            {"pick": "Inter Win or Draw (X2)", "odds": "1.30"}
+        ]
     }
 ]
-
-@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-async def serve_index(request: Request):
-    if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
-            content = f.read()
-        return HTMLResponse(content=content)
-    return HTMLResponse(content="<h1>GEM Engine Running ✅</h1>")
 
 @app.api_route("/api/data", methods=["GET", "HEAD"])
 @app.api_route("/api/fixtures", methods=["GET", "HEAD"])
@@ -114,17 +133,28 @@ async def get_data():
     return {
         "status": "ok",
         "fixtures": FIXTURES,
-        "weights": GEM_Engine.weights
+        "weights": {
+            "attack_alpha": 1.18,
+            "defense_beta": 0.82,
+            "home_advantage": 1.14
+        }
     }
 
 @app.api_route("/api/acca", methods=["GET", "HEAD"])
 async def get_acca(legs: int = 5):
-    legs = max(2, min(20, legs))
+    legs = max(2, min(5, legs))
     return {
         "status": "ok",
         "legs": legs,
         "selection": FIXTURES[:legs]
     }
+
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
+async def serve_index(request: Request):
+    if os.path.exists("index.html"):
+        with open("index.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>GEM Engine Running ✅</h1>")
 
 if __name__ == "__main__":
     import uvicorn
