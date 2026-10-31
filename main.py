@@ -17,16 +17,17 @@ def make_fixture(**data):
     f = data
     f["hxg"] = f.get("home_xg", 0)
     f["axg"] = f.get("away_xg", 0)
-    f["prob_home"] = f.get("h_pct", 0)
-    f["prob_draw"] = f.get("d_pct", 0)
-    f["prob_away"] = f.get("a_pct", 0)
-    f["prob_over25"] = f.get("over_2_5_pct", 0)
-    f["prob_btts"] = f.get("btts_pct", 0)
-    f["ev_home"] = f.get("evh", 0)
-    f["ev_draw"] = f.get("evd", 0)
-    f["ev_away"] = f.get("eva", 0)
+    # ✅ FIXED: return plain NUMBERS, NOT strings with %
+    f["prob_home"] = float(f.get("h_pct", 0))
+    f["prob_draw"] = float(f.get("d_pct", 0))
+    f["prob_away"] = float(f.get("a_pct", 0))
+    f["prob_over25"] = float(f.get("over_2_5_pct", 0))
+    f["prob_btts"] = float(f.get("btts_pct", 0))
+    f["ev_home"] = float(f.get("evh", 0))
+    f["ev_draw"] = float(f.get("evd", 0))
+    f["ev_away"] = float(f.get("eva", 0))
     f["score_grid"] = f.get("score_matrix", [])
-    f["date_category"] = f.get("date_category", "")
+    f["date_category"] = f.get("date_category", f.get("date", ""))
     f["value_home"] = f.get("evh", 0) >= 5
     f["value_draw"] = f.get("evd", 0) >= 5
     f["value_away"] = f.get("eva", 0) >= 5
