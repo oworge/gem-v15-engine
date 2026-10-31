@@ -15,8 +15,9 @@ app.add_middleware(
 
 def make_fixture(**data):
     f = data
-    f["hxg"] = f.get("home_xg", 0)
-    f["axg"] = f.get("away_xg", 0)
+    f["hxg"] = float(f.get("home_xg", 0))
+    f["axg"] = float(f.get("away_xg", 0))
+    # ✅ Keep as pure NUMBERS, not strings with %
     f["prob_home"] = float(f.get("h_pct", 0))
     f["prob_draw"] = float(f.get("d_pct", 0))
     f["prob_away"] = float(f.get("a_pct", 0))
@@ -27,9 +28,9 @@ def make_fixture(**data):
     f["ev_away"] = float(f.get("eva", 0))
     f["score_grid"] = f.get("score_matrix", [])
     f["date_category"] = f.get("date_category", f.get("date", ""))
-    f["value_home"] = f.get("evh", 0) >= 5
-    f["value_draw"] = f.get("evd", 0) >= 5
-    f["value_away"] = f.get("eva", 0) >= 5
+    f["value_home"] = f["ev_home"] >= 5
+    f["value_draw"] = f["ev_draw"] >= 5
+    f["value_away"] = f["ev_away"] >= 5
     return f
 
 FIXTURES = [
