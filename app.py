@@ -15,29 +15,19 @@ app.add_middleware(
 
 def make_fixture(**data):
     f = data
-    # Combined string format for xG display
+    # EXACT combined string format — what the frontend needs
     f["xg"] = f"{f.get('home_xg', 0)}/{f.get('away_xg', 0)}"
-    # All naming variations — frontend will find whatever it needs
+    # ALL naming patterns
     f["xgHome"] = f.get("home_xg", 0)
     f["xgAway"] = f.get("away_xg", 0)
     f["homeXg"] = f.get("home_xg", 0)
     f["awayXg"] = f.get("away_xg", 0)
-    
     f["over25"] = f.get("over_2_5_pct", "0%")
     f["o25"] = f.get("over_2_5_pct", "0%")
-    f["o25Percent"] = f.get("over_2_5_pct", "0%")
-    f["over_2_5"] = f.get("over_2_5_pct", "0%")
-    
     f["btts"] = f.get("btts_pct", "0%")
-    f["bttsPercent"] = f.get("btts_pct", "0%")
-    
     f["h"] = f.get("h_pct", "0%")
     f["d"] = f.get("d_pct", "0%")
     f["a"] = f.get("a_pct", "0%")
-    f["homePercent"] = f.get("h_pct", "0%")
-    f["drawPercent"] = f.get("d_pct", "0%")
-    f["awayPercent"] = f.get("a_pct", "0%")
-    
     f["evH"] = f.get("evh", "0%")
     f["evD"] = f.get("evd", "0%")
     f["evA"] = f.get("eva", "0%")
@@ -52,18 +42,12 @@ FIXTURES = [
         over_2_5_pct="72.5%", btts_pct="58.2%",
         h_pct="52.3%", d_pct="24.5%", a_pct="23.2%",
         evh="+6.4%", evd="-2.1%", eva="-4.8%",
-        score_matrix=[
-            [0.25, 0.12, 0.05, 0.02, 0.01],
-            [0.18, 0.15, 0.08, 0.03, 0.01],
-            [0.09, 0.06, 0.04, 0.02, 0.01],
-            [0.04, 0.03, 0.02, 0.01, 0.00],
-            [0.02, 0.01, 0.01, 0.00, 0.00]
-        ],
+        score_matrix=[[0.25,0.12,0.05,0.02,0.01],[0.18,0.15,0.08,0.03,0.01],[0.09,0.06,0.04,0.02,0.01],[0.04,0.03,0.02,0.01,0.00],[0.02,0.01,0.01,0.00,0.00]],
         builder_picks=[
-            {"pick": "Chelsea Win or Draw (1X)", "odds": "1.28"},
-            {"pick": "Over 1.5 Goals", "odds": "1.32"},
-            {"pick": "Both Teams to Score", "odds": "1.72"},
-            {"pick": "Over 4.5 Chelsea Corners", "odds": "1.50"}
+            {"pick":"Chelsea Win or Draw (1X)","odds":"1.28"},
+            {"pick":"Over 1.5 Goals","odds":"1.32"},
+            {"pick":"Both Teams to Score","odds":"1.72"},
+            {"pick":"Over 4.5 Chelsea Corners","odds":"1.50"}
         ]
     ),
     make_fixture(
@@ -74,18 +58,12 @@ FIXTURES = [
         over_2_5_pct="81.3%", btts_pct="52.0%",
         h_pct="68.2%", d_pct="18.5%", a_pct="13.3%",
         evh="+7.1%", evd="-3.2%", eva="-6.5%",
-        score_matrix=[
-            [0.32, 0.18, 0.08, 0.03, 0.02],
-            [0.22, 0.14, 0.07, 0.03, 0.01],
-            [0.10, 0.07, 0.04, 0.02, 0.01],
-            [0.05, 0.03, 0.02, 0.01, 0.00],
-            [0.02, 0.01, 0.01, 0.00, 0.00]
-        ],
+        score_matrix=[[0.32,0.18,0.08,0.03,0.02],[0.22,0.14,0.07,0.03,0.01],[0.10,0.07,0.04,0.02,0.01],[0.05,0.03,0.02,0.01,0.00],[0.02,0.01,0.01,0.00,0.00]],
         builder_picks=[
-            {"pick": "Man City Win or Draw (1X)", "odds": "1.12"},
-            {"pick": "Over 2.5 Goals", "odds": "1.45"},
-            {"pick": "Man City Over 1.5 Goals", "odds": "1.60"},
-            {"pick": "Over 9.5 Total Corners", "odds": "1.55"}
+            {"pick":"Man City Win or Draw (1X)","odds":"1.12"},
+            {"pick":"Over 2.5 Goals","odds":"1.45"},
+            {"pick":"Man City Over 1.5 Goals","odds":"1.60"},
+            {"pick":"Over 9.5 Total Corners","odds":"1.55"}
         ]
     ),
     make_fixture(
@@ -96,18 +74,12 @@ FIXTURES = [
         over_2_5_pct="85.0%", btts_pct="78.5%",
         h_pct="45.8%", d_pct="22.4%", a_pct="31.8%",
         evh="+2.3%", evd="+5.1%", eva="+6.9%",
-        score_matrix=[
-            [0.15, 0.12, 0.09, 0.04, 0.02],
-            [0.14, 0.16, 0.11, 0.05, 0.02],
-            [0.08, 0.10, 0.07, 0.03, 0.01],
-            [0.04, 0.05, 0.03, 0.02, 0.01],
-            [0.01, 0.02, 0.01, 0.01, 0.00]
-        ],
+        score_matrix=[[0.15,0.12,0.09,0.04,0.02],[0.14,0.16,0.11,0.05,0.02],[0.08,0.10,0.07,0.03,0.01],[0.04,0.05,0.03,0.02,0.01],[0.01,0.02,0.01,0.01,0.00]],
         builder_picks=[
-            {"pick": "Both Teams To Score", "odds": "1.62"},
-            {"pick": "Over 2.5 Goals", "odds": "1.48"},
-            {"pick": "Bayern Win", "odds": "1.55"},
-            {"pick": "Over 3.5 Goals", "odds": "2.20"}
+            {"pick":"Both Teams To Score","odds":"1.62"},
+            {"pick":"Over 2.5 Goals","odds":"1.48"},
+            {"pick":"Bayern Win","odds":"1.55"},
+            {"pick":"Over 3.5 Goals","odds":"2.20"}
         ]
     ),
     make_fixture(
@@ -118,18 +90,12 @@ FIXTURES = [
         over_2_5_pct="76.8%", btts_pct="49.5%",
         h_pct="75.5%", d_pct="14.2%", a_pct="10.3%",
         evh="+8.2%", evd="-4.5%", eva="-7.8%",
-        score_matrix=[
-            [0.35, 0.20, 0.09, 0.04, 0.02],
-            [0.24, 0.15, 0.07, 0.03, 0.01],
-            [0.11, 0.06, 0.04, 0.02, 0.01],
-            [0.05, 0.03, 0.02, 0.01, 0.00],
-            [0.02, 0.01, 0.01, 0.00, 0.00]
-        ],
+        score_matrix=[[0.35,0.20,0.09,0.04,0.02],[0.24,0.15,0.07,0.03,0.01],[0.11,0.06,0.04,0.02,0.01],[0.05,0.03,0.02,0.01,0.00],[0.02,0.01,0.01,0.00,0.00]],
         builder_picks=[
-            {"pick": "Barcelona -1.5 Handicap", "odds": "1.85"},
-            {"pick": "Over 2.5 Goals", "odds": "1.52"},
-            {"pick": "Barcelona Win & BTTS", "odds": "2.45"},
-            {"pick": "Over 10.5 Total Corners", "odds": "1.60"}
+            {"pick":"Barcelona -1.5 Handicap","odds":"1.85"},
+            {"pick":"Over 2.5 Goals","odds":"1.52"},
+            {"pick":"Barcelona Win & BTTS","odds":"2.45"},
+            {"pick":"Over 10.5 Total Corners","odds":"1.60"}
         ]
     ),
     make_fixture(
@@ -140,18 +106,12 @@ FIXTURES = [
         over_2_5_pct="68.0%", btts_pct="65.5%",
         h_pct="34.2%", d_pct="28.5%", a_pct="37.3%",
         evh="-1.2%", evd="+5.4%", eva="+3.8%",
-        score_matrix=[
-            [0.18, 0.14, 0.07, 0.03, 0.01],
-            [0.15, 0.17, 0.10, 0.04, 0.02],
-            [0.07, 0.09, 0.06, 0.03, 0.01],
-            [0.03, 0.04, 0.02, 0.01, 0.01],
-            [0.01, 0.01, 0.01, 0.00, 0.00]
-        ],
+        score_matrix=[[0.18,0.14,0.07,0.03,0.01],[0.15,0.17,0.10,0.04,0.02],[0.07,0.09,0.06,0.03,0.01],[0.03,0.04,0.02,0.01,0.01],[0.01,0.01,0.01,0.00,0.00]],
         builder_picks=[
-            {"pick": "Double Chance: Draw or Inter", "odds": "1.55"},
-            {"pick": "Both Teams To Score", "odds": "1.58"},
-            {"pick": "Over 2.5 Goals", "odds": "1.65"},
-            {"pick": "Inter Win or Draw (X2)", "odds": "1.30"}
+            {"pick":"Double Chance: Draw or Inter","odds":"1.55"},
+            {"pick":"Both Teams To Score","odds":"1.58"},
+            {"pick":"Over 2.5 Goals","odds":"1.65"},
+            {"pick":"Inter Win or Draw (X2)","odds":"1.30"}
         ]
     )
 ]
@@ -163,26 +123,18 @@ async def get_data():
     return {
         "status": "ok",
         "fixtures": FIXTURES,
-        "weights": {
-            "attack_alpha": 1.18,
-            "defense_beta": 0.82,
-            "home_advantage": 1.14
-        }
+        "weights": {"attack_alpha":1.18,"defense_beta":0.82,"home_advantage":1.14}
     }
 
 @app.api_route("/api/acca", methods=["GET", "HEAD"])
-async def get_acca(legs: int = 5):
+async def get_acca(legs:int=5):
     legs = max(2, min(5, legs))
-    return {
-        "status": "ok",
-        "legs": legs,
-        "selection": FIXTURES[:legs]
-    }
+    return {"status":"ok","legs":legs,"selection":FIXTURES[:legs]}
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def serve_index(request: Request):
     if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
+        with open("index.html","r",encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>GEM Engine Running ✅</h1>")
 
