@@ -34,7 +34,7 @@ def make_fixture(**data):
     f["value_away"] = f.get("eva", 0) >= 5
     f["banker"] = f["value_home"] or f["value_draw"] or f["value_away"]
 
-    # Explicit frontend UI mappings required by index.html JS
+    # Dashboard display mappings
     f["prediction"] = f.get("pred_selection", f"{f.get('match', 'Match').split(' vs ')[0]} Win & Over 1.5 Goals")
     f["odds"] = str(f.get("odds_home", 1.80))
     f["correct_score"] = f.get("score_pred", "2 - 1")
