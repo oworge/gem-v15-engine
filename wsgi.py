@@ -1,4 +1,4 @@
-﻿import os
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,25 +28,28 @@ def make_fixture(**data):
     f["score_grid"] = f.get("score_matrix", [])
     f["date_category"] = f.get("date", "")
     
-    # Value & Banker flags
     f["value_home"] = f.get("evh", 0) >= 5
     f["value_draw"] = f.get("evd", 0) >= 5
     f["value_away"] = f.get("eva", 0) >= 5
     f["banker"] = f["value_home"] or f["value_draw"] or f["value_away"]
 
-    # Dashboard display mappings required by UI
-    f["prediction"] = f.get("pred_selection", f"{f.get(\"match\", \"Match\").split(\" vs \")[0]} Win & Over 1.5 Goals")
+    match_str = f.get('match', 'Match')
+    home_team = match_str.split(' vs ')[0] if ' vs ' in match_str else 'Home'
+    
+    f["prediction"] = f.get("pred_selection", home_team + " Win & Over 1.5 Goals")
     f["odds"] = str(f.get("odds_home", 1.80))
     f["correct_score"] = f.get("score_pred", "2 - 1")
     f["score_odds"] = "8.50"
-    f["ev_edge"] = f"+{max(f.get(\"evh\", 0), f.get(\"evd\", 0), f.get(\"eva\", 0))}%"
     
-    home_team = f.get("match", "Home").split(" vs ")[0]
+    max_ev = max(f.get('evh', 0), f.get('evd', 0), f.get('eva', 0))
+    f["ev_edge"] = "+" + str(max_ev) + "%"
+    
+    half_odds = round(float(f.get("odds_home", 1.80)) * 0.75, 2)
     f["builder_picks"] = [
-        {"pick": f"{home_team} Win or Draw (1X)", "odds": str(round(f.get("odds_home", 1.80) * 0.75, 2))},
+        {"pick": home_team + " Win or Draw (1X)", "odds": str(half_odds)},
         {"pick": "Over 1.5 Goals", "odds": "1.30"},
         {"pick": "Both Teams to Score", "odds": "1.75"},
-        {"pick": f"Over 4.5 {home_team} Corners", "odds": "1.50"}
+        {"pick": "Over 4.5 " + home_team + " Corners", "odds": "1.50"}
     ]
     f["builder_combined_odds"] = "5.20"
 
@@ -128,4 +131,3 @@ async def serve_index(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
