@@ -2,7 +2,6 @@ from flask import Flask, render_template_string, request
 
 app = Flask(__name__)
 
-# ===== FIXTURES DATA =====
 FIXTURES = {
     "2026-11-05": [
         {
@@ -61,15 +60,13 @@ def calc_edge(odds, prob):
 
 @app.route("/")
 def index():
-    # Get tab parameter — DEFAULT to "daily"
     tab = request.args.get("tab", "daily").strip()
     sel_date = request.args.get("date", "2026-11-05").strip()
     legs = int(request.args.get("legs", 3))
     mfilter = request.args.get("market_filter", "ALL").strip()
     selected_checks = request.args.getlist("markets")
 
-    # ===== BUILD PAGE =====
-    page = """<!DOCTYPE html>
+    page_top = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -130,10 +127,8 @@ def index():
     </nav>
 """
 
-    # ===== TAB CONTENT =====
     content = ""
 
-    # TAB 1: Daily Picks
     if tab == "daily":
         content = '<div class="card"><h2>📊 Daily High‑Confluence Value Picks</h2>'
         fixtures_today = FIXTURES.get("2026-11-05", [])
@@ -149,13 +144,10 @@ def index():
                 content += "</div>"
         content += "</div>"
 
-    # TAB 2: Bet Builder
     elif tab == "builder":
         content = '<div class="card"><h2>🔨 Custom Bet Builder</h2>'
         content += '<form method="GET"><input type="hidden" name="tab" value="builder">'
-        has_fixtures = False
         for fx in FIXTURES.get("2026-11-05", []):
-            has_fixtures = True
             content += f'<div class="match"><div class="m-head"><span class="teams">{fx["home"]} vs {fx["away"]}</span><span class="m-time">{fx["time"]}</span></div>'
             content += f'<div class="league">{fx["league"]}</div>'
             for mk in fx["markets"]:
@@ -163,10 +155,7 @@ def index():
                 checked_attr = "checked" if val in selected_checks else ""
                 content += f'<label class="mkt" style="cursor:pointer;"><input type="checkbox" name="markets" value="{val}" {checked_attr} class="chk">{mk["name"]} — <span class="odds">@{mk["odds"]}</span></label>'
             content += "</div>"
-        if not has_fixtures:
-            content += '<p class="empty">No fixtures available</p>'
         content += '<button type="submit" class="btn">Build Custom Slip</button></form>'
-        # Show slip if selections made
         if selected_checks:
             total_odds = 1.0
             picks_list = []
@@ -184,7 +173,6 @@ def index():
                 content += f'<div style="margin-top:6px; font-size:14px;">Stake: £20 → Return: £{20*total_odds:.2f}</div></div>'
         content += "</div>"
 
-    # TAB 3: AI Acca Generator
     elif tab == "ai":
         all_mkts = []
         for fx in FIXTURES.get("2026-11-05", []):
@@ -206,7 +194,6 @@ def index():
             content += f'<div style="margin-top:6px;">Stake: £20 → Return: £{20*comb_odds:.2f}</div></div>'
         content += "</div>"
 
-    # TAB 4: Future (3-Day Value)
     elif tab == "future":
         content = '<div class="card"><h2>📅 Future (3‑Day Value)</h2>'
         for dt in ["2026-11-05", "2026-11-06", "2026-11-07"]:
@@ -224,7 +211,6 @@ def index():
                 content += "</div>"
         content += "</div>"
 
-    # TAB 5: Bankers Daily
     elif tab == "bankers":
         content = '<div class="card"><h2>💰 Bankers Daily (Confidence ≥ 75%)</h2>'
         found = False
@@ -242,7 +228,6 @@ def index():
             content += '<p class="empty">No banker selections today</p>'
         content += "</div>"
 
-    # TAB 6: Advanced Acca Generator
     elif tab == "advanced":
         content = '<div class="card"><h2>⚙️ Advanced Acca Generator</h2>'
         content += f'<form method="GET"><input type="hidden" name="tab" value="advanced"><div class="form-row">'
@@ -259,7 +244,6 @@ def index():
         content += "</select></div></div>"
         content += '<button type="submit" class="btn">Generate Custom Acca</button></form>'
 
-        # Generate acca
         slate = FIXTURES.get(sel_date, FIXTURES.get("2026-11-05", []))
         pool = []
         for fx in slate:
@@ -268,4 +252,11 @@ def index():
                     pool.append((-calc_edge(mk["odds"], mk["prob"]), fx["home"], fx["away"], mk["name"], mk["odds"]))
         pool.sort()
         selected_legs = pool[:legs]
-        if selected_
+        if selected_legs:
+            total = 1.0
+            for _, h, a, n, o in selected_legs:
+                total *= o
+            content += f'<div class="slip"><h3 style="margin-bottom:10px;">{legs}-Leg Accumulator — {sel_date}</h3>'
+            for _, h, a, n, o in selected_legs:
+                content += f'<div style="margin:4px 0; font-size:14px;">• {h} vs {a}: {n} (@{o})</div>'
+            content += f'<div style="margin-top:12px;
