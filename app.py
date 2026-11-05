@@ -130,7 +130,7 @@ def index():
     content = ""
 
     if tab == "daily":
-        content = '<div class="card"><h2>📊 Daily High‑Confluence Value Picks</h2>'
+        content = '<div class="card"><h2>📊 Daily High-Confluence Value Picks</h2>'
         fixtures_today = FIXTURES.get("2026-11-05", [])
         if not fixtures_today:
             content += '<p class="empty">No fixtures found for today</p>'
@@ -183,11 +183,11 @@ def index():
         comb_odds = 1.0
         for _, h, a, n, o in top3:
             comb_odds *= o
-        content = f'<div class="card"><h2>🤖 AI High‑Edge 3‑Fold Generator</h2><p style="color:#94a3b8; font-size:13px; margin-bottom:16px;">Auto‑selected picks with maximum calculated edge</p>'
+        content = f'<div class="card"><h2>🤖 AI High-Edge 3-Fold Generator</h2><p style="color:#94a3b8; font-size:13px; margin-bottom:16px;">Auto-selected picks with maximum calculated edge</p>'
         if not top3:
             content += '<p class="empty">No markets available</p>'
         else:
-            content += '<div class="slip"><h3 style="margin-bottom:10px;">AI Compiled 3‑Fold</h3>'
+            content += '<div class="slip"><h3 style="margin-bottom:10px;">AI Compiled 3-Fold</h3>'
             for _, h, a, n, o in top3:
                 content += f'<div style="margin:6px 0;">• {h} vs {a}<br><span style="padding-left:18px;">{n} — <span class="odds">@{o}</span></span></div>'
             content += f'<div style="margin-top:12px; font-weight:bold; font-size:16px;">Combined Odds: {comb_odds:.2f}</div>'
@@ -195,7 +195,7 @@ def index():
         content += "</div>"
 
     elif tab == "future":
-        content = '<div class="card"><h2>📅 Future (3‑Day Value)</h2>'
+        content = '<div class="card"><h2>📅 Future (3-Day Value)</h2>'
         for dt in ["2026-11-05", "2026-11-06", "2026-11-07"]:
             content += f'<h3 style="color:#eab308; margin:16px 0 8px;">{dt}</h3>'
             day_fixtures = FIXTURES.get(dt, [])
@@ -212,7 +212,7 @@ def index():
         content += "</div>"
 
     elif tab == "bankers":
-        content = '<div class="card"><h2>💰 Bankers Daily (Confidence ≥ 75%)</h2>'
+        content = '<div class="card"><h2>💰 Bankers Daily (Confidence >= 75%)</h2>'
         found = False
         for fx in FIXTURES.get("2026-11-05", []):
             if fx.get("banker", False):
@@ -259,4 +259,4 @@ def index():
             content += f'<div class="slip"><h3 style="margin-bottom:10px;">{legs}-Leg Accumulator — {sel_date}</h3>'
             for _, h, a, n, o in selected_legs:
                 content += f'<div style="margin:4px 0; font-size:14px;">• {h} vs {a}: {n} (@{o})</div>'
-            content += f'<div style="margin-top:12px;
+            content += f'<div style="margin-top:12px; font-weight:bold; font-size:16px;">Combined Odds:
