@@ -258,5 +258,4 @@ def index():
                 total *= o
             content += f'<div class="slip"><h3 style="margin-bottom:10px;">{legs}-Leg Accumulator — {sel_date}</h3>'
             for _, h, a, n, o in selected_legs:
-                content += f'<div style="margin:4px 0; font-size:14px;">• {h} vs {a}: {n} (@{o})</div>'
-            content += f'<div style="margin-top:12px; font-weight:bold; font-size:16px;">Combined Odds:
+                content += f'<div style="margin:4px 
