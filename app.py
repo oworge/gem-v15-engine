@@ -1,5 +1,4 @@
 ﻿from flask import Flask, render_template_string, request
-from datetime import datetime, date
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s: %(message)s')
@@ -13,7 +12,7 @@ def get_engine_data():
             {
                 "id": 199, "date": "2026-11-06", "region": "Premier League", 
                 "home": "Everton", "away": "Coventry City", "league": "Premier League (England)", 
-                "time": "20:00 GMT", "banker": False, "xg_home": 1.50, "xg_away": 1.10, 
+                "time": "20:00 GMT (Live)", "banker": False, "xg_home": 1.50, "xg_away": 1.10, 
                 "markets": [{"name": "Under 2.5 Goals", "odds": 1.80, "prob": 0.58}]
             }
         ],
@@ -87,7 +86,7 @@ TEMPLATE = """
 
     <!-- 6 Navigation Tabs -->
     <div class="nav-tabs">
-        <a class="tab-btn {% if tab == 'slate' %}active{% endif %}" href="/?date={{ d }}&tab=slate">Match Slate</a>
+        <a class="tab-btn {% if tab == 'slate' or not tab %}active{% endif %}" href="/?date={{ d }}&tab=slate">Match Slate</a>
         <a class="tab-btn {% if tab == 'predictions' %}active{% endif %}" href="/?date={{ d }}&tab=predictions">Predictions & xG</a>
         <a class="tab-btn {% if tab == 'markets' %}active{% endif %}" href="/?date={{ d }}&tab=markets">Value Markets</a>
         <a class="tab-btn {% if tab == 'banker' %}active{% endif %}" href="/?date={{ d }}&tab=banker">Banker Builder</a>
@@ -104,24 +103,28 @@ TEMPLATE = """
     </div>
 
     <!-- Dynamic Content per Tab -->
-    {% if tab == 'slate' or tab == 'predictions' or tab == 'markets' %}
+    {% if tab == 'slate' or tab == 'predictions' or tab == 'markets' or not tab %}
         <h2>Matchday Slate & Quantitative Models ({{ d }})</h2>
-        {% for f in slate %}
-            <div class="card">
-                <div class="match-header">
-                    <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge">{{ f.league }}</span>
+        {% if slate %}
+            {% for f in slate %}
+                <div class="card">
+                    <div class="match-header">
+                        <span>{{ f.home }} vs {{ f.away }}</span>
+                        <span class="badge">{{ f.league }}</span>
+                    </div>
+                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 4px;">
+                        📅 Date: <span style="color: #38bdf8; font-family: monospace;">{{ f.date }}</span> | ⏰ Time: {{ f.time }} | Venue: {{ f.region }}
+                    </div>
+                    <div class="metrics">
+                        <div class="metric-box">Home Expected Goals (xG): <span class="metric-val">{{ f.xg_home }}</span></div>
+                        <div class="metric-box">Away Expected Goals (xG): <span class="metric-val">{{ f.xg_away }}</span></div>
+                        <div class="metric-box">Primary Market: <span class="metric-val">{% if f.markets %}{{ f.markets[0].name }} (@{{ f.markets[0].odds }}){% else %}N/A{% endif %}</span></div>
+                    </div>
                 </div>
-                <div style="font-size: 13px; color: #94a3b8; margin-bottom: 4px;">
-                    📅 Date: <span style="color: #38bdf8; font-family: monospace;">{{ f.date }}</span> | ⏰ Time: {{ f.time }} | Venue: {{ f.region }}
-                </div>
-                <div class="metrics">
-                    <div class="metric-box">Home Expected Goals (xG): <span class="metric-val">{{ f.xg_home }}</span></div>
-                    <div class="metric-box">Away Expected Goals (xG): <span class="metric-val">{{ f.xg_away }}</span></div>
-                    <div class="metric-box">Primary Market: <span class="metric-val">{% if f.markets %}{{ f.markets[0].name }} (@{{ f.markets[0].odds }}){% else %}N/A{% endif %}</span></div>
-                </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="card"><p style="color: #94a3b8; margin: 0;">No fixtures available for this date.</p></div>
+        {% endif %}
     {% elif tab == 'banker' %}
         <h2>Banker Accumulator Builder</h2>
         <div class="card"><p style="color: #94a3b8; margin: 0;">Configuring high-probability accumulator legs and double-chance safety buffers based on verified Premier League confluence parameters.</p></div>
@@ -141,6 +144,8 @@ def index():
     db = get_engine_data()
     dates = sorted(db.keys())
     d = request.args.get("date", dates[0])
+    if d not in db:
+        d = dates[0]
     tab = request.args.get("tab", "slate")
     slate = db.get(d, [])
     return render_template_string(TEMPLATE, dates=dates, d=d, tab=tab, slate=slate)
