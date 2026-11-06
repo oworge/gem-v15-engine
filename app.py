@@ -1,4 +1,4 @@
-from flask import Flask, request, os
+from flask import Flask, request
 from datetime import datetime
 
 app = Flask(__name__)
@@ -55,7 +55,7 @@ FIXTURES = {
         },
         {
             "home": "Sevilla",
-            "away": "Deportivo Alaves",
+            "away": "Deportivo Alavés",
             "league": "La Liga (Spain)",
             "time": "20:00 GMT",
             "is_banker": False,
@@ -130,7 +130,7 @@ def dashboard():
     def active(t):
         return "active" if tab == t else ""
     
-    html_start = '''<!DOCTYPE html>
+    html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -175,18 +175,16 @@ h1{font-size:24px;color:var(--accent);margin-bottom:4px}
 <p class="subtitle">UK Pyramid & Global Value Feed</p>
 <p class="date-badge">📅 ''' + today + '''</p>
 </header>
+
 <nav class="tabs">
-<button class="tab-btn ''' + active("daily") + '''" onclick="location.href='?tab=daily'">Daily Picks</button>
-<button class="tab-btn ''' + active("builder") + '''" onclick="location.href='?tab=builder'">Bet Builder</button>
-<button class="tab-btn ''' + active("ai") + '''" onclick="location.href='?tab=ai'">AI Acca Generator</button>
-<button class="tab-btn ''' + active("future") + '''" onclick="location.href='?tab=future'">Future (3-Day)</button>
-<button class="tab-btn ''' + active("bankers") + '''" onclick="location.href='?tab=bankers'">Bankers</button>
-<button class="tab-btn ''' + active("advanced") + '''" onclick="location.href='?tab=advanced'">Acca Generator</button>
+<button class="tab-btn ''' + active("daily") + '''" onclick="window.location.href='?tab=daily'">Daily Picks</button>
+<button class="tab-btn ''' + active("builder") + '''" onclick="window.location.href='?tab=builder'">Bet Builder</button>
+<button class="tab-btn ''' + active("ai") + '''" onclick="window.location.href='?tab=ai'">AI Acca Generator</button>
+<button class="tab-btn ''' + active("future") + '''" onclick="window.location.href='?tab=future'">Future (3-Day)</button>
+<button class="tab-btn ''' + active("bankers") + '''" onclick="window.location.href='?tab=bankers'">Bankers</button>
+<button class="tab-btn ''' + active("advanced") + '''" onclick="window.location.href='?tab=advanced'">Acca Generator</button>
 </nav>
 '''
-
-    html_end = '</div></body></html>'
-    html = html_start
 
     if tab == "daily":
         html += '<div class="card"><h2>📊 Daily Picks — Highest Edge Values</h2>'
@@ -304,9 +302,11 @@ h1{font-size:24px;color:var(--accent);margin-bottom:4px}
     else:
         html += '<div class="card"><div class="empty">Tab not recognized: ' + tab + '</div></div>'
 
-    html += html_end
+    html += '</div></body></html>'
     return html
 
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=
+    app.run(host="0.0.0.0", port=port)
+
