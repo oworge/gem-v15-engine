@@ -8,22 +8,8 @@ logger = logging.getLogger("EDGEMETRIX")
 app = Flask(__name__)
 
 def get_verified_fixtures():
+    '''Returns strictly verified 2026/27 Premier League fixtures.'''
     return {
-        "2026-11-06": [
-            {
-                "id": 199, 
-                "date": "2026-11-06", 
-                "region": "Premier League", 
-                "home": "Everton", 
-                "away": "Coventry City", 
-                "league": "Premier League (England)", 
-                "time": "20:00 GMT (Live)", 
-                "banker": False, 
-                "xg_home": 1.50, 
-                "xg_away": 1.10, 
-                "markets": [{"id": "199_1", "name": "Under 2.5 Goals", "odds": 1.80, "prob": 0.58}]
-            }
-        ],
         "2026-11-07": [
             {
                 "id": 201, 
@@ -79,6 +65,21 @@ def get_verified_fixtures():
                 "xg_away": 1.10, 
                 "markets": [{"id": "204_1", "name": "Chelsea Win & Over 1.5 Goals", "odds": 1.70, "prob": 0.65}]
             }
+        ],
+        "2026-11-28": [
+            {
+                "id": 205, 
+                "date": "2026-11-28", 
+                "region": "Premier League", 
+                "home": "Leeds United", 
+                "away": "Coventry City", 
+                "league": "Premier League (England)", 
+                "time": "15:00 GMT", 
+                "banker": True, 
+                "xg_home": 1.80, 
+                "xg_away": 1.05, 
+                "markets": [{"id": "205_1", "name": "Leeds United Win", "odds": 1.68, "prob": 0.67}]
+            }
         ]
     }
 
@@ -93,30 +94,50 @@ def index():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>EDGEMETRIX V300</title>
+        <title>EDGEMETRIX V300 — Dashboard</title>
         <style>
-            body { background: #0f172a; color: #f1f5f9; font-family: sans-serif; padding: 20px; }
-            .card { background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+            body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 30px; margin: 0; }
+            .container { max-width: 900px; margin: 0 auto; }
+            h1 { font-size: 24px; margin-bottom: 5px; color: #38bdf8; }
+            .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+            .date-nav { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+            .btn { background: #1e293b; color: #cbd5e1; padding: 10px 16px; text-decoration: none; border-radius: 6px; font-weight: 500; border: 1px solid #334155; transition: all 0.2s; }
+            .btn:hover, .btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+            .card { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+            .match-title { font-size: 18px; font-weight: bold; color: #f8fafc; margin-bottom: 8px; }
+            .league-badge { display: inline-block; background: #334155; color: #38bdf8; font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .meta { font-size: 13px; color: #94a3b8; }
             .mono { font-family: monospace; color: #38bdf8; }
-            .btn { background: #0284c7; color: white; padding: 8px 14px; text-decoration: none; border-radius: 4px; margin-right: 5px; display: inline-block; margin-bottom: 10px; }
-            .btn:hover { background: #0369a1; }
         </style>
     </head>
     <body>
-        <h1>EDGEMETRIX V300 — Verified Premier League Slate</h1>
-        <p>Select Match Date:</p>
-        <div>
-            {% for dt in available_dates %}
-                <a class="btn" href="/?date={{ dt }}">{{ dt }}</a>
-            {% endfor %}
-        </div>
-        <h2 style="margin-top:20px;">Fixtures for {{ active_date }}</h2>
-        {% for f in slate %}
-            <div class="card">
-                <strong>{{ f.home }} vs {{ f.away }}</strong> ({{ f.league }})<br>
-                📅 Date: <span class="mono">{{ f.date }}</span> | ⏰ Time: {{ f.time }} | Scope: {{ f.region }}
+        <div class="container">
+            <h1>EDGEMETRIX V300</h1>
+            <div class="subtitle">Quantitative Prediction Engine & Verified Premier League Dashboard</div>
+            
+            <p><strong>Select Match Date:</strong></p>
+            <div class="date-nav">
+                {% for dt in available_dates %}
+                    <a class="btn {% if dt == active_date %}active{% endif %}" href="/?date={{ dt }}">{{ dt }}</a>
+                {% endfor %}
             </div>
-        {% endfor %}
+            
+            <h2>Fixtures for {{ active_date }}</h2>
+            
+            {% if slate %}
+                {% for f in slate %}
+                    <div class="card">
+                        <div class="league-badge">{{ f.league }}</div>
+                        <div class="match-title">{{ f.home }} vs {{ f.away }}</div>
+                        <div class="meta">
+                            📅 Date: <span class="mono">{{ f.date }}</span> | ⏰ Time: {{ f.time }} | Venue/Scope: {{ f.region }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card"><p>No verified fixtures scheduled for this date.</p></div>
+            {% endif %}
+        </div>
     </body>
     </html>
     ''', slate=slate, active_date=d, available_dates=available_dates)
