@@ -1,9 +1,11 @@
 ﻿from flask import Flask, render_template_string, request
 import os
+from datetime import datetime, date
 
 app = Flask(__name__)
 
-FIXTURES_DATA = {
+# Master database of fixtures categorized by date (Expanded Volume Slate)
+MASTER_FIXTURES = {
     "2026-11-06": [
         {
             "id": 1,
@@ -14,7 +16,8 @@ FIXTURES_DATA = {
             "banker": True,
             "markets": [
                 {"id": "1_1", "name": "Hammarby 1X & Over 1.5 Goals", "odds": 1.30, "prob": 0.835, "type": "Goals/DC"},
-                {"id": "1_2", "name": "Hammarby Win", "odds": 1.65, "prob": 0.68, "type": "1X2"}
+                {"id": "1_2", "name": "Hammarby Win", "odds": 1.65, "prob": 0.68, "type": "1X2"},
+                {"id": "1_3", "name": "Over 2.5 Goals", "odds": 1.85, "prob": 0.57, "type": "Goals"}
             ]
         },
         {
@@ -26,7 +29,8 @@ FIXTURES_DATA = {
             "banker": True,
             "markets": [
                 {"id": "2_1", "name": "Everton 1X & Over 1.5 Goals", "odds": 1.32, "prob": 0.812, "type": "Goals/DC"},
-                {"id": "2_2", "name": "Everton Win", "odds": 1.70, "prob": 0.65, "type": "1X2"}
+                {"id": "2_2", "name": "Everton Win", "odds": 1.70, "prob": 0.65, "type": "1X2"},
+                {"id": "2_3", "name": "Both Teams To Score (BTTS - Yes)", "odds": 1.95, "prob": 0.54, "type": "BTTS"}
             ]
         },
         {
@@ -38,7 +42,8 @@ FIXTURES_DATA = {
             "banker": True,
             "markets": [
                 {"id": "3_1", "name": "Sevilla 1X Double Chance", "odds": 1.26, "prob": 0.82, "type": "Double Chance"},
-                {"id": "3_2", "name": "Sevilla Win", "odds": 1.90, "prob": 0.58, "type": "1X2"}
+                {"id": "3_2", "name": "Sevilla Win", "odds": 1.90, "prob": 0.58, "type": "1X2"},
+                {"id": "3_3", "name": "Under 2.5 Goals", "odds": 1.60, "prob": 0.65, "type": "Goals"}
             ]
         },
         {
@@ -49,7 +54,8 @@ FIXTURES_DATA = {
             "time": "18:00 GMT",
             "banker": False,
             "markets": [
-                {"id": "4_1", "name": "Over 1.5 Goals Floor Play", "odds": 1.35, "prob": 0.80, "type": "Goals"}
+                {"id": "4_1", "name": "Over 1.5 Goals Floor Play", "odds": 1.35, "prob": 0.80, "type": "Goals"},
+                {"id": "4_2", "name": "Silkeborg Win or Draw (1X)", "odds": 1.28, "prob": 0.79, "type": "Double Chance"}
             ]
         }
     ],
@@ -65,8 +71,26 @@ FIXTURES_DATA = {
                 {"id": "5_1", "name": "Real Madrid Win & Over 1.5", "odds": 1.42, "prob": 0.78, "type": "Goals/1X2"}
             ]
         }
+    ],
+    "2026-11-08": [
+        {
+            "id": 6,
+            "home": "Inter Milan",
+            "away": "Napoli",
+            "league": "Serie A",
+            "time": "19:45 GMT",
+            "banker": True,
+            "markets": [
+                {"id": "6_1", "name": "Inter 1X & Over 1.5 Goals", "odds": 1.38, "prob": 0.79, "type": "Goals/DC"}
+            ]
+        }
     ]
 }
+
+def get_active_fixtures():
+    today_str = date.today().isoformat()
+    active_date = today_str if today_str in MASTER_FIXTURES else "2026-11-06"
+    return active_date, MASTER_FIXTURES.get(active_date, [])
 
 def calc_edge(odds, prob):
     return round((prob - (1 / odds)) * 100, 2)
@@ -74,11 +98,12 @@ def calc_edge(odds, prob):
 @app.route("/")
 def index():
     active_tab = request.args.get("tab", "daily_picks")
-    selected_date = request.args.get("date", "2026-11-06")
+    default_date, default_slate = get_active_fixtures()
+    selected_date = request.args.get("date", default_date)
     legs_count = int(request.args.get("legs", 3))
     market_filter = request.args.get("market_filter", "ALL")
 
-    slate = FIXTURES_DATA.get(selected_date, FIXTURES_DATA["2026-11-06"])
+    slate = MASTER_FIXTURES.get(selected_date, default_slate)
     selected_market_ids = request.args.getlist("builder_market")
 
     html = """<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>EDGEMETRIX V300</title><style>
@@ -101,16 +126,34 @@ def index():
     .btn:hover { background: #15803d; }
     .slip { background: #0369a1; border-radius: 10px; padding: 16px; color: white; margin-top: 16px; border: 1px solid #38bdf8; box-shadow: 0 4px 16px rgba(3, 105, 161, 0.3); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    </style></head><body><div class="header"><h1 class="title">EDGEMETRIX V300</h1><div style="color:#38bdf8; font-size:12px; margin-top:4px;">Quantitative Football Analytics Engine — Sharpened Terminal UI</div></div><div class="tabs"><a class="tab-btn """ + ('active' if active_tab=='daily_picks' else '') + """" href="/?tab=daily_picks">Daily Picks</a><a class="tab-btn """ + ('active' if active_tab=='bet_builder' else '') + """" href="/?tab=bet_builder">Bet Builder</a><a class="tab-btn """ + ('active' if active_tab=='ai_acca' else '') + """" href="/?tab=ai_acca">AI Acca Generator</a><a class="tab-btn """ + ('active' if active_tab=='future' else '') + """" href="/?tab=future">Future (3-Day Value)</a><a class="tab-btn """ + ('active' if active_tab=='bankers' else '') + """" href="/?tab=bankers">Bankers Daily</a><a class="tab-btn """ + ('active' if active_tab=='acca_gen' else '') + """" href="/?tab=acca_gen">Acca Generator Tab</a></div>"""
+    </style></head><body><div class="header"><h1 class="title">EDGEMETRIX V300</h1><div style="color:#38bdf8; font-size:12px; margin-top:4px;">Quantitative Football Analytics Engine — Full High-Throughput Value Feed</div></div><div class="tabs"><a class="tab-btn """ + ('active' if active_tab=='daily_picks' else '') + """" href="/?tab=daily_picks">Daily Picks</a><a class="tab-btn """ + ('active' if active_tab=='bet_builder' else '') + """" href="/?tab=bet_builder">Bet Builder</a><a class="tab-btn """ + ('active' if active_tab=='ai_acca' else '') + """" href="/?tab=ai_acca">AI Acca Generator</a><a class="tab-btn """ + ('active' if active_tab=='future' else '') + """" href="/?tab=future">Future (3-Day Value)</a><a class="tab-btn """ + ('active' if active_tab=='bankers' else '') + """" href="/?tab=bankers">Bankers Daily</a><a class="tab-btn """ + ('active' if active_tab=='acca_gen' else '') + """" href="/?tab=acca_gen">Acca Generator Tab</a></div>"""
 
     if active_tab == 'daily_picks':
-        html += '<div class="card"><h2 style="color:#38bdf8;margin-top:0;">Daily High-Confluence Value Picks (Nov 6)</h2>'
+        html += f'<div class="card"><h2 style="color:#38bdf8;margin-top:0;">Comprehensive Value Selections Feed ({selected_date})</h2><p style="color:#94a3b8;font-size:13px;">Showing all positive statistical edge opportunities across today\'s active slate, sorted by edge magnitude.</p>'
+        
+        # Flatten and sort ALL markets by edge descending to maximize volume
+        all_evaluated = []
         for f in slate:
-            html += f'''<div class="match-card"><div style="display:flex;justify-content:space-between;"><strong>{f['home']} vs {f['away']}</strong><span style="color:#38bdf8;font-size:12px;" class="mono">{f['time']}</span></div><div style="color:#94a3b8;font-size:12px;margin-bottom:8px;">{f['league']}</div><div class="grid">'''
             for m in f['markets']:
                 edge = calc_edge(m['odds'], m['prob'])
-                html += f'''<div class="market-item"><strong>{m['name']}</strong> (@<span class="mono">{m['odds']}</span>)<br>Prob: <span class="mono">{m['prob']*100:.1f}%</span> | <span class="edge-badge">Edge: +{edge}%</span></div>'''
-            html += '</div></div>'
+                if edge > 0:
+                    all_evaluated.append((edge, f['home'], f['away'], f['league'], f['time'], m['name'], m['odds'], m['prob']))
+        all_evaluated.sort(key=lambda x: x[0], reverse=True)
+
+        if all_evaluated:
+            html += '<div class="grid">'
+            for edge, home, away, league, time_str, m_name, odds, prob in all_evaluated:
+                html += f'''<div class="market-item" style="border-color:rgba(56,189,248,0.3); margin-bottom:8px;">
+                    <div style="color:#38bdf8; font-weight:bold; margin-bottom:4px;">{home} vs {away} <span style="font-weight:normal; font-size:11px; color:#94a3b8;">({league})</span></div>
+                    <div><strong>{m_name}</strong></div>
+                    <div style="margin-top:4px; display:flex; justify-content:space-between;">
+                        <span>Odds: @<span class="mono">{odds}</span> | Prob: <span class="mono">{prob*100:.1f}%</span></span>
+                        <span class="edge-badge">+{edge}% Edge</span>
+                    </div>
+                </div>'''
+            html += '</div>'
+        else:
+            html += '<p style="color:#94a3b8;">No positive edge markets found for today\'s slate.</p>'
         html += '</div>'
 
     elif active_tab == 'bet_builder':
@@ -137,43 +180,53 @@ def index():
         html += '</div>'
 
     elif active_tab == 'ai_acca':
-        html += '<div class="card"><h2 style="color:#38bdf8;margin-top:0;">AI High-Edge Acca Generator</h2><p style="color:#94a3b8;font-size:13px;">Auto-generated 3-fold based on maximum engine edge.</p>'
+        html += '<div class="card"><h2 style="color:#38bdf8;margin-top:0;">AI High-Edge Acca Generator</h2><p style="color:#94a3b8;font-size:13px;">Auto-generated 4-fold high-throughput compounding slip.</p>'
         all_markets = []
         for f in slate:
             for m in f['markets']:
                 edge = calc_edge(m['odds'], m['prob'])
                 all_markets.append((edge, f"{f['home']} vs {f['away']}", m['name'], m['odds']))
         all_markets.sort(key=lambda x: x[0], reverse=True)
-        top_3 = all_markets[:3]
-        combined = 1.0
-        for leg in top_3:
-            combined *= leg[3]
-        html += f'''<div class="slip"><h3 style="margin-top:0;">AI Compiled 3-Fold Slip</h3><div>Combined Odds: <strong class="mono">@{combined:.2f}</strong></div>'''
-        for edge, fix, m_name, o in top_3:
-            html += f'<div style="font-size:13px;margin-top:6px;" class="mono">• <strong>{fix}</strong> — {m_name} (@{o}) <span class="edge-badge">[+{edge}% Edge]</span></div>'
-        html += f'<div style="margin-top:12px;">Recommended Stake: £20.00 | Potential Return: <strong class="mono">£{20*combined:.2f}</strong></div></div></div>'
+        top_legs = all_markets[:4] # Expanded to 4 legs for higher throughput
+        if top_legs:
+            combined = 1.0
+            for leg in top_legs:
+                combined *= leg[3]
+            html += f'''<div class="slip"><h3 style="margin-top:0;">AI Compiled High-Volume Acca</h3><div>Combined Odds: <strong class="mono">@{combined:.2f}</strong></div>'''
+            for edge, fix, m_name, o in top_legs:
+                html += f'<div style="font-size:13px;margin-top:6px;" class="mono">• <strong>{fix}</strong> — {m_name} (@{o}) <span class="edge-badge">[+{edge}% Edge]</span></div>'
+            html += f'<div style="margin-top:12px;">Recommended Stake: £20.00 | Potential Return: <strong class="mono">£{20*combined:.2f}</strong></div></div>'
+        else:
+            html += '<p style="color:#94a3b8;">Insufficient markets available.</p>'
+        html += '</div>'
 
     elif active_tab == 'future':
-        html += '<div class="card"><h2 style="color:#38bdf8;margin-top:0;">3-Day Future Value Slate</h2>'
-        for d in ['2026-11-07', '2026-11-08']:
-            html += f'<h3 style="color:#eab308;border-bottom:1px solid #334155;padding-bottom:4px;">Fixtures for {d}</h3>'
-            for f in FIXTURES_DATA.get(d, []):
-                html += f'''<div class="match-card"><strong>{f['home']} vs {f['away']}</strong> <span class="mono">({f['league']} - {f['time']})</span><div class="grid">'''
-                for m in f['markets']:
-                    edge = calc_edge(m['odds'], m['prob'])
-                    html += f'''<div class="market-item">{m['name']} (@<span class="mono">{m['odds']}</span>) | <span class="edge-badge">Edge: +{edge}%</span></div>'''
-                html += '</div></div>'
+        html += '<div class="card"><h2 style="color:#38bdf8;margin-top:0;">Future Value Slate (Upcoming Days)</h2>'
+        today_iso = date.today().isoformat()
+        for d in sorted(MASTER_FIXTURES.keys()):
+            if d > today_iso:
+                html += f'<h3 style="color:#eab308;border-bottom:1px solid #334155;padding-bottom:4px;">Fixtures for {d}</h3>'
+                for f in MASTER_FIXTURES.get(d, []):
+                    html += f'''<div class="match-card"><strong>{f['home']} vs {f['away']}</strong> <span class="mono">({f['league']} - {f['time']})</span><div class="grid">'''
+                    for m in f['markets']:
+                        edge = calc_edge(m['odds'], m['prob'])
+                        html += f'''<div class="market-item">{m['name']} (@<span class="mono">{m['odds']}</span>) | <span class="edge-badge">Edge: +{edge}%</span></div>'''
+                    html += '</div></div>'
         html += '</div>'
 
     elif active_tab == 'bankers':
         html += '<div class="card"><h2 style="color:#eab308;margin-top:0;">Bankers Daily (Lowest Variance Picks)</h2>'
+        found_banker = False
         for f in slate:
             if f['banker']:
+                found_banker = True
                 html += f'''<div class="match-card"><div style="display:flex;justify-content:space-between;"><strong>{f['home']} vs {f['away']}</strong><span class="banker-badge">HIGH CONFIDENCE BANKER</span></div><div class="grid" style="margin-top:8px;">'''
                 for m in f['markets']:
                     if m['prob'] >= 0.75:
                         html += f'''<div class="market-item" style="border-color:#eab308;"><strong>{m['name']}</strong> (@<span class="mono">{m['odds']}</span>)<br>Model Confidence: <strong class="mono">{m['prob']*100:.1f}%</strong></div>'''
                 html += '</div></div>'
+        if not found_banker:
+            html += '<p style="color:#94a3b8;">No high-confidence bankers active for this slate.</p>'
         html += '</div>'
 
     elif active_tab == 'acca_gen':
