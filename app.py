@@ -1,112 +1,74 @@
-FIXTURES = {
-    "2026-11-06": [
-        {
-            "home": "Olympique Cayenne",
-            "away": "Etoile Matoury",
-            "league": "Coupe de France — 7th Round",
-            "time": "19:00 GMT",
-            "is_banker": False,
-            "markets": [
-                {"name": "Olympique Cayenne Win", "odds": 2.10, "prob": 0.51},
-                {"name": "Over 2.5 Goals", "odds": 1.85, "prob": 0.57},
-                {"name": "BTTS - Yes", "odds": 1.88, "prob": 0.56}
-            ]
-        },
-        {
-            "home": "Everton",
-            "away": "Coventry City",
-            "league": "Premier League (England)",
-            "time": "19:45 GMT",
-            "is_banker": True,
-            "markets": [
-                {"name": "Everton Win", "odds": 1.70, "prob": 0.65},
-                {"name": "Double Chance 1X", "odds": 1.28, "prob": 0.84},
-                {"name": "Over 1.5 Goals", "odds": 1.48, "prob": 0.74}
-            ]
-        },
-        {
-            "home": "Birmingham City",
-            "away": "Wrexham",
-            "league": "League One (England)",
-            "time": "19:45 GMT",
-            "is_banker": False,
-            "markets": [
-                {"name": "Birmingham Win", "odds": 2.10, "prob": 0.51},
-                {"name": "BTTS - Yes", "odds": 1.75, "prob": 0.62},
-                {"name": "Over 2.5 Goals", "odds": 1.88, "prob": 0.56}
-            ]
-        },
-        {
-            "home": "Barnet",
-            "away": "Oldham Athletic",
-            "league": "National League (England)",
-            "time": "19:30 GMT",
-            "is_banker": True,
-            "markets": [
-                {"name": "Barnet Win", "odds": 1.85, "prob": 0.59},
-                {"name": "Double Chance 1X", "odds": 1.38, "prob": 0.79},
-                {"name": "Over 2.5 Goals", "odds": 1.80, "prob": 0.59}
-            ]
-        },
-        {
-            "home": "Atalanta",
-            "away": "Lazio",
-            "league": "Serie A (Italy)",
-            "time": "19:45 GMT",
-            "is_banker": False,
-            "markets": [
-                {"name": "Atalanta Win", "odds": 1.85, "prob": 0.59},
-                {"name": "Over 2.5 Goals", "odds": 1.75, "prob": 0.62},
-                {"name": "BTTS - Yes", "odds": 1.68, "prob": 0.64}
-            ]
-        },
-        {
-            "home": "Sevilla",
-            "away": "Deportivo Alavés",
-            "league": "La Liga (Spain)",
-            "time": "20:00 GMT",
-            "is_banker": False,
-            "markets": [
-                {"name": "Sevilla Win", "odds": 1.90, "prob": 0.58},
-                {"name": "Double Chance 1X", "odds": 1.38, "prob": 0.79},
-                {"name": "Under 2.5 Goals", "odds": 1.62, "prob": 0.64}
-            ]
-        },
-        {
-            "home": "Hammarby IF",
-            "away": "IF Elfsborg",
-            "league": "Allsvenskan (Sweden)",
-            "time": "18:00 GMT",
-            "is_banker": True,
-            "markets": [
-                {"name": "Hammarby Win", "odds": 1.65, "prob": 0.68},
-                {"name": "Over 2.5 Goals", "odds": 1.85, "prob": 0.57},
-                {"name": "BTTS - Yes", "odds": 1.82, "prob": 0.58}
-            ]
-        },
-        {
-            "home": "Vissel Kobe",
-            "away": "Yokohama F. Marinos",
-            "league": "J1 League (Japan)",
-            "time": "11:00 GMT",
-            "is_banker": True,
-            "markets": [
-                {"name": "Vissel Kobe Win", "odds": 1.72, "prob": 0.63},
-                {"name": "Over 2.5 Goals", "odds": 1.60, "prob": 0.68},
-                {"name": "BTTS - Yes", "odds": 1.65, "prob": 0.66}
-            ]
-        },
-        {
-            "home": "LA Galaxy",
-            "away": "Seattle Sounders",
-            "league": "MLS (USA)",
-            "time": "02:00 GMT",
-            "is_banker": False,
-            "markets": [
-                {"name": "LA Galaxy Win", "odds": 2.05, "prob": 0.52},
-                {"name": "Over 2.5 Goals", "odds": 1.72, "prob": 0.61},
-                {"name": "BTTS - Yes", "odds": 1.80, "prob": 0.59}
+import requests
+
+API_KEY = "b0d3f3a531msh968e8e49e41e1dp1c4e8b0jsn1d5c89f38c86"
+API_HOST = "api-football-v1.p.rapidapi.com"
+
+def fetch_live_fixtures():
+    """Fetch today's fixtures from free API"""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    url = "https://api-football-v1.p.rapidapi.com/v3/fixtures"
+    headers = {
+        "X-RapidAPI-Key": API_KEY,
+        "X-RapidAPI-Host": API_HOST
+    }
+    params = {"date": today, "timezone": "UTC"}
+    
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=15)
+        if resp.status_code != 200:
+            raise Exception(f"API returned {resp.status_code}")
+        
+        data = resp.json()
+        matches = []
+        
+        for item in data.get("response", []):
+            home = item["teams"]["home"]["name"]
+            away = item["teams"]["away"]["name"]
+            league = item["league"]["name"]
+            kickoff = item["fixture"]["date"]
+            time_only = kickoff.split("T")[1][:5] + " GMT"
+            
+            matches.append({
+                "home": home,
+                "away": away,
+                "league": league,
+                "time": time_only,
+                "is_banker": False,
+                "markets": [
+                    {"name": home + " Win", "odds": 2.00, "prob": 0.53},
+                    {"name": "Over 2.5 Goals", "odds": 1.75, "prob": 0.60},
+                    {"name": "BTTS - Yes", "odds": 1.80, "prob": 0.58}
+                ]
+            })
+        
+        # Mark top matches as bankers
+        if matches:
+            for i in range(min(3, len(matches))):
+                matches[i]["is_banker"] = True
+                matches[i]["markets"][0]["prob"] = 0.75
+                matches[i]["markets"][0]["odds"] = 1.38
+        
+        return {today: matches}
+    
+    except Exception as e:
+        print(f"API fetch failed: {e}")
+        # Fallback fixtures if API down
+        return {
+            today: [
+                {
+                    "home": "Everton",
+                    "away": "Coventry City",
+                    "league": "Premier League",
+                    "time": "19:45 GMT",
+                    "is_banker": True,
+                    "markets": [
+                        {"name": "Everton Win", "odds": 1.70, "prob": 0.65},
+                        {"name": "Over 2.5 Goals", "odds": 1.75, "prob": 0.60},
+                        {"name": "BTTS - Yes", "odds": 1.82, "prob": 0.58}
+                    ]
+                }
             ]
         }
-    ]
-}
+
+FIXTURES = fetch_live_fixtures()
+todays_matches = FIXTURES.get(datetime.utcnow().strftime("%Y-%m-%d"), [])
