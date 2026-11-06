@@ -53,7 +53,7 @@ FIXTURE_FEED = {
 "2026-11-11": [
 {"h":"Bayern Munich","a":"Dortmund","l":"Bundesliga","t":"18:30","b":True,
 "m":[{"n":"Bayern Win","o":1.55,"p":0.72},
-{"n":"BTTS Yes","o":1.58,"p":0.71"}]}
+{"n":"BTTS Yes","o":1.62,"p":0.70}]}
 ]
 }
 
