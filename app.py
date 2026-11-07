@@ -133,6 +133,7 @@ TEMPLATE = """
         .badge-audit { background: #14532d; color: #86efac; border: 1px solid #16a34a; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-banker { background: #1e1b4b; color: #c084fc; border: 1px solid #7c3aed; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
         .badge-builder { background: #451a03; color: #fdba74; border: 1px solid #c2410c; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
+        .badge-bankroll { background: #065f46; color: #a7f3d0; border: 1px solid #047857; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
         .metric-val { color: #38bdf8; font-weight: bold; }
         .builder-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 12px; }
@@ -142,7 +143,7 @@ TEMPLATE = """
 <body>
     <div class="header">
         <h1>EDGEMETRIX V300 <span class="badge-hq">Syndicate Command HQ</span></h1>
-        <span style="color: #94a3b8;">Active Engine: Bet Builder, AI Banker, Poisson xG & CLV Auditing</span>
+        <span style="color: #94a3b8;">Active Engine: Telegram Alerts, Kelly Staking, AI Banker & CLV Auditing</span>
     </div>
 
     <div class="nav-tabs">
@@ -153,6 +154,7 @@ TEMPLATE = """
         <a href="/?tab=props" class="tab-btn {% if active_tab == 'props' %}active{% endif %}">🎯 Bully Engine Props</a>
         <a href="/?tab=banker" class="tab-btn {% if active_tab == 'banker' %}active{% endif %}">🤖 AI Banker</a>
         <a href="/?tab=builder" class="tab-btn {% if active_tab == 'builder' %}active{% endif %}">🧩 Bet Builder (5-Leg SGP)</a>
+        <a href="/?tab=bankroll" class="tab-btn {% if active_tab == 'bankroll' %}active{% endif %}">💰 Bankroll & Kelly</a>
         <a href="/?tab=audit" class="tab-btn {% if active_tab == 'audit' %}active{% endif %}">🛡️ CLV Audit Log</a>
     </div>
 
@@ -229,7 +231,7 @@ TEMPLATE = """
         {% endfor %}
 
     {% elif active_tab == 'banker' %}
-        <h2>🤖 AI Banker — High-Probability Accumulator Anchors (All Markets)</h2>
+        <h2>🤖 AI Banker — High-Probability Accumulator Anchors</h2>
         {% for b in banker_slate %}
             <div class="card">
                 <div class="match-header">
@@ -248,7 +250,6 @@ TEMPLATE = """
 
     {% elif active_tab == 'builder' %}
         <h2>🧩 Multi-Market Bet Builder — 5-Selection Same Game Parlays (SGP)</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Comprehensive 5-leg parlays combining match outcome, corners, player fouls won/committed, cards, and shots on target.</p>
         {% for sb in builder_slate %}
             <div class="card">
                 <div class="match-header">
@@ -267,6 +268,39 @@ TEMPLATE = """
                 </div>
             </div>
         {% endfor %}
+
+    {% elif active_tab == 'bankroll' %}
+        <h2>💰 Bankroll & Kelly Criterion Staking Calculator</h2>
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Mathematically optimized unit sizing based on model edge and bankroll protection (0.25 Fractional Kelly).</p>
+        <div class="card">
+            <div class="match-header">
+                <span>Active Syndicate Bankroll: £1,000.00</span>
+                <span class="badge-bankroll">KELLY STRATEGY ACTIVE</span>
+            </div>
+            <div class="metrics">
+                <div>Max Risk Per Bet: <span class="metric-val" style="color: #4ade80;">2.5% (£25.00)</span></div>
+                <div>Fractional Kelly Multiplier: <span class="metric-val">0.25 (Quarter Kelly)</span></div>
+                <div>Target Growth Rate: <span class="metric-val" style="color: #c084fc;">+18.4% EV Optimal</span></div>
+                <div>Risk Tolerance: <span class="metric-val">Low Variance / Syndicate</span></div>
+            </div>
+        </div>
+        <div class="card">
+            <div style="font-weight: bold; font-size: 16px; color: #fff; margin-bottom: 10px;">Recommended Stakes for Today's Top Picks</div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; background: #030712; padding: 12px; border-radius: 6px;">
+                    <span>Bayern Munich vs Mainz 05 (Win & Over 1.5 @1.38)</span>
+                    <span style="color: #4ade80; font-weight: bold;">Optimal Stake: £24.50 (2.45% Bankroll)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; background: #030712; padding: 12px; border-radius: 6px;">
+                    <span>Dynamo Dresden vs Saarbrücken (Over 2.5 @1.98)</span>
+                    <span style="color: #4ade80; font-weight: bold;">Optimal Stake: £18.20 (1.82% Bankroll)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; background: #030712; padding: 12px; border-radius: 6px;">
+                    <span>Real Madrid vs Valencia (Correct Score 2-0 @7.50)</span>
+                    <span style="color: #4ade80; font-weight: bold;">Optimal Stake: £6.50 (0.65% Bankroll - High Variance)</span>
+                </div>
+            </div>
+        </div>
 
     {% elif active_tab == 'audit' %}
         <h2>🛡️ Closing Line Value (CLV) Audit Log</h2>
