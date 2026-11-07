@@ -1,4 +1,4 @@
-# engines.py - SEALED CORE ENGINE WITH MANDATORY 99% CONSENSUS GATE
+﻿# engines.py - SEALED CORE ENGINE WITH MANDATORY 99% CONSENSUS GATE
 
 class GamblingProEngine:
     def analyze(self, home, away):
@@ -56,7 +56,7 @@ class EngineSuite:
         self.opta = OptaAITacticalEngine()
 
     def run_all_engines(self, match_id, home, away, region, xg_home=2.10, xg_away=0.85, odds=1.55):
-        """Executes all 7+ engines and enforces mandatory 99% consensus threshold."""
+        """Executes all 8 engines and enforces mandatory 99% consensus threshold."""
         opta_res = self.opta.analyze(xg_home, xg_away)
         vk_res = self.value_king.analyze(odds, opta_win_prob=0.78)
         gp_res = self.gambling_pro.analyze(home, away)
@@ -66,7 +66,6 @@ class EngineSuite:
         pdg_res = self.preddigoal.analyze(xg_home + xg_away)
         kal_res = self.kalshi.analyze(match_id)
 
-        # Gather engine confidence scores
         scores = [
             opta_res['confidence_score'],
             vk_res['confidence_score'],
@@ -78,14 +77,14 @@ class EngineSuite:
             kal_res['confidence_score']
         ]
 
-        # Calculate consensus score across all 8 models
         consensus = sum(scores) / len(scores)
         consensus_pct = round(consensus * 100, 2)
-        is_approved = consensus >= 0.990  # 99.0% Gate Threshold
+        is_approved = consensus >= 0.990
 
         return {
             'consensus_score': f"{consensus_pct}%",
-            'consensus_status': 'VERIFIED 99%+ CONSENSUS' if is_approved else 'REJECTED (Low Consensus)',
+            'is_approved': is_approved,
+            'consensus_status': 'VERIFIED 99%+ CONSENSUS' if is_approved else 'REJECTED (Below 99%)',
             'opta_ai': opta_res,
             'value_king': vk_res,
             'gambling_pro': gp_res,
