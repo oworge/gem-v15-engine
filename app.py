@@ -132,14 +132,17 @@ TEMPLATE = """
         .badge-score { background: #7c2d12; color: #fdba74; border: 1px solid #c2410c; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-audit { background: #14532d; color: #86efac; border: 1px solid #16a34a; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-banker { background: #1e1b4b; color: #c084fc; border: 1px solid #7c3aed; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
+        .badge-builder { background: #451a03; color: #fdba74; border: 1px solid #c2410c; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
         .metric-val { color: #38bdf8; font-weight: bold; }
+        .builder-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 12px; }
+        .builder-leg { background: #111827; border: 1px solid #1f2937; padding: 8px; border-radius: 6px; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>EDGEMETRIX V300 <span class="badge-hq">Syndicate Command HQ</span></h1>
-        <span style="color: #94a3b8;">Active Engine: AI Banker, Poisson xG & CLV Auditing</span>
+        <span style="color: #94a3b8;">Active Engine: Bet Builder, AI Banker, Poisson xG & CLV Auditing</span>
     </div>
 
     <div class="nav-tabs">
@@ -149,6 +152,7 @@ TEMPLATE = """
         <a href="/?tab=score" class="tab-btn {% if active_tab == 'score' %}active{% endif %}">⚽ Correct Score (10)</a>
         <a href="/?tab=props" class="tab-btn {% if active_tab == 'props' %}active{% endif %}">🎯 Bully Engine Props</a>
         <a href="/?tab=banker" class="tab-btn {% if active_tab == 'banker' %}active{% endif %}">🤖 AI Banker</a>
+        <a href="/?tab=builder" class="tab-btn {% if active_tab == 'builder' %}active{% endif %}">🧩 Bet Builder (5-Leg SGP)</a>
         <a href="/?tab=audit" class="tab-btn {% if active_tab == 'audit' %}active{% endif %}">🛡️ CLV Audit Log</a>
     </div>
 
@@ -226,7 +230,6 @@ TEMPLATE = """
 
     {% elif active_tab == 'banker' %}
         <h2>🤖 AI Banker — High-Probability Accumulator Anchors (All Markets)</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Curated high-probability value picks spanning match outcomes, goals, and safe multi-market angles.</p>
         {% for b in banker_slate %}
             <div class="card">
                 <div class="match-header">
@@ -239,6 +242,28 @@ TEMPLATE = """
                     <div>Odds: <span class="metric-val">@{{ b.odds }}</span></div>
                     <div>Model Probability: <span class="metric-val" style="color: #c084fc;">{{ b.model_prob }}</span></div>
                     <div>Syndicate Status: <span class="metric-val" style="color: #fcd34d;">{{ b.status }}</span></div>
+                </div>
+            </div>
+        {% endfor %}
+
+    {% elif active_tab == 'builder' %}
+        <h2>🧩 Multi-Market Bet Builder — 5-Selection Same Game Parlays (SGP)</h2>
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Comprehensive 5-leg parlays combining match outcome, corners, player fouls won/committed, cards, and shots on target.</p>
+        {% for sb in builder_slate %}
+            <div class="card">
+                <div class="match-header">
+                    <span>{{ sb.match }}</span>
+                    <span class="badge-builder">{{ sb.grade }}</span>
+                </div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ sb.league }} | Combined Odds: <span style="color: #4ade80;">@{{ sb.combined_odds }}</span> | Expected Value: <span style="color: #c084fc;">{{ sb.model_ev }}</span></div>
+                <div class="builder-grid">
+                    {% for leg in sb.legs %}
+                        <div class="builder-leg">
+                            <div style="color: #94a3b8; font-weight: bold;">Leg {{ leg.leg }}: {{ leg.market }}</div>
+                            <div style="color: #4ade80; font-weight: 600; margin: 4px 0;">{{ leg.selection }}</div>
+                            <div style="color: #38bdf8; font-size: 11px;">{{ leg.stats }}</div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         {% endfor %}
@@ -297,6 +322,7 @@ def index():
         btts_slate = PROPS_ENGINE.get_btts_slate(slate)
         score_slate = PROPS_ENGINE.get_correct_score_slate(slate)
         banker_slate = PROPS_ENGINE.get_ai_banker_slate(slate)
+        builder_slate = PROPS_ENGINE.get_bet_builder_slate(slate)
         audit_records = get_audit_records()
         return render_template_string(
             TEMPLATE, 
@@ -308,6 +334,7 @@ def index():
             btts_slate=btts_slate, 
             score_slate=score_slate, 
             banker_slate=banker_slate,
+            builder_slate=builder_slate,
             audit_records=audit_records,
             active_tab=active_tab
         )
