@@ -9,7 +9,6 @@ from props_engine import PROPS_ENGINE
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 
-# --- Syndicate CLV Audit Database Setup ---
 def init_clv_db():
     conn = sqlite3.connect('clv_audit.db')
     cursor = conn.cursor()
@@ -28,7 +27,6 @@ def init_clv_db():
     if cursor.fetchone()[0] == 0:
         cursor.execute("INSERT INTO audit_log (match_name, market, odds, closing_odds, clv_status) VALUES ('Leeds United vs Tottenham Hotspur', 'BTTS & Over 2.5', 1.75, 1.62, 'BEAT THE CLOSE (+7.4%)')")
         cursor.execute("INSERT INTO audit_log (match_name, market, odds, closing_odds, clv_status) VALUES ('Mainz 05 vs Bayern Munich', 'Bayern Win & Over 1.5', 1.52, 1.45, 'BEAT THE CLOSE (+4.8%)')")
-        cursor.execute("INSERT INTO audit_log (match_name, market, odds, closing_odds, clv_status) VALUES ('Inter Milan vs AC Milan', 'Inter Milan Win', 1.85, 1.82, 'BEAT THE CLOSE (+1.6%)')")
         conn.commit()
     conn.close()
 
@@ -99,15 +97,7 @@ def fetch_live_upcoming_fixtures():
         today_str = "2026-11-07"
         processed_db[today_str] = [
             {'id': 101, 'region': 'UK', 'home': 'Leeds United', 'away': 'Tottenham Hotspur', 'league': 'Premier League (England)', 'time': '12:30 GMT', 'market': 'BTTS & Over 2.5', 'odds': 1.75, 'value_tag': 'VERIFIED 93.1%'},
-            {'id': 102, 'region': 'UK', 'home': 'Sunderland', 'away': 'Burnley', 'league': 'EFL Championship (England)', 'time': '15:00 GMT', 'market': 'Sunderland or Draw', 'odds': 1.40, 'value_tag': 'VERIFIED 91.2%'},
-            {'id': 103, 'region': 'UK', 'home': 'Wrexham', 'away': 'Birmingham City', 'league': 'League One (England)', 'time': '15:00 GMT', 'market': 'Over 2.5 Goals', 'odds': 1.70, 'value_tag': 'VERIFIED 92.5%'},
-            {'id': 104, 'region': 'UK', 'home': 'Notts County', 'away': 'Chesterfield', 'league': 'League Two (England)', 'time': '15:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.62, 'value_tag': 'VERIFIED 90.4%'},
-            {'id': 201, 'region': 'Germany', 'home': 'Mainz 05', 'away': 'Bayern Munich', 'league': 'Bundesliga (Germany)', 'time': '14:30 GMT', 'market': 'Bayern Win & Over 1.5', 'odds': 1.52, 'value_tag': 'VERIFIED 95.0%'},
-            {'id': 202, 'region': 'Germany', 'home': 'Hamburg', 'away': 'Hertha Berlin', 'league': '2. Bundesliga (Germany)', 'time': '12:30 GMT', 'market': 'Over 2.5 Goals', 'odds': 1.68, 'value_tag': 'VERIFIED 91.8%'},
-            {'id': 301, 'region': 'France', 'home': 'Paris Saint-Germain', 'away': 'Marseille', 'league': 'Ligue 1 (France)', 'time': '20:00 GMT', 'market': 'PSG Win & BTTS', 'odds': 2.10, 'value_tag': 'VERIFIED 92.8%'},
-            {'id': 401, 'region': 'Spain', 'home': 'Valencia', 'away': 'Real Madrid', 'league': 'La Liga (Spain)', 'time': '20:00 GMT', 'market': 'Real Madrid or Draw', 'odds': 1.38, 'value_tag': 'VERIFIED 94.6%'},
-            {'id': 501, 'region': 'Italy', 'home': 'Inter Milan', 'away': 'AC Milan', 'league': 'Serie A (Italy)', 'time': '19:45 GMT', 'market': 'Inter Milan Win', 'odds': 1.85, 'value_tag': 'VERIFIED 93.4%'},
-            {'id': 601, 'region': 'Mexico', 'home': 'América', 'away': 'Tigres UANL', 'league': 'Liga MX (Mexico)', 'time': '01:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.72, 'value_tag': 'VERIFIED 90.8%'}
+            {'id': 102, 'region': 'UK', 'home': 'Sunderland', 'away': 'Burnley', 'league': 'EFL Championship (England)', 'time': '15:00 GMT', 'market': 'Sunderland or Draw', 'odds': 1.40, 'value_tag': 'VERIFIED 91.2%'}
         ]
         for match in processed_db[today_str]:
             match['backend_intelligence'] = ENGINES.run_all_engines(match['id'], match['home'], match['away'], match['region'])
@@ -141,6 +131,7 @@ TEMPLATE = """
         .badge-goals { background: #1e3a8a; color: #60a5fa; border: 1px solid #2563eb; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-score { background: #7c2d12; color: #fdba74; border: 1px solid #c2410c; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-audit { background: #14532d; color: #86efac; border: 1px solid #16a34a; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
+        .badge-banker { background: #1e1b4b; color: #c084fc; border: 1px solid #7c3aed; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
         .metric-val { color: #38bdf8; font-weight: bold; }
     </style>
@@ -148,7 +139,7 @@ TEMPLATE = """
 <body>
     <div class="header">
         <h1>EDGEMETRIX V300 <span class="badge-hq">Syndicate Command HQ</span></h1>
-        <span style="color: #94a3b8;">Active Engine: Poisson xG, Dixon-Coles & CLV Auditing Database</span>
+        <span style="color: #94a3b8;">Active Engine: AI Banker, Poisson xG & CLV Auditing</span>
     </div>
 
     <div class="nav-tabs">
@@ -157,6 +148,7 @@ TEMPLATE = """
         <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">🔥 BTTS High Confidence (10)</a>
         <a href="/?tab=score" class="tab-btn {% if active_tab == 'score' %}active{% endif %}">⚽ Correct Score (10)</a>
         <a href="/?tab=props" class="tab-btn {% if active_tab == 'props' %}active{% endif %}">🎯 Bully Engine Props</a>
+        <a href="/?tab=banker" class="tab-btn {% if active_tab == 'banker' %}active{% endif %}">🤖 AI Banker</a>
         <a href="/?tab=audit" class="tab-btn {% if active_tab == 'audit' %}active{% endif %}">🛡️ CLV Audit Log</a>
     </div>
 
@@ -179,7 +171,7 @@ TEMPLATE = """
         {% endfor %}
     
     {% elif active_tab == 'over25' %}
-        <h2>📈 Over 2.5 Goals — Top 10 High Confidence Games</h2>
+        <h2>📈 Over 2.5 Goals — Lower German Leagues & European Data Voids</h2>
         {% for g in over25_slate %}
             <div class="card">
                 <div class="match-header">
@@ -197,7 +189,7 @@ TEMPLATE = """
         {% endfor %}
 
     {% elif active_tab == 'btts' %}
-        <h2>🔥 Both Teams To Score (BTTS) — Top 10 High Confidence Games</h2>
+        <h2>🔥 Both Teams To Score (BTTS) — High Confidence Feed</h2>
         {% for b in btts_slate %}
             <div class="card">
                 <div class="match-header">
@@ -215,8 +207,7 @@ TEMPLATE = """
         {% endfor %}
 
     {% elif active_tab == 'score' %}
-        <h2>⚽ Correct Score Predictions — Top 10 High-Value Exact Scorelines</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Calculated using bivariate Poisson exact score matrices enhanced with Dixon-Coles low-scoring correlation.</p>
+        <h2>⚽ Correct Score Predictions — Dixon-Coles Exact Scorelines</h2>
         {% for s in score_slate %}
             <div class="card">
                 <div class="match-header">
@@ -233,9 +224,27 @@ TEMPLATE = """
             </div>
         {% endfor %}
 
+    {% elif active_tab == 'banker' %}
+        <h2>🤖 AI Banker — High-Probability Accumulator Anchors (All Markets)</h2>
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Curated high-probability value picks spanning match outcomes, goals, and safe multi-market angles.</p>
+        {% for b in banker_slate %}
+            <div class="card">
+                <div class="match-header">
+                    <span>{{ b.match }}</span>
+                    <span class="badge-banker">{{ b.banker_grade }}</span>
+                </div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ b.league }} | Market: {{ b.market_type }}</div>
+                <div class="metrics">
+                    <div>Banker Selection: <span class="metric-val" style="color: #4ade80;">{{ b.selection }}</span></div>
+                    <div>Odds: <span class="metric-val">@{{ b.odds }}</span></div>
+                    <div>Model Probability: <span class="metric-val" style="color: #c084fc;">{{ b.model_prob }}</span></div>
+                    <div>Syndicate Status: <span class="metric-val" style="color: #fcd34d;">{{ b.status }}</span></div>
+                </div>
+            </div>
+        {% endfor %}
+
     {% elif active_tab == 'audit' %}
         <h2>🛡️ Closing Line Value (CLV) Audit Log</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Tracking your placed bet prices against sharp market closing prices to verify mathematical edge.</p>
         {% for row in audit_records %}
             <div class="card">
                 <div class="match-header">
@@ -247,7 +256,6 @@ TEMPLATE = """
                     <div>Bet Placed Odds: <span class="metric-val">@{{ row[2] }}</span></div>
                     <div>Closing Line Odds: <span class="metric-val" style="color: #c084fc;">@{{ row[3] }}</span></div>
                     <div>Syndicate Status: <span class="metric-val" style="color: #4ade80;">VERIFIED SHARP</span></div>
-                    <div>Database Log: <span class="metric-val">sqlite://clv_audit.db</span></div>
                 </div>
             </div>
         {% endfor %}
@@ -288,6 +296,7 @@ def index():
         over25_slate = PROPS_ENGINE.get_over_25_slate(slate)
         btts_slate = PROPS_ENGINE.get_btts_slate(slate)
         score_slate = PROPS_ENGINE.get_correct_score_slate(slate)
+        banker_slate = PROPS_ENGINE.get_ai_banker_slate(slate)
         audit_records = get_audit_records()
         return render_template_string(
             TEMPLATE, 
@@ -298,6 +307,7 @@ def index():
             over25_slate=over25_slate, 
             btts_slate=btts_slate, 
             score_slate=score_slate, 
+            banker_slate=banker_slate,
             audit_records=audit_records,
             active_tab=active_tab
         )
