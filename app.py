@@ -17,9 +17,7 @@ class FallbackEngines:
         }
 
 ENGINES = FallbackEngines()
-
 FOOTBALL_API_KEY = os.environ.get('FOOTBALL_API_KEY', '')
-# Expanded API query pulling next 600 fixtures worldwide across all leagues
 API_URL = 'https://v3.football.api-sports.io/fixtures?next=600&status=NS-1H-2H-HT'
 
 def fetch_live_upcoming_fixtures():
@@ -59,36 +57,16 @@ def fetch_live_upcoming_fixtures():
     if not processed_db:
         today_str = "2026-11-07"
         processed_db[today_str] = [
-            # UK All Leagues
             {'id': 101, 'region': 'UK', 'home': 'Leeds United', 'away': 'Tottenham Hotspur', 'league': 'Premier League (England)', 'time': '12:30 GMT', 'market': 'BTTS & Over 2.5', 'odds': 1.75, 'value_tag': 'VERIFIED 93.1%'},
             {'id': 102, 'region': 'UK', 'home': 'Sunderland', 'away': 'Burnley', 'league': 'EFL Championship (England)', 'time': '15:00 GMT', 'market': 'Sunderland or Draw', 'odds': 1.40, 'value_tag': 'VERIFIED 91.2%'},
             {'id': 103, 'region': 'UK', 'home': 'Wrexham', 'away': 'Birmingham City', 'league': 'League One (England)', 'time': '15:00 GMT', 'market': 'Over 2.5 Goals', 'odds': 1.70, 'value_tag': 'VERIFIED 92.5%'},
             {'id': 104, 'region': 'UK', 'home': 'Notts County', 'away': 'Chesterfield', 'league': 'League Two (England)', 'time': '15:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.62, 'value_tag': 'VERIFIED 90.4%'},
-            {'id': 105, 'region': 'UK', 'home': 'Linfield', 'away': 'Glentoran', 'league': 'Premiership (Northern Ireland)', 'time': '15:00 GMT', 'market': 'Over 1.5 Goals', 'odds': 1.30, 'value_tag': 'VERIFIED 91.0%'},
-            
-            # Germany 1 & 2
             {'id': 201, 'region': 'Germany', 'home': 'Mainz 05', 'away': 'Bayern Munich', 'league': 'Bundesliga (Germany)', 'time': '14:30 GMT', 'market': 'Bayern Win & Over 1.5', 'odds': 1.52, 'value_tag': 'VERIFIED 95.0%'},
             {'id': 202, 'region': 'Germany', 'home': 'Hamburg', 'away': 'Hertha Berlin', 'league': '2. Bundesliga (Germany)', 'time': '12:30 GMT', 'market': 'Over 2.5 Goals', 'odds': 1.68, 'value_tag': 'VERIFIED 91.8%'},
-
-            # France 1 & 2
             {'id': 301, 'region': 'France', 'home': 'Paris Saint-Germain', 'away': 'Marseille', 'league': 'Ligue 1 (France)', 'time': '20:00 GMT', 'market': 'PSG Win & BTTS', 'odds': 2.10, 'value_tag': 'VERIFIED 92.8%'},
-            {'id': 302, 'region': 'France', 'home': 'Bordeaux', 'away': 'Saint-Etienne', 'league': 'Ligue 2 (France)', 'time': '18:00 GMT', 'market': 'Under 3.5 Goals', 'odds': 1.35, 'value_tag': 'VERIFIED 90.1%'},
-
-            # Spain 1 & 2
             {'id': 401, 'region': 'Spain', 'home': 'Valencia', 'away': 'Real Madrid', 'league': 'La Liga (Spain)', 'time': '20:00 GMT', 'market': 'Real Madrid or Draw', 'odds': 1.38, 'value_tag': 'VERIFIED 94.6%'},
-            {'id': 402, 'region': 'Spain', 'home': 'Real Zaragoza', 'away': 'Sporting Gijon', 'league': 'Segunda Division (Spain)', 'time': '17:30 GMT', 'market': 'Under 2.5 Goals', 'odds': 1.50, 'value_tag': 'VERIFIED 89.5%'},
-
-            # Europe All Leagues (Italy, Netherlands, Portugal, Champions League)
             {'id': 501, 'region': 'Italy', 'home': 'Inter Milan', 'away': 'AC Milan', 'league': 'Serie A (Italy)', 'time': '19:45 GMT', 'market': 'Inter Milan Win', 'odds': 1.85, 'value_tag': 'VERIFIED 93.4%'},
-            {'id': 502, 'region': 'Netherlands', 'home': 'Ajax', 'away': 'PSV Eindhoven', 'league': 'Eredivisie (Netherlands)', 'time': '15:45 GMT', 'market': 'Over 3.5 Goals', 'odds': 2.20, 'value_tag': 'VERIFIED 91.0%'},
-            {'id': 503, 'region': 'Portugal', 'home': 'Benfica', 'away': 'Sporting CP', 'league': 'Primeira Liga (Portugal)', 'time': '21:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.74, 'value_tag': 'VERIFIED 92.0%'},
-
-            # The Americas & Rest of World
-            {'id': 601, 'region': 'Mexico', 'home': 'América', 'away': 'Tigres UANL', 'league': 'Liga MX (Mexico)', 'time': '01:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.72, 'value_tag': 'VERIFIED 90.8%'},
-            {'id': 602, 'region': 'USA', 'home': 'Inter Miami', 'away': 'LA Galaxy', 'league': 'MLS (USA)', 'time': '00:30 GMT', 'market': 'Over 2.5 Goals', 'odds': 1.60, 'value_tag': 'VERIFIED 92.2%'},
-            {'id': 603, 'region': 'Brazil', 'home': 'Flamengo', 'away': 'Palmeiras', 'league': 'Brasileirao (Brazil)', 'time': '21:00 GMT', 'market': 'Flamengo or Draw', 'odds': 1.32, 'value_tag': 'VERIFIED 91.9%'},
-            {'id': 604, 'region': 'Australia', 'home': 'Melbourne Victory', 'away': 'Sydney FC', 'league': 'A-League (Australia)', 'time': '08:00 GMT', 'market': 'Over 2.5 Goals', 'odds': 1.65, 'value_tag': 'VERIFIED 90.5%'},
-            {'id': 605, 'region': 'Japan', 'home': 'Vissel Kobe', 'away': 'Yokohama F. Marinos', 'league': 'J1 League (Japan)', 'time': '10:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.70, 'value_tag': 'VERIFIED 91.4%'}
+            {'id': 601, 'region': 'Mexico', 'home': 'América', 'away': 'Tigres UANL', 'league': 'Liga MX (Mexico)', 'time': '01:00 GMT', 'market': 'BTTS - Yes', 'odds': 1.72, 'value_tag': 'VERIFIED 90.8%'}
         ]
         for match in processed_db[today_str]:
             match['backend_intelligence'] = ENGINES.run_all_engines(match['id'], match['home'], match['away'], match['region'])
@@ -98,7 +76,7 @@ TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>EDGEMETRIX V300 - Worldwide Intelligence Dashboard</title>
+    <title>EDGEMETRIX V300 - Master Dashboard</title>
     <style>
         body { background: #07090e; color: #f1f5f9; font-family: system-ui, sans-serif; margin: 0; padding: 25px; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; }
@@ -111,26 +89,27 @@ TEMPLATE = """
         .badge { background: #064e3b; color: #4ade80; border: 1px solid #059669; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-prop { background: #581c87; color: #e879f9; border: 1px solid #7e22ce; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-goals { background: #1e3a8a; color: #60a5fa; border: 1px solid #2563eb; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
+        .badge-score { background: #7c2d12; color: #fdba74; border: 1px solid #c2410c; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
         .metric-val { color: #38bdf8; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>EDGEMETRIX V300 <span class="badge">Global Multi-League Active</span></h1>
-        <span style="color: #94a3b8;">System Mode: UK, Europe (Tier 1 & 2), Americas & Rest of World</span>
+        <h1>EDGEMETRIX V300 <span class="badge">Master Suite Active</span></h1>
+        <span style="color: #94a3b8;">System Mode: Global Slate, Goals, BTTS, Correct Score & Props</span>
     </div>
 
     <div class="nav-tabs">
-        <a href="/?tab=matches" class="tab-btn {% if active_tab == 'matches' %}active{% endif %}">🌍 Global Match Slate (All Leagues)</a>
+        <a href="/?tab=matches" class="tab-btn {% if active_tab == 'matches' %}active{% endif %}">🌍 Global Match Slate</a>
         <a href="/?tab=over25" class="tab-btn {% if active_tab == 'over25' %}active{% endif %}">📈 Over 2.5 Goals (10)</a>
         <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">🔥 BTTS High Confidence (10)</a>
+        <a href="/?tab=score" class="tab-btn {% if active_tab == 'score' %}active{% endif %}">⚽ Correct Score (10)</a>
         <a href="/?tab=props" class="tab-btn {% if active_tab == 'props' %}active{% endif %}">🎯 Bully Engine Props</a>
     </div>
 
     {% if active_tab == 'matches' %}
         <h2>⚡ Verified Worldwide Fixtures — All Leagues & Divisions ({{ d }})</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Aggregating UK divisions, Germany (1&2), France (1&2), Spain (1&2), Italy, Netherlands, Portugal, Americas, and Global leagues.</p>
         {% for f in slate %}
             <div class="card">
                 <div class="match-header">
@@ -148,8 +127,7 @@ TEMPLATE = """
         {% endfor %}
     
     {% elif active_tab == 'over25' %}
-        <h2>📈 Over 2.5 Goals — Top 10 High Confidence Games Worldwide</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Filtered by combined expected goals (xG), high shot volume, and defensive vulnerabilities across all global tiers.</p>
+        <h2>📈 Over 2.5 Goals — Top 10 High Confidence Games</h2>
         {% for g in over25_slate %}
             <div class="card">
                 <div class="match-header">
@@ -167,8 +145,7 @@ TEMPLATE = """
         {% endfor %}
 
     {% elif active_tab == 'btts' %}
-        <h2>🔥 Both Teams To Score (BTTS) — Top 10 High Confidence Games Worldwide</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Selected via opposition scoring frequency, clean-sheet ratios, and tactical offensive pressure globally.</p>
+        <h2>🔥 Both Teams To Score (BTTS) — Top 10 High Confidence Games</h2>
         {% for b in btts_slate %}
             <div class="card">
                 <div class="match-header">
@@ -185,9 +162,27 @@ TEMPLATE = """
             </div>
         {% endfor %}
 
+    {% elif active_tab == 'score' %}
+        <h2>⚽ Correct Score Predictions — Top 10 High-Value Exact Scorelines</h2>
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Calculated using bivariate Poisson exact score matrices matched against live market value.</p>
+        {% for s in score_slate %}
+            <div class="card">
+                <div class="match-header">
+                    <span>{{ s.match }}</span>
+                    <span class="badge-score">{{ s.confidence }}</span>
+                </div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ s.league }}</div>
+                <div class="metrics">
+                    <div>Selection: <span class="metric-val" style="color: #4ade80;">{{ s.market }}</span></div>
+                    <div>Odds: <span class="metric-val">@{{ s.odds }}</span></div>
+                    <div>Model Probability: <span class="metric-val" style="color: #c084fc;">{{ s.model_probability }}</span></div>
+                    <div>Engine Status: <span class="metric-val">{{ s.status }}</span></div>
+                </div>
+            </div>
+        {% endfor %}
+
     {% else %}
         <h2>🎯 Bully Engine - Dynamic Player Props & Builder Feed</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Automatically synchronized with today's active global match card fixtures and player metrics.</p>
         {% for p in props_slate %}
             <div class="card">
                 <div class="match-header">
@@ -221,7 +216,18 @@ def index():
         props_slate = PROPS_ENGINE.get_dynamic_props(slate)
         over25_slate = PROPS_ENGINE.get_over_25_slate(slate)
         btts_slate = PROPS_ENGINE.get_btts_slate(slate)
-        return render_template_string(TEMPLATE, dates=dates, d=d, slate=slate, props_slate=props_slate, over25_slate=over25_slate, btts_slate=btts_slate, active_tab=active_tab)
+        score_slate = PROPS_ENGINE.get_correct_score_slate(slate)
+        return render_template_string(
+            TEMPLATE, 
+            dates=dates, 
+            d=d, 
+            slate=slate, 
+            props_slate=props_slate, 
+            over25_slate=over25_slate, 
+            btts_slate=btts_slate, 
+            score_slate=score_slate, 
+            active_tab=active_tab
+        )
     except Exception as e:
         return f"<h3 style='color:red;'>Dashboard Error: {e}</h3>", 500
 
