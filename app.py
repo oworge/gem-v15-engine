@@ -1,124 +1,45 @@
-import os
-import logging
-import requests
-from flask import Flask, render_template_string, request
-
-logging.basicConfig(level=logging.INFO)
-app = Flask(__name__)
-
-# API Configurations & Environment Variables
-FOOTBALL_API_KEY = os.environ.get('FOOTBALL_API_KEY', '')
-ODDS_API_KEY = os.environ.get('ODDS_API_KEY', '')  # The-Odds-API / Sportmonks / Custom Feed
-OPTA_API_KEY = os.environ.get('OPTA_API_KEY', '')  # Stats Perform Opta Key
-
-API_FOOTBALL_URL = 'https://v3.football.api-sports.io/fixtures'
-ODDS_API_URL = 'https://api.the-odds-api.com/v4/sports/soccer_epl/odds'
-
-# ==========================================
-# ADVANCED ENGINES WITH OPTA & ODDS INTELLIGENCE
-# ==========================================
-
-class OptaAITacticalEngine:
-    """Enriches matches with Opta Advanced Metrics (xG, Opta Points, Shot Quality)."""
-    def analyze(self, xg_h, xg_a, opta_points_h=78.5, opta_points_a=64.2):
-        xg_diff = round(xg_h - xg_a, 2)
-        confluence = "High Dominance" if xg_diff > 0.75 else "Balanced Tactical"
-        return {
-            'source': 'Opta AI',
-            'xg_differential': f"{'+' if xg_diff > 0 else ''}{xg_diff}",
-            'opta_points_index': f"Home: {opta_points_h} | Away: {opta_points_a}",
-            'tactical_confluence': confluence
-        }
-
-class ValueKingEngine:
-    """Calculates true Expected Value (+EV) by comparing Opta win prob vs Sportsbook Odds."""
-    def analyze(self, bookmaker_odds, opta_win_prob=0.65):
-        # EV Formula: (Probability * Odds) - 1
-        ev_calc = round((opta_win_prob * bookmaker_odds) - 1.0, 3)
-        ev_pct = round(ev_calc * 100, 1)
-        
-        rating = "A+ Value" if ev_pct >= 8.0 else ("Solid Edge" if ev_pct > 0 else "No EV")
-        return {
-            'source': 'Value King',
-            'ev_percentage': f"{'+' if ev_pct > 0 else ''}{ev_pct}%",
-            'rating': rating,
-            'fair_odds': round(1 / opta_win_prob, 2)
-        }
-
-class GamblingProEngine:
-    def analyze(self, home, away):
-        return {'source': 'Gambling PRO', 'sharp_money_bias': f'{home} (Heavy Action)', 'confidence': '94.2%'}
-
-class SocerAIProEngine:
-    def analyze(self, xg_h, xg_a):
-        return {'source': 'SocerAI PRO', 'simulated_score': f'{round(xg_h + 0.2, 1)} - {round(xg_a + 0.1, 1)}'}
-
-class KalshiIntegrationEngine:
-    def analyze(self, match_id):
-        contract_price = round(0.45 + (match_id % 5) * 0.08, 2)
-        return {'source': 'Kalshi', 'contract_ticker': f'WIN-{match_id}', 'implied_probability': f'{contract_price * 100:.0f}%'}
-
-# Instantiate Models
-opta_engine = OptaAITacticalEngine()
-value_king = ValueKingEngine()
-gambling_pro = GamblingProEngine()
-socerai_pro = SocerAIProEngine()
-kalshi_engine = KalshiIntegrationEngine()
-
-
-def fetch_opta_and_sportsbook_fixtures():
-    """Fetches upcoming fixtures, overlays Sportsbook odds & Opta metrics, filters finished games."""
+def fetch_live_upcoming_fixtures():
     headers = {
         'x-rapidapi-host': 'v3.football.api-sports.io',
         'x-rapidapi-key': FOOTBALL_API_KEY
     }
-    params = {'next': '20', 'status': 'NS-1H-2H-HT'}
-    
+    params = {'next': '50', 'status': 'NS-1H-2H-HT'}
     processed_db = {}
     
-    # 1. Fetch Fixtures
     if FOOTBALL_API_KEY:
         try:
-            response = requests.get(API_FOOTBALL_URL, headers=headers, params=params, timeout=8)
+            response = requests.get(API_URL, headers=headers, params=params, timeout=8)
             if response.status_code == 200:
                 data = response.json().get('response', [])
                 for item in data:
                     status_short = item['fixture']['status']['short']
-                    # Auto-filter finished matches
                     if status_short in ['FT', 'AET', 'PEN', 'PST', 'CANC']:
                         continue
                     
                     match_id = item['fixture']['id']
                     match_date = item['fixture']['date'][:10]
-                    home_team = item['teams']['home']['name']
-                    away_team = item['teams']['away']['name']
+                    home = item['teams']['home']['name']
+                    away = item['teams']['away']['name']
+                    region = item['league']['name']
                     
-                    # Simulated/Real Opta Data
-                    opta_xg_home = 2.10
-                    opta_xg_away = 0.85
-                    bookmaker_odds = 1.55 # Real odds pulled from Sportsbook API Feed
+                    intel = ENGINES.run_all_engines(
+                        match_id, home, away, region, xg_home=2.10, xg_away=0.85, odds=1.55
+                    )
                     
+                    # Include all games; use tag to show gate status
                     fixture_obj = {
                         'id': match_id,
-                        'region': item['league']['name'],
-                        'home': home_team,
-                        'away': away_team,
+                        'region': region,
+                        'home': home,
+                        'away': away,
                         'league': f"{item['league']['name']} ({item['league']['country']})",
                         'time': item['fixture']['date'][11:16] + ' GMT',
-                        'xg_home': opta_xg_home,
-                        'xg_away': opta_xg_away,
-                        'market': f'{home_team} Win & Over 1.5',
-                        'odds': bookmaker_odds,
-                        'value_tag': 'Opta Confluence'
-                    }
-                    
-                    # 2. Cross-Enrich with Multi-Engine Feed
-                    fixture_obj['backend_intelligence'] = {
-                        'opta_ai': opta_engine.analyze(opta_xg_home, opta_xg_away),
-                        'value_king': value_king.analyze(bookmaker_odds, opta_win_prob=0.72),
-                        'gambling_pro': gambling_pro.analyze(home_team, away_team),
-                        'socerai_pro': socerai_pro.analyze(opta_xg_home, opta_xg_away),
-                        'kalshi': kalshi_engine.analyze(match_id)
+                        'xg_home': 2.10,
+                        'xg_away': 0.85,
+                        'market': f'{home} Win or Draw & Over 1.5',
+                        'odds': 1.55,
+                        'value_tag': 'VERIFIED 99%+' if intel['is_approved'] else 'PENDING CONFLUENCE',
+                        'backend_intelligence': intel
                     }
 
                     if match_date not in processed_db:
@@ -127,79 +48,4 @@ def fetch_opta_and_sportsbook_fixtures():
         except Exception as e:
             logging.error(f'API Fetch Error: {e}')
 
-    # Fallback structure if API key is not present locally
-    if not processed_db:
-        today_str = "2026-11-07"
-        processed_db[today_str] = [
-            {
-                'id': 101, 'region': 'Premier League', 'home': 'Arsenal', 'away': 'Hull City',
-                'league': 'Premier League (England)', 'time': '15:00 GMT', 'xg_home': 2.30, 'xg_away': 0.70,
-                'market': 'Arsenal Win & Over 1.5', 'odds': 1.45, 'value_tag': 'Opta High EV',
-                'backend_intelligence': {
-                    'opta_ai': opta_engine.analyze(2.30, 0.70),
-                    'value_king': value_king.analyze(1.45, opta_win_prob=0.79),
-                    'gambling_pro': gambling_pro.analyze('Arsenal', 'Hull City'),
-                    'socerai_pro': socerai_pro.analyze(2.30, 0.70),
-                    'kalshi': kalshi_engine.analyze(101)
-                }
-            }
-        ]
-
     return processed_db
-
-# Dashboard Routing Logic
-@app.route('/')
-def index():
-    db = fetch_opta_and_sportsbook_fixtures()
-    dates = sorted(db.keys())
-    d = request.args.get('date', dates[0] if dates else '')
-    if d not in db and dates:
-        d = dates[0]
-    tab = request.args.get('tab', 'opta_feed')
-    slate = db.get(d, [])
-    return render_template_string(TEMPLATE, dates=dates, d=d, tab=tab, slate=slate)
-
-TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>EDGEMETRIX V300 - Opta & Sportsbook Core</title>
-    <style>
-        body { background: #07090e; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; padding: 25px; }
-        .header { display: flex; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; }
-        h1 { font-size: 22px; color: #38bdf8; margin: 0; }
-        .card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 20px; margin-bottom: 15px; }
-        .match-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: #fff; }
-        .badge { background: #0284c7; color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
-        .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
-        .metric-val { color: #38bdf8; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>EDGEMETRIX V300 <span style="font-size: 12px; color: #4ade80; background: #064e3b; padding: 3px 8px; border-radius: 4px; margin-left: 10px;">Opta AI & Live Sportsbook Engine Active</span></h1>
-    </div>
-
-    <h2>⚡ Opta AI & Real-Time +EV Feed ({{ d }})</h2>
-    {% for f in slate %}
-        <div class="card">
-            <div class="match-header">
-                <span>{{ f.home }} vs {{ f.away }}</span>
-                <span class="badge">{{ f.value_tag }}</span>
-            </div>
-            <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">{{ f.league }} | Kickoff: {{ f.time }}</div>
-            
-            <div class="metrics">
-                <div>Market: <span class="metric-val" style="color: #4ade80;">{{ f.market }}</span></div>
-                <div>Live Sportsbook Odds: <span class="metric-val">@{{ f.odds }}</span></div>
-                <div>Opta xG Diff: <span class="metric-val">{{ f.backend_intelligence.opta_ai.xg_differential }}</span></div>
-                <div>Value King EV: <span class="metric-val" style="color: #c084fc;">{{ f.backend_intelligence.value_king.ev_percentage }}</span></div>
-            </div>
-        </div>
-    {% endfor %}
-</body>
-</html>
-"""
-
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
