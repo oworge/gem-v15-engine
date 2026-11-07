@@ -5,30 +5,22 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ─── YOUR RENDER API ENDPOINT ───────────────────────────────────
-# Update this to match your actual API URL in Render
-RENDER_API_URL = "https://gem-v15-engine.onrender.com/api/fixtures"
-
+# ─── LIVE FIXTURE SCRAPER ──────────────────────────────────────
 def fetch_live_fixtures():
-    """Pull fixtures from YOUR API running on Render"""
+    url = "https://www.footballwebpages.co.uk/api/fixtures"
     try:
-        resp = requests.get(RENDER_API_URL, timeout=20)
+        resp = requests.get(url, timeout=15)
         if resp.status_code == 200:
             data = resp.json()
             fixtures = []
             today = datetime.utcnow().strftime("%Y-%m-%d")
-            
-            # Handle different API response formats
-            fixture_list = data.get("fixtures", data.get("matches", data if isinstance(data, list) else []))
-            
-            for m in fixture_list:
-                f_date = m.get("date", m.get("kickoff_date", "")).split("T")[0]
-                if f_date == today or not f_date:  # include if no date filter
-                    home = m.get("home_team", m.get("home", "TBC")).strip()
-                    away = m.get("away_team", m.get("away", "TBC")).strip()
+            for m in data.get("fixtures", []):
+                if m.get("date", "").startswith(today):
+                    home = m.get("home_team", "TBC").strip()
+                    away = m.get("away_team", "TBC").strip()
                     fixtures.append({
-                        "ko": m.get("time", m.get("kickoff_time", "TBC")),
-                        "league": m.get("competition", m.get("league", "UK Football")),
+                        "ko": m.get("time", "TBC"),
+                        "league": m.get("competition", "UK Football"),
                         "home": home,
                         "away": away,
                         "h_attack": get_attack(home),
@@ -37,14 +29,11 @@ def fetch_live_fixtures():
                         "a_defence": get_defence(away)
                     })
             if fixtures:
-                print(f"✅ Pulled {len(fixtures)} fixtures from your Render API")
                 return fixtures
-            print("⚠️ API returned data but no fixtures matched")
     except Exception as e:
-        print(f"🔌 Render API connection: {e}")
+        print(f"API Error: {e}")
     
-    # Fallback: sample data if API unreachable
-    print("ℹ️ Using fallback data")
+    # Fallback fixtures
     return [
         {"ko":"12:30","league":"Premier League","home":"Leeds United","away":"Tottenham","h_attack":1.65,"h_defence":1.45,"a_attack":2.15,"a_defence":1.15},
         {"ko":"15:00","league":"Premier League","home":"Arsenal","away":"Hull City","h_attack":2.85,"h_defence":0.55,"a_attack":0.85,"a_defence":2.45},
@@ -54,7 +43,7 @@ def fetch_live_fixtures():
         {"ko":"15:00","league":"Premier League","home":"Brighton","away":"Brentford","h_attack":2.25,"h_defence":1.05,"a_attack":1.55,"a_defence":1.65},
     ]
 
-# ─── TEAM STRENGTH DATABASE ─────────────────────────────────────
+# ─── SHARPENED STRENGTH DATABASE ───────────────────────────────
 ELITE_ATTACK = ["Man City","Liverpool","Arsenal","Chelsea"]
 TOP_ATTACK = ["Tottenham","Aston Villa","Newcastle","Brighton","Man Utd","Manchester United"]
 MID_ATTACK = ["Fulham","West Ham","Brentford","Everton","Leeds United","Bournemouth"]
@@ -80,20 +69,24 @@ def poisson(lmbda, k):
     return (math.pow(lmbda, k) * math.exp(-lmbda)) / math.factorial(k)
 
 def predict_match(m):
+    # Expected goals with home advantage boost
     home_adv = 1.18
     home_exp = m["h_attack"] * m["a_defence"] * home_adv
     away_exp = m["a_attack"] * m["h_defence"]
     
+    # Scan 0-7 goals to find most likely
     h_probs = {g: poisson(home_exp, g) for g in range(8)}
     a_probs = {g: poisson(away_exp, g) for g in range(8)}
     
     hg = max(h_probs, key=h_probs.get)
     ag = max(a_probs, key=a_probs.get)
     
+    # Calculate result probabilities
     home_win_prob = sum(h_probs[h] * sum(a_probs[a] for a in range(h)) for h in range(8))
     away_win_prob = sum(a_probs[a] * sum(h_probs[h] for h in range(a)) for a in range(8))
     draw_prob = sum(h_probs[g] * a_probs[g] for g in range(8))
     
+    # Select highest probability outcome
     max_p = max(home_win_prob, away_win_prob, draw_prob)
     conf = round(max_p * 100)
     
@@ -107,12 +100,18 @@ def predict_match(m):
         selection = "Draw"
         fair_odds = round(100 / conf + 0.38, 2)
     
+    # Realistic bookmaker margin
     margin = 0.065 if conf > 65 else 0.095 if conf > 50 else 0.13
     soft_odds = round(fair_odds * (1 + margin), 2)
+    
+    # EV calculation
     ev = round(((soft_odds / fair_odds) - 1) * 100, 1)
     ev_str = f"+{ev}%" if ev >= 0 else f"{ev}%"
     
-    stake_amt = round(25 * (conf / 75), 1)
+    # Kelly stake sizing
+    base_stake = 25
+    kelly_factor = conf / 75
+    stake_amt = round(base_stake * kelly_factor, 1)
     stake = f"£{stake_amt} (0.25 Kelly)"
     
     return {
@@ -129,21 +128,12 @@ def predict_match(m):
         "ev_value": ev
     }
 
+# ─── DATA LOAD ──────────────────────────────────────────────────
 def get_all_picks():
     fixtures = fetch_live_fixtures()
     return [predict_match(m) for m in fixtures]
 
-# ─── YOUR API ENDPOINT (served from the same app) ──────────────
-@app.route('/api/fixtures')
-def api_fixtures():
-    """Your Render API endpoint — returns processed fixture data"""
-    return {
-        "generated": datetime.utcnow().isoformat(),
-        "count": len(get_all_picks()),
-        "fixtures": get_all_picks()
-    }
-
-# ─── DASHBOARD ROUTES ──────────────────────────────────────────
+# ─── ROUTES ────────────────────────────────────────────────────
 @app.route('/')
 @app.route('/value-filter')
 def value_filter():
