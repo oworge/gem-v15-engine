@@ -11,7 +11,7 @@ body{background:#131922;color:#e2e6eb;font-family:Segoe UI,system-ui,-apple-syst
 h1{color:#38baf5;font-size:21px;}
 .badge-ready{background:#29c859;color:#000;padding:7px 13px;border-radius:7px;font-weight:bold;font-size:13px;}
 .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
-.tab{background:#212c3a;padding:9px 13px;border-radius:5px;font-size:13px;cursor:pointer;}
+.tab{background:#212c3a;padding:9px 13px;border-radius:5px;font-size:13px;cursor:pointer;text-decoration:none;color:#ccc;}
 .tab.active{background:#e24242;color:#fff;font-weight:bold;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px;}
 .card{border:2px solid #e24242;background:#1a2430;padding:15px;border-radius:6px;}
@@ -22,6 +22,7 @@ h1{color:#38baf5;font-size:21px;}
 .val-orange{color:#ffb950;font-weight:bold;}
 .val-blue{color:#38baf5;font-weight:bold;}
 .no-cards{grid-column:1/-1;text-align:center;padding:30px;color:#777;}
+.data-note{font-size:12px;color:#666;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -58,10 +59,12 @@ h1{color:#38baf5;font-size:21px;}
 {% endfor %}
 {% else %}
 <div class="no-cards">
-  No selections meet the current filter criteria
+  No fixtures available — API may be updating. Try again in 60 seconds.
 </div>
 {% endif %}
 </div>
+
+<p class="data-note">🔄 Data source: Football Web Pages API — auto-refreshes on load</p>
 
 </body>
 </html>
