@@ -1,4 +1,5 @@
-﻿import os
+from poisson_engine import calculate_match_probabilities
+import os
 import json
 import logging
 import sqlite3
@@ -80,12 +81,25 @@ def fetch_live_upcoming_fixtures():
                     country = item['league']['country']
                     
                     intel = ENGINES.run_all_engines(match_id, home, away, league_name)
+                    
+                    # Apply Poisson probability distribution math to every fixture
+                    home_att = item.get('home_attack_rating', 1.2)
+                    away_def = item.get('away_defense_rating', 1.0)
+                    away_att = item.get('away_attack_rating', 1.0)
+                    home_def = item.get('home_defense_rating', 1.0)
+                    probs = calculate_match_probabilities(home_att, away_def, away_att, home_def)
+
                     fixture_obj = {
                         'id': match_id, 'region': country, 'home': home, 'away': away,
                         'league': f"{league_name} ({country})",
                         'time': item['fixture']['date'][11:16] + ' GMT',
                         'market': f'{home} Win or Draw & Over 1.5', 'odds': 1.48,
-                        'value_tag': intel['consensus_status'], 'backend_intelligence': intel
+                        'value_tag': intel['consensus_status'], 'backend_intelligence': intel,
+                        'home_win_pct': probs['home_win_pct'],
+                        'draw_pct': probs['draw_pct'],
+                        'away_win_pct': probs['away_win_pct'],
+                        'expected_home_goals': probs['expected_home_goals'],
+                        'expected_away_goals': probs['expected_away_goals']
                     }
                     if match_date not in processed_db:
                         processed_db[match_date] = []
@@ -101,6 +115,15 @@ def fetch_live_upcoming_fixtures():
         ]
         for match in processed_db[today_str]:
             match['backend_intelligence'] = ENGINES.run_all_engines(match['id'], match['home'], match['away'], match['region'])
+            
+            # Apply Poisson probability distribution to fallback offline slate as well
+            probs = calculate_match_probabilities(1.2, 1.0, 1.0, 1.0)
+            match['home_win_pct'] = probs['home_win_pct']
+            match['draw_pct'] = probs['draw_pct']
+            match['away_win_pct'] = probs['away_win_pct']
+            match['expected_home_goals'] = probs['expected_home_goals']
+            match['expected_away_goals'] = probs['expected_away_goals']
+            
     return processed_db
 
 def get_audit_records():
@@ -170,11 +193,11 @@ TEMPLATE = """
                 <div class="metrics">
                     <div>Model Prediction: <span class="metric-val" style="color: #4ade80;">{{ f.market }}</span></div>
                     <div>xG Forecast (H-A): <span class="metric-val">{{ f.backend_intelligence.opta_ai.home_xg }} - {{ f.backend_intelligence.opta_ai.away_xg }}</span></div>
+                    <div>Poisson Win % (H/D/A): <span class="metric-val" style="color: #4ade80;">{{ f.home_win_pct }}% / {{ f.draw_pct }}% / {{ f.away_win_pct }}%</span></div>
                     <div>CLV Benchmark: <span class="metric-val" style="color: #c084fc;">{{ f.backend_intelligence.syndicate_metrics.clv_benchmark }}</span></div>
-                    <div>Market Steam: <span class="metric-val" style="color: #fcd34d;">{{ f.backend_intelligence.syndicate_metrics.steam_status }}</span></div>
                 </div>
             </div>
-        {% endfor %}
+        % endfor %}
     
     {% elif active_tab == 'over25' %}
         <h2>📈 Over 2.5 Goals — Lower German Leagues & European Data Voids</h2>
@@ -358,6 +381,7 @@ def index():
         banker_slate = PROPS_ENGINE.get_ai_banker_slate(slate)
         builder_slate = PROPS_ENGINE.get_bet_builder_slate(slate)
         audit_records = get_audit_records()
+        
         return render_template_string(
             TEMPLATE, 
             dates=dates, 
