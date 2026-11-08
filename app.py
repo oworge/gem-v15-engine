@@ -87,6 +87,62 @@ def get_master_slate():
             "market": "Under 3.5 Goals", "odds": 1.38, "ev": "+4.9%", "rating": "9.7/10",
             "builder": ["Under 3.5 Goals", "Orkun Kökçü 2+ Fouls Committed", "Viktor Gyökeres 1+ Shots on Target", "Morten Hjulmand 2+ Fouls Committed", "Under 10.5 Corners"],
             "builder_odds": 4.20, "correct_score": "1 - 1", "cs_odds": "6.20"
+        },
+        {
+            "id": 13, "home": "Liverpool", "away": "Manchester City",
+            "league": "English Premier League", "date": "Thu, Nov 12, 2026", "time": "17:00 GMT",
+            "market": "BTTS - Yes", "odds": 1.58, "ev": "+7.1%", "rating": "10/10",
+            "builder": ["BTTS - Yes", "Erling Haaland 2+ Shots on Target", "Mohamed Salah 1+ Shots on Target", "Alexis Mac Allister 2+ Fouls Committed", "Rodri 1+ Fouls Won"],
+            "builder_odds": 5.10, "correct_score": "2 - 2", "cs_odds": "12.00"
+        },
+        {
+            "id": 14, "home": "Real Sociedad", "away": "Athletic Bilbao",
+            "league": "Spanish La Liga", "date": "Thu, Nov 12, 2026", "time": "19:30 GMT",
+            "market": "Under 2.5 Goals", "odds": 1.48, "ev": "+5.2%", "rating": "9.8/10",
+            "builder": ["Under 2.5 Goals", "Mikel Oyarzabal 1+ Shots on Target", "Iñaki Williams 1+ Fouls Won", "Martin Zubimendi 2+ Fouls Committed", "Over 4.5 Cards"],
+            "builder_odds": 4.60, "correct_score": "1 - 0", "cs_odds": "6.00"
+        },
+        {
+            "id": 15, "home": "AS Roma", "away": "Atalanta",
+            "league": "Italian Serie A", "date": "Fri, Nov 13, 2026", "time": "19:45 GMT",
+            "market": "BTTS - Yes", "odds": 1.72, "ev": "+6.9%", "rating": "9.9/10",
+            "builder": ["BTTS - Yes", "Paulo Dybala 1+ Shots on Target", "Ademola Lookman 1+ Shots on Target", "Bryan Cristante 2+ Fouls Committed", "Marten de Roon 2+ Fouls Committed"],
+            "builder_odds": 5.40, "correct_score": "1 - 2", "cs_odds": "9.00"
+        },
+        {
+            "id": 16, "home": "RB Leipzig", "away": "Stuttgart",
+            "league": "German Bundesliga", "date": "Fri, Nov 13, 2026", "time": "19:30 GMT",
+            "market": "Over 2.5 Goals", "odds": 1.52, "ev": "+6.3%", "rating": "9.8/10",
+            "builder": ["Over 2.5 Goals", "Loïs Openda 1+ Shots on Target", "Deniz Undav 1+ Shots on Target", "Xaver Schlager 2+ Fouls Committed", "BTTS - Yes"],
+            "builder_odds": 4.40, "correct_score": "3 - 1", "cs_odds": "11.50"
+        },
+        {
+            "id": 17, "home": "Monaco", "away": "Lille",
+            "league": "French Ligue 1", "date": "Sat, Nov 14, 2026", "time": "16:00 GMT",
+            "market": "Double Chance: 1X", "odds": 1.30, "ev": "+4.8%", "rating": "9.6/10",
+            "builder": ["Double Chance 1X", "Over 1.5 Goals", "Wissam Ben Yedder 1+ Shots on Target", "Jonathan David 1+ Shots on Target", "Denis Zakaria 2+ Fouls Committed"],
+            "builder_odds": 3.90, "correct_score": "2 - 1", "cs_odds": "7.20"
+        },
+        {
+            "id": 18, "home": "Ajax", "away": "AZ Alkmaar",
+            "league": "Dutch Eredivisie", "date": "Sat, Nov 14, 2026", "time": "18:45 GMT",
+            "market": "Home Win", "odds": 1.75, "ev": "+6.1%", "rating": "9.9/10",
+            "builder": ["Ajax Win", "Over 2.5 Goals", "Steven Bergwijn 1+ Shots on Target", "Vangelis Pavlidis 1+ Shots on Target", "Jordan Henderson 2+ Fouls Committed"],
+            "builder_odds": 4.90, "correct_score": "3 - 1", "cs_odds": "10.00"
+        },
+        {
+            "id": 19, "home": "Porto", "away": "Braga",
+            "league": "Portuguese Primeira Liga", "date": "Sun, Nov 15, 2026", "time": "20:30 GMT",
+            "market": "Home Win", "odds": 1.68, "ev": "+5.9%", "rating": "9.8/10",
+            "builder": ["Porto Win", "Evanilson 1+ Shots on Target", "Simon Banza 1+ Fouls Won", "Alan Varela 2+ Fouls Committed", "Under 3.5 Goals"],
+            "builder_odds": 4.70, "correct_score": "2 - 0", "cs_odds": "7.80"
+        },
+        {
+            "id": 20, "home": "Tottenham Hotspur", "away": "Newcastle United",
+            "league": "English Premier League", "date": "Sun, Nov 15, 2026", "time": "16:30 GMT",
+            "market": "BTTS & Over 2.5", "odds": 1.95, "ev": "+7.8%", "rating": "10/10",
+            "builder": ["BTTS & Over 2.5", "Son Heung-min 1+ Shots on Target", "Alexander Isak 1+ Shots on Target", "Yves Bissouma 2+ Fouls Committed", "Bruno Guimarães 2+ Fouls Committed"],
+            "builder_odds": 6.10, "correct_score": "2 - 2", "cs_odds": "11.50"
         }
     ]
 

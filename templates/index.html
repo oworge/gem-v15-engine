@@ -26,7 +26,7 @@
 <body>
     <div class="header">
         <h1>EDGEMETRIX V300 <span class="badge-hq">Syndicate Command HQ</span></h1>
-        <span style="color: #94a3b8; font-size: 12px;">GEM V6.1 Engine | Kelly Staking Active</span>
+        <span style="color: #94a3b8; font-size: 12px;">GEM V15.0 Engine | Kelly Staking Active</span>
     </div>
 
     <!-- Navigation Tabs -->
@@ -41,7 +41,7 @@
 
     <!-- TAB 1: Daily Picks -->
     {% if not active_tab or active_tab == 'dailypicks' %}
-        <h2>🔥 Daily Picks (12 Global High-Confidence Predictions Across All Markets)</h2>
+        <h2>🔥 Daily Picks (20 Global High-Confidence Predictions Across All Leagues)</h2>
         {% for f in slate %}
             <div class="card">
                 <div class="match-header">
@@ -59,7 +59,7 @@
 
     <!-- TAB 2: All Fixtures -->
     {% elif active_tab == 'allfixtures' %}
-        <h2>📋 Complete Master Fixture Slate</h2>
+        <h2>📋 Complete Master Global Fixture Slate</h2>
         {% for f in slate %}
             <div class="card">
                 <div class="match-header">
