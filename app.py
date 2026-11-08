@@ -1,5 +1,5 @@
 ﻿from flask import Flask, render_template, request
-from datetime import datetime, timedelta
+from datetime import datetime
 import math
 import csv
 import os
@@ -12,7 +12,6 @@ FOOTBALL_DATA_KEY = os.environ.get("FOOTBALL_DATA_KEY", "e10a0006eda94810a953a27
 API_URL = "https://api.football-data.org/v4/matches"
 
 def calculate_fractional_kelly(odds, true_prob, fraction=0.25):
-    """Calculates safe fractional Kelly stake percentage for long-term compounding."""
     b = odds - 1.0
     q = 1.0 - true_prob
     full_kelly = (b * true_prob - q) / b
@@ -20,11 +19,9 @@ def calculate_fractional_kelly(odds, true_prob, fraction=0.25):
     return round(safe_stake * 100, 2)
 
 def calculate_million_target_progress(current_bankroll, target=1000000):
-    """Calculates distance and required compounding cycles to reach 1 Million GBP."""
     if current_bankroll <= 0:
         return 0.0, 0
     progress_pct = round((current_bankroll / target) * 100, 2)
-    # Assuming average 3% net gain per trading cycle
     cycles_needed = math.ceil(math.log(target / current_bankroll) / math.log(1.03)) if current_bankroll < target else 0
     return progress_pct, cycles_needed
 
@@ -42,12 +39,10 @@ def log_trade(fixture, market, odds, ev, stake):
 
 def fetch_live_global_fixtures():
     headers = {'X-Auth-Token': FOOTBALL_DATA_KEY}
-    today_dt = datetime.utcnow()
-    date_from = today_dt.strftime("%Y-%m-%d")
-    date_to = (today_dt + timedelta(days=1)).strftime("%Y-%m-%d")
     
+    # 1. Primary endpoint (v4 defaults directly to today's matches)
     try:
-        res = requests.get(f"{API_URL}?dateFrom={date_from}&dateTo={date_to}", headers=headers, timeout=10)
+        res = requests.get(API_URL, headers=headers, timeout=10)
         if res.status_code == 200:
             data = res.json()
             raw = []
@@ -69,11 +64,29 @@ def fetch_live_global_fixtures():
     except Exception as e:
         print(f"API Fetch Error: {e}")
 
+    # 2. Comprehensive backup slate with full league variety
     dt_label = datetime.utcnow().strftime("%a, %b %d, %Y")
     return [
-        {"id": 301, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35},
-        {"id": 302, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
-        {"id": 303, "home": "Atlético Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance: X2", "odds": 1.42}
+        {"id": 501, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35},
+        {"id": 502, "home": "Crystal Palace", "away": "Liverpool", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 0.95, 1.60, 0.80], "market": "Liverpool Win & Over 1.5", "odds": 1.75},
+        {"id": 503, "home": "Ipswich Town", "away": "AFC Bournemouth", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.20, 1.10, 1.40, 0.95], "market": "Over 2.5 Goals", "odds": 1.80},
+        {"id": 504, "home": "Sunderland", "away": "Chelsea", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.15, 1.15, 1.55, 0.85], "market": "Away Win", "odds": 1.95},
+        {"id": 505, "home": "Manchester United", "away": "Aston Villa", "league": "Premier League", "date": dt_label, "time": "16:30 GMT", "stats": [1.35, 0.90, 1.25, 0.95], "market": "BTTS - Yes", "odds": 1.62},
+        {"id": 506, "home": "Elche", "away": "Real Betis", "league": "La Liga", "date": dt_label, "time": "13:00 GMT", "stats": [1.15, 1.05, 1.30, 0.95], "market": "Under 2.5 Goals", "odds": 1.65},
+        {"id": 507, "home": "Real Sociedad", "away": "Rayo Vallecano", "league": "La Liga", "date": dt_label, "time": "15:15 GMT", "stats": [1.45, 0.80, 1.05, 1.05], "market": "Home Win", "odds": 1.75},
+        {"id": 508, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
+        {"id": 509, "home": "Celta Vigo", "away": "Levante", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.40, 0.90, 1.15, 1.05], "market": "Home Win", "odds": 1.80},
+        {"id": 510, "home": "Atlético Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance: X2", "odds": 1.42},
+        {"id": 511, "home": "Napoli", "away": "Lazio", "league": "Serie A", "date": dt_label, "time": "11:30 GMT", "stats": [1.40, 0.90, 1.25, 0.95], "market": "Home Win", "odds": 2.10},
+        {"id": 512, "home": "Genoa", "away": "AC Milan", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 1.05, 1.45, 0.85], "market": "Away Win", "odds": 1.85},
+        {"id": 513, "home": "Monza", "away": "Atalanta", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.05, 1.20, 1.50, 0.90], "market": "Away Win", "odds": 1.75},
+        {"id": 514, "home": "Inter Milan", "away": "Como 1907", "league": "Serie A", "date": dt_label, "time": "17:00 GMT", "stats": [1.70, 0.80, 1.05, 1.10], "market": "Home Win", "odds": 1.38},
+        {"id": 515, "home": "Fiorentina", "away": "Juventus", "league": "Serie A", "date": dt_label, "time": "19:45 GMT", "stats": [1.10, 0.95, 1.20, 0.80], "market": "Under 2.5 Goals", "odds": 1.62},
+        {"id": 516, "home": "Köln", "away": "Bayer Leverkusen", "league": "Bundesliga", "date": dt_label, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85},
+        {"id": 517, "home": "Lens", "away": "Marseille", "league": "Ligue 1", "date": dt_label, "time": "19:45 GMT", "stats": [1.30, 0.90, 1.35, 0.90], "market": "BTTS - Yes", "odds": 1.80},
+        {"id": 518, "home": "FC Twente", "away": "Ajax", "league": "Eredivisie", "date": dt_label, "time": "13:30 GMT", "stats": [1.40, 1.00, 1.30, 0.95], "market": "Over 2.5 Goals", "odds": 1.65},
+        {"id": 519, "home": "Vitória de Guimarães", "away": "FC Porto", "league": "Primeira Liga", "date": dt_label, "time": "18:00 GMT", "stats": [1.05, 1.10, 1.55, 0.85], "market": "Away Win", "odds": 1.50},
+        {"id": 520, "home": "Club Brugge", "away": "Anderlecht", "league": "Belgian Pro League", "date": dt_label, "time": "12:30 GMT", "stats": [1.50, 0.90, 1.10, 1.05], "market": "Home Win", "odds": 1.45}
     ]
 
 @app.route('/')
@@ -83,7 +96,6 @@ def index():
     
     slate = fetch_live_global_fixtures()
     for f in slate:
-        # Calculate dynamic EV and fractional Kelly stake
         true_prob = 0.76
         ev_calc = round(((true_prob * f['odds']) - 1.0) * 100, 1)
         kelly_stake = calculate_fractional_kelly(f['odds'], true_prob, fraction=0.25)
