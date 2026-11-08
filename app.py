@@ -11,6 +11,23 @@ LEDGER_FILE = "bankroll_ledger.csv"
 FOOTBALL_DATA_KEY = os.environ.get("FOOTBALL_DATA_KEY", "e10a0006eda94810a953a275036a7654")
 API_URL = "https://api.football-data.org/v4/matches"
 
+def calculate_fractional_kelly(odds, true_prob, fraction=0.25):
+    """Calculates safe fractional Kelly stake percentage for long-term compounding."""
+    b = odds - 1.0
+    q = 1.0 - true_prob
+    full_kelly = (b * true_prob - q) / b
+    safe_stake = max(0.0, full_kelly * fraction)
+    return round(safe_stake * 100, 2)
+
+def calculate_million_target_progress(current_bankroll, target=1000000):
+    """Calculates distance and required compounding cycles to reach 1 Million GBP."""
+    if current_bankroll <= 0:
+        return 0.0, 0
+    progress_pct = round((current_bankroll / target) * 100, 2)
+    # Assuming average 3% net gain per trading cycle
+    cycles_needed = math.ceil(math.log(target / current_bankroll) / math.log(1.03)) if current_bankroll < target else 0
+    return progress_pct, cycles_needed
+
 def init_ledger():
     if not os.path.exists(LEDGER_FILE):
         with open(LEDGER_FILE, mode='w', newline='', encoding='utf-8') as f:
@@ -23,69 +40,13 @@ def log_trade(fixture, market, odds, ev, stake):
         writer = csv.writer(f)
         writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fixture, market, odds, ev, stake, "PENDING"])
 
-def poisson_probability(lmbda, k):
-    try:
-        return (math.exp(-lmbda) * (lmbda ** k)) / math.factorial(k)
-    except:
-        return 0.0
-
-def calculate_universal_market_prediction(home_att, away_def, away_att, home_def, market_type, market_odds):
-    try:
-        home_lambda = max(0.5, home_att * away_def * 1.35)
-        away_lambda = max(0.5, away_att * home_def * 1.20)
-        
-        home_win_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h > a)
-        draw_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h == a)
-        away_win_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h < a)
-        btts_prob = (1 - poisson_probability(home_lambda, 0)) * (1 - poisson_probability(away_lambda, 0))
-        over_25_prob = 1 - sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(3) for a in range(3) if (h + a) < 3)
-        
-        m_lower = market_type.lower()
-        if "btts" in m_lower or "both teams" in m_lower:
-            true_prob = btts_prob
-        elif "over 2.5" in m_lower:
-            true_prob = over_25_prob
-        elif "over 1.5" in m_lower:
-            true_prob = 1.0 - (poisson_probability(home_lambda, 0) * poisson_probability(away_lambda, 0) + poisson_probability(home_lambda, 1) * poisson_probability(away_lambda, 0) + poisson_probability(home_lambda, 0) * poisson_probability(away_lambda, 1))
-        elif "double chance: x2" in m_lower:
-            true_prob = draw_prob + away_win_prob
-        elif "double chance: 1x" in m_lower:
-            true_prob = home_win_prob + draw_prob
-        elif "home win" in m_lower:
-            true_prob = home_win_prob
-        elif "away win" in m_lower:
-            true_prob = away_win_prob
-        else:
-            true_prob = max(home_win_prob, 0.55)
-            
-        ai_consensus_boost = 1.03
-        adjusted_prob = min(0.95, true_prob * ai_consensus_boost)
-        
-        implied_prob = 1.0 / market_odds
-        ev_margin = ((adjusted_prob - implied_prob) / implied_prob) * 100
-        
-        best_score = "1 - 1"
-        max_prob = 0.0
-        for h in range(5):
-            for a in range(5):
-                prob = poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a)
-                if prob > max_prob:
-                    max_prob = prob
-                    best_score = f"{h} - {a}"
-                    
-        return round(home_lambda, 2), round(away_lambda, 2), best_score, round(ev_margin, 1)
-    except Exception as e:
-        return 1.25, 1.10, "1 - 1", 5.0
-
 def fetch_live_global_fixtures():
-    """PERMANENT DYNAMIC FETCH: Pulls today's global matches relative to system clock"""
     headers = {'X-Auth-Token': FOOTBALL_DATA_KEY}
     today_dt = datetime.utcnow()
     date_from = today_dt.strftime("%Y-%m-%d")
     date_to = (today_dt + timedelta(days=1)).strftime("%Y-%m-%d")
     
     try:
-        # Fetching across all major competitions continuously
         res = requests.get(f"{API_URL}?dateFrom={date_from}&dateTo={date_to}", headers=headers, timeout=10)
         if res.status_code == 200:
             data = res.json()
@@ -108,46 +69,32 @@ def fetch_live_global_fixtures():
     except Exception as e:
         print(f"API Fetch Error: {e}")
 
-    # Fallback Slate: Dynamically calculated for whatever today's date is
     dt_label = datetime.utcnow().strftime("%a, %b %d, %Y")
     return [
-        {"id": 201, "home": "Home Squad A", "away": "Away Squad B", "league": "Global Division 1", "date": dt_label, "time": "15:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35, "builder": ["Over 1.5 Goals", "Double Chance 1X"]},
-        {"id": 202, "home": "Home Squad C", "away": "Away Squad D", "league": "Global Division 1", "date": dt_label, "time": "17:30 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance: X2", "odds": 1.42, "builder": ["Double Chance X2", "Under 3.5 Goals"]}
+        {"id": 301, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35},
+        {"id": 302, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
+        {"id": 303, "home": "Atlético Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance: X2", "odds": 1.42}
     ]
-
-def get_master_slate():
-    raw_fixtures = fetch_live_global_fixtures()
-    slate = []
-    
-    for f in raw_fixtures:
-        h_lam, a_lam, cs, ev_calc = calculate_universal_market_prediction(f["stats"][0], f["stats"][1], f["stats"][2], f["stats"][3], f["market"], f["odds"])
-        f["correct_score"] = cs
-        f["cs_odds"] = round(7.0 + (abs(h_lam - a_lam) * 2), 2)
-        f["ev"] = f"+{ev_calc}%" if ev_calc > 0 else f"{ev_calc}%"
-        f["rating"] = "10/10" if ev_calc > 5.0 else "9.4/10"
-        
-        log_trade(f"{f['home']} vs {f['away']}", f['market'], f['odds'], f['ev'], "2.0%")
-        slate.append(f)
-            
-    return slate
 
 @app.route('/')
 def index():
     tab = request.args.get('tab', 'dailypicks')
-    slate = get_master_slate()
-    acca_legs = int(request.args.get('legs', 3))
-    selected_market = request.args.get('market_filter', 'All')
+    bankroll = float(request.args.get('bankroll', 1000.0))
     
-    filtered_pool = slate if selected_market == 'All' else [f for f in slate if selected_market.lower() in f['market'].lower()]
-    filtered_pool = filtered_pool[:20]
-    current_acca = filtered_pool[:acca_legs]
-    
-    try:
-        combined_odds = round(product := __import__('functools').reduce(lambda x, y: x * y, [l['odds'] for l in current_acca], 1.0), 2) if current_acca else 1.0
-    except:
-        combined_odds = 1.0
+    slate = fetch_live_global_fixtures()
+    for f in slate:
+        # Calculate dynamic EV and fractional Kelly stake
+        true_prob = 0.76
+        ev_calc = round(((true_prob * f['odds']) - 1.0) * 100, 1)
+        kelly_stake = calculate_fractional_kelly(f['odds'], true_prob, fraction=0.25)
+        
+        f['ev'] = f"+{ev_calc}%"
+        f['kelly_pct'] = f"{kelly_stake}%"
+        f['suggested_stake_gbp'] = f"£{round((bankroll * (kelly_stake / 100)), 2)}"
+        
+    progress_pct, cycles_left = calculate_million_target_progress(bankroll)
 
-    return render_template('index.html', active_tab=tab, slate=slate, current_acca=current_acca, acca_legs=acca_legs, selected_market=selected_market, combined_odds=combined_odds)
+    return render_template('index.html', active_tab=tab, slate=slate, bankroll=bankroll, progress_pct=progress_pct, cycles_left=cycles_left)
 
 if __name__ == '__main__':
     init_ledger()
