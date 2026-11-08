@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDGEMETRIX V300 - �1M Quant Engine</title>
+    <title>EDGEMETRIX V300 - Â£1M Quant Engine</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #238636; --blue: #58a6ff; --gold: #d29922; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
@@ -34,10 +34,10 @@
         <div class="header">
             <div>
                 <h2 style="margin:0;">EDGEMETRIX V300</h2>
-                <small style="color: #8b949e;">Quant Kelly Engine | �1M Target Progress</small>
+                <small style="color: #8b949e;">Quant Kelly Engine | Â£1M Target Progress</small>
             </div>
             <div class="target-box">
-                Target: �1,000,000 | Progress: {{ progress_pct }}% ({{ cycles_left }} Cycles)
+                Target: Â£1,000,000 | Progress: {{ progress_pct }}% ({{ cycles_left }} Cycles)
             </div>
         </div>
 
@@ -84,7 +84,7 @@
         {% for f in current_acca %}
         <div class="card">
             <div class="fixture-header">
-                <span>{{ f.league }} � {{ f.time }}</span>
+                <span>{{ f.league }} Â {{ f.time }}</span>
                 <span>ID: #{{ f.id }}</span>
             </div>
             <div class="teams">{{ f.home }} vs {{ f.away }}</div>
@@ -286,17 +286,17 @@ def fetch_live_global_fixtures():
         {"id": 607, "home": "Real Sociedad", "away": "Rayo Vallecano", "league": "La Liga", "date": dt_label, "time": "15:15 GMT", "stats": [1.45, 0.80, 1.05, 1.05], "market": "Home Win", "odds": 1.75},
         {"id": 608, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
         {"id": 609, "home": "Celta Vigo", "away": "Levante", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.40, 0.90, 1.15, 1.05], "market": "Home Win", "odds": 1.80},
-        {"id": 610, "home": "Atl�tico Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance", "odds": 1.42},
+        {"id": 610, "home": "AtlÃ©tico Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance", "odds": 1.42},
         {"id": 611, "home": "Napoli", "away": "Lazio", "league": "Serie A", "date": dt_label, "time": "11:30 GMT", "stats": [1.40, 0.90, 1.25, 0.95], "market": "Home Win", "odds": 2.10},
         {"id": 612, "home": "Genoa", "away": "AC Milan", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 1.05, 1.45, 0.85], "market": "Away Win", "odds": 1.85},
         {"id": 613, "home": "Monza", "away": "Atalanta", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.05, 1.20, 1.50, 0.90], "market": "Away Win", "odds": 1.75},
         {"id": 614, "home": "Inter Milan", "away": "Como 1907", "league": "Serie A", "date": dt_label, "time": "17:00 GMT", "stats": [1.70, 0.80, 1.05, 1.10], "market": "Home Win", "odds": 1.38},
         {"id": 615, "home": "Fiorentina", "away": "Juventus", "league": "Serie A", "date": dt_label, "time": "19:45 GMT", "stats": [1.10, 0.95, 1.20, 0.80], "market": "Under 2.5 Goals", "odds": 1.62},
-        {"id": 616, "home": "K�ln", "away": "Bayer Leverkusen", "league": "Bundesliga", "date": dt_label, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85},
+        {"id": 616, "home": "KÃ¶ln", "away": "Bayer Leverkusen", "league": "Bundesliga", "date": dt_label, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85},
         {"id": 617, "home": "Freiburg", "away": "Union Berlin", "league": "Bundesliga", "date": dt_label, "time": "16:30 GMT", "stats": [1.30, 0.95, 1.10, 1.05], "market": "Home Win", "odds": 2.00},
         {"id": 618, "home": "Lens", "away": "Marseille", "league": "Ligue 1", "date": dt_label, "time": "19:45 GMT", "stats": [1.30, 0.90, 1.35, 0.90], "market": "BTTS - Yes", "odds": 1.80},
         {"id": 619, "home": "FC Twente", "away": "Ajax", "league": "Eredivisie", "date": dt_label, "time": "13:30 GMT", "stats": [1.40, 1.00, 1.30, 0.95], "market": "Over 2.5 Goals", "odds": 1.65},
-        {"id": 620, "home": "Vit�ria de Guimar�es", "away": "FC Porto", "league": "Primeira Liga", "date": dt_label, "time": "18:00 GMT", "stats": [1.05, 1.10, 1.55, 0.85], "market": "Away Win", "odds": 1.50},
+        {"id": 620, "home": "VitÃ³ria de GuimarÃ£es", "away": "FC Porto", "league": "Primeira Liga", "date": dt_label, "time": "18:00 GMT", "stats": [1.05, 1.10, 1.55, 0.85], "market": "Away Win", "odds": 1.50},
         {"id": 621, "home": "Club Brugge", "away": "Anderlecht", "league": "Belgian Pro League", "date": dt_label, "time": "12:30 GMT", "stats": [1.50, 0.90, 1.10, 1.05], "market": "Home Win", "odds": 1.45}
     ]
 
@@ -320,7 +320,7 @@ def index():
         f['btts_market'] = "BTTS - Yes" if btts_pct >= 52.0 else "BTTS - No"
         f['ev'] = f"+{ev_calc}%" if ev_calc > 0 else f"{ev_calc}%"
         f['kelly_pct'] = f"{kelly_stake}%"
-        f['suggested_stake_gbp'] = f"�{round((bankroll * (kelly_stake / 100)), 2)}"
+        f['suggested_stake_gbp'] = f"Â£{round((bankroll * (kelly_stake / 100)), 2)}"
 
     if selected_market != 'All Markets':
         filtered_pool = [f for f in slate if selected_market.lower() in f['market'].lower()]
