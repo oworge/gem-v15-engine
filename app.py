@@ -77,36 +77,38 @@ def calculate_universal_market_prediction(home_att, away_def, away_att, home_def
 def get_master_slate():
     today_str = datetime.now().strftime("Sun, Nov 8, 2026")
     
-    # 20 verified fixtures for Sun, Nov 8, 2026 across UK, Europe, Americas & Ireland
+    # Fully Global 20-Match Slate Across All Continents and Markets for Sun, Nov 8, 2026
     raw_fixtures = [
-        # Premier League
+        # --- UK / Premier League & Championship ---
         {"id": 1, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "English Premier League", "date": today_str, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35, "builder": ["Over 1.5 Goals", "Kaoru Mitoma 1+ Shots on Target"], "builder_odds": 4.60},
         {"id": 2, "home": "Crystal Palace", "away": "Liverpool", "league": "English Premier League", "date": today_str, "time": "14:00 GMT", "stats": [1.10, 0.95, 1.60, 0.80], "market": "Liverpool Win & Over 1.5", "odds": 1.75, "builder": ["Liverpool Win & Over 1.5", "Mohamed Salah 1+ Shots on Target"], "builder_odds": 5.40},
         {"id": 3, "home": "Ipswich Town", "away": "AFC Bournemouth", "league": "English Premier League", "date": today_str, "time": "14:00 GMT", "stats": [1.20, 1.10, 1.40, 0.95], "market": "Over 2.5 Goals", "odds": 1.80, "builder": ["Over 2.5 Goals", "BTTS - Yes"], "builder_odds": 2.25},
         {"id": 4, "home": "Sunderland", "away": "Chelsea", "league": "English Premier League", "date": today_str, "time": "14:00 GMT", "stats": [1.15, 1.15, 1.55, 0.85], "market": "Away Win", "odds": 1.95, "builder": ["Chelsea Win", "Cole Palmer 1+ Shots on Target"], "builder_odds": 3.40},
         {"id": 5, "home": "Manchester United", "away": "Aston Villa", "league": "English Premier League", "date": today_str, "time": "16:30 GMT", "stats": [1.35, 0.90, 1.25, 0.95], "market": "BTTS - Yes", "odds": 1.62, "builder": ["BTTS - Yes", "Bruno Fernandes 1+ Shots on Target"], "builder_odds": 4.85},
         
-        # La Liga
+        # --- SPAIN / La Liga ---
         {"id": 6, "home": "Elche", "away": "Real Betis", "league": "Spanish La Liga", "date": today_str, "time": "13:00 GMT", "stats": [1.15, 1.05, 1.30, 0.95], "market": "Under 2.5 Goals", "odds": 1.65, "builder": ["Under 2.5 Goals"], "builder_odds": 3.10},
         {"id": 7, "home": "Real Sociedad", "away": "Rayo Vallecano", "league": "Spanish La Liga", "date": today_str, "time": "15:15 GMT", "stats": [1.45, 0.80, 1.05, 1.05], "market": "Home Win", "odds": 1.75, "builder": ["Real Sociedad Win", "Under 3.5 Goals"], "builder_odds": 2.50},
         {"id": 8, "home": "Villarreal", "away": "Getafe", "league": "Spanish La Liga", "date": today_str, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45, "builder": ["Villarreal Win", "Gerard Moreno 1+ Shots on Target"], "builder_odds": 2.40},
         {"id": 9, "home": "Celta Vigo", "away": "Levante", "league": "Spanish La Liga", "date": today_str, "time": "17:30 GMT", "stats": [1.40, 0.90, 1.15, 1.05], "market": "Home Win", "odds": 1.80, "builder": ["Celta Vigo Win", "Over 1.5 Goals"], "builder_odds": 2.70},
         {"id": 10, "home": "Atlético Madrid", "away": "Barcelona", "league": "Spanish La Liga", "date": today_str, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance: X2", "odds": 1.42, "builder": ["Double Chance X2", "Under 3.5 Goals"], "builder_odds": 5.20},
 
-        # Serie A
+        # --- ITALY / Serie A ---
         {"id": 11, "home": "Napoli", "away": "Lazio", "league": "Italian Serie A", "date": today_str, "time": "11:30 GMT", "stats": [1.40, 0.90, 1.25, 0.95], "market": "Home Win", "odds": 2.10, "builder": ["Napoli Win", "Under 3.5 Goals"], "builder_odds": 3.10},
-        {"id": 12, "home": "Monza", "away": "Atalanta", "league": "Italian Serie A", "date": today_str, "time": "14:00 GMT", "stats": [1.05, 1.20, 1.50, 0.90], "market": "Away Win", "odds": 1.75, "builder": ["Atalanta Win", "Over 1.5 Goals"], "builder_odds": 2.40},
-        {"id": 13, "home": "Genoa", "away": "AC Milan", "league": "Italian Serie A", "date": today_str, "time": "14:00 GMT", "stats": [1.10, 1.05, 1.45, 0.85], "market": "Away Win", "odds": 1.85, "builder": ["AC Milan Win", "Over 1.5 Goals"], "builder_odds": 2.65},
-        {"id": 14, "home": "Inter Milan", "away": "Como", "league": "Italian Serie A", "date": today_str, "time": "17:00 GMT", "stats": [1.70, 0.80, 1.05, 1.10], "market": "Home Win", "odds": 1.38, "builder": ["Inter Win", "Over 2.5 Goals"], "builder_odds": 2.10},
-        {"id": 15, "home": "Fiorentina", "away": "Juventus", "league": "Italian Serie A", "date": today_str, "time": "19:45 GMT", "stats": [1.10, 0.95, 1.20, 0.80], "market": "Under 2.5 Goals", "odds": 1.62, "builder": ["Under 2.5 Goals", "Over 3.5 Cards"], "builder_odds": 3.50},
+        {"id": 12, "home": "Fiorentina", "away": "Juventus", "league": "Italian Serie A", "date": today_str, "time": "19:45 GMT", "stats": [1.10, 0.95, 1.20, 0.80], "market": "Under 2.5 Goals", "odds": 1.62, "builder": ["Under 2.5 Goals", "Over 3.5 Cards"], "builder_odds": 3.50},
 
-        # Bundesliga
-        {"id": 16, "home": "Köln", "away": "Bayer Leverkusen", "league": "German Bundesliga", "date": today_str, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85, "builder": ["Leverkusen Win", "Wirtz 1+ Shots on Target"], "builder_odds": 3.20},
-        {"id": 17, "home": "Freiburg", "away": "Union Berlin", "league": "German Bundesliga", "date": today_str, "time": "16:30 GMT", "stats": [1.30, 0.95, 1.10, 1.05], "market": "Home Win", "odds": 2.00, "builder": ["Freiburg Win", "Under 3.5 Goals"], "builder_odds": 2.90},
-        {"id": 18, "home": "Hoffenheim", "away": "Schalke 04", "league": "German Bundesliga", "date": today_str, "time": "18:30 GMT", "stats": [1.45, 1.05, 1.15, 1.10], "market": "Over 2.5 Goals", "odds": 1.65, "builder": ["Over 2.5 Goals", "BTTS - Yes"], "builder_odds": 2.15},
+        # --- GERMANY & FRANCE ---
+        {"id": 13, "home": "Köln", "away": "Bayer Leverkusen", "league": "German Bundesliga", "date": today_str, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85, "builder": ["Leverkusen Win", "Wirtz 1+ Shots on Target"], "builder_odds": 3.20},
+        {"id": 14, "home": "Lens", "away": "Marseille", "league": "French Ligue 1", "date": today_str, "time": "19:45 GMT", "stats": [1.30, 0.90, 1.35, 0.90], "market": "BTTS - Yes", "odds": 1.80, "builder": ["BTTS - Yes", "Over 2.5 Goals"], "builder_odds": 2.25},
 
-        # Americas & Republic of Ireland
-        {"id": 19, "home": "Real Salt Lake", "away": "LA Galaxy", "league": "MLS (The Americas)", "date": today_str, "time": "22:00 GMT", "stats": [1.40, 1.05, 1.50, 1.00], "market": "Over 2.5 Goals", "odds": 1.60, "builder": ["Over 2.5 Goals", "BTTS - Yes"], "builder_odds": 2.10},
+        # --- THE AMERICAS (MLS & South America) ---
+        {"id": 15, "home": "Real Salt Lake", "away": "LA Galaxy", "league": "MLS (The Americas)", "date": today_str, "time": "22:00 GMT", "stats": [1.40, 1.05, 1.50, 1.00], "market": "Over 2.5 Goals", "odds": 1.60, "builder": ["Over 2.5 Goals", "BTTS - Yes"], "builder_odds": 2.10},
+        {"id": 16, "home": "Boca Juniors", "away": "River Plate", "league": "Argentine Primera (Americas)", "date": today_str, "time": "21:00 GMT", "stats": [1.10, 0.85, 1.15, 0.90], "market": "Under 2.5 Goals", "odds": 1.55, "builder": ["Under 2.5 Goals", "Over 5.5 Cards"], "builder_odds": 2.80},
+        {"id": 17, "home": "Flamengo", "away": "Palmeiras", "league": "Brazilian Série A (Americas)", "date": today_str, "time": "19:00 GMT", "stats": [1.35, 0.90, 1.20, 0.95], "market": "Double Chance: 1X", "odds": 1.40, "builder": ["Double Chance 1X", "Under 3.5 Goals"], "builder_odds": 2.20},
+
+        # --- REST OF THE WORLD & IRELAND ---
+        {"id": 18, "home": "Al Hilal", "away": "Al Nassr", "league": "Saudi Pro League (Rest of World)", "date": today_str, "time": "18:00 GMT", "stats": [1.70, 1.00, 1.65, 1.05], "market": "BTTS & Over 2.5", "odds": 1.85, "builder": ["BTTS & Over 2.5", "Mitrovic 1+ Shots on Target"], "builder_odds": 3.80},
+        {"id": 19, "home": "Celtic", "away": "Rangers", "league": "Scottish Premiership", "date": today_str, "time": "12:30 GMT", "stats": [1.50, 0.95, 1.30, 1.00], "market": "Over 2.5 Goals", "odds": 1.68, "builder": ["Over 2.5 Goals", "Over 4.5 Cards"], "builder_odds": 2.90},
         {"id": 20, "home": "Shamrock Rovers", "away": "Bohemians", "league": "League of Ireland Premier", "date": today_str, "time": "19:00 GMT", "stats": [1.55, 0.75, 1.05, 1.10], "market": "Home Win", "odds": 1.50, "builder": ["Shamrock Win", "Under 3.5 Goals"], "builder_odds": 2.45}
     ]
     
@@ -122,7 +124,6 @@ def get_master_slate():
             log_trade(f"{f['home']} vs {f['away']}", f['market'], f['odds'], f['ev'], "2.0%")
             slate.append(f)
             
-    # Set maximum limit to 20 per tab/view
     return slate[:20]
 
 @app.route('/')
@@ -133,8 +134,6 @@ def index():
     selected_market = request.args.get('market_filter', 'All')
     
     filtered_pool = slate if selected_market == 'All' else [f for f in slate if selected_market.lower() in f['market'].lower()]
-    
-    # Cap total displayed list per tab filter to max 20
     filtered_pool = filtered_pool[:20]
     current_acca = filtered_pool[:acca_legs]
     
