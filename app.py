@@ -137,17 +137,17 @@ def fetch_live_global_fixtures():
         {"id": 607, "home": "Real Sociedad", "away": "Rayo Vallecano", "league": "La Liga", "date": dt_label, "time": "15:15 GMT", "stats": [1.45, 0.80, 1.05, 1.05], "market": "Home Win", "odds": 1.75},
         {"id": 608, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
         {"id": 609, "home": "Celta Vigo", "away": "Levante", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.40, 0.90, 1.15, 1.05], "market": "Home Win", "odds": 1.80},
-        {"id": 610, "home": "Atlético Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance", "odds": 1.42},
+        {"id": 610, "home": "AtlÃ©tico Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance", "odds": 1.42},
         {"id": 611, "home": "Napoli", "away": "Lazio", "league": "Serie A", "date": dt_label, "time": "11:30 GMT", "stats": [1.40, 0.90, 1.25, 0.95], "market": "Home Win", "odds": 2.10},
         {"id": 612, "home": "Genoa", "away": "AC Milan", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 1.05, 1.45, 0.85], "market": "Away Win", "odds": 1.85},
         {"id": 613, "home": "Monza", "away": "Atalanta", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.05, 1.20, 1.50, 0.90], "market": "Away Win", "odds": 1.75},
         {"id": 614, "home": "Inter Milan", "away": "Como 1907", "league": "Serie A", "date": dt_label, "time": "17:00 GMT", "stats": [1.70, 0.80, 1.05, 1.10], "market": "Home Win", "odds": 1.38},
         {"id": 615, "home": "Fiorentina", "away": "Juventus", "league": "Serie A", "date": dt_label, "time": "19:45 GMT", "stats": [1.10, 0.95, 1.20, 0.80], "market": "Under 2.5 Goals", "odds": 1.62},
-        {"id": 616, "home": "Köln", "away": "Bayer Leverkusen", "league": "Bundesliga", "date": dt_label, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85},
+        {"id": 616, "home": "KÃ¶ln", "away": "Bayer Leverkusen", "league": "Bundesliga", "date": dt_label, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85},
         {"id": 617, "home": "Freiburg", "away": "Union Berlin", "league": "Bundesliga", "date": dt_label, "time": "16:30 GMT", "stats": [1.30, 0.95, 1.10, 1.05], "market": "Home Win", "odds": 2.00},
         {"id": 618, "home": "Lens", "away": "Marseille", "league": "Ligue 1", "date": dt_label, "time": "19:45 GMT", "stats": [1.30, 0.90, 1.35, 0.90], "market": "BTTS - Yes", "odds": 1.80},
         {"id": 619, "home": "FC Twente", "away": "Ajax", "league": "Eredivisie", "date": dt_label, "time": "13:30 GMT", "stats": [1.40, 1.00, 1.30, 0.95], "market": "Over 2.5 Goals", "odds": 1.65},
-        {"id": 620, "home": "Vitória de Guimarães", "away": "FC Porto", "league": "Primeira Liga", "date": dt_label, "time": "18:00 GMT", "stats": [1.05, 1.10, 1.55, 0.85], "market": "Away Win", "odds": 1.50},
+        {"id": 620, "home": "VitÃ³ria de GuimarÃ£es", "away": "FC Porto", "league": "Primeira Liga", "date": dt_label, "time": "18:00 GMT", "stats": [1.05, 1.10, 1.55, 0.85], "market": "Away Win", "odds": 1.50},
         {"id": 621, "home": "Club Brugge", "away": "Anderlecht", "league": "Belgian Pro League", "date": dt_label, "time": "12:30 GMT", "stats": [1.50, 0.90, 1.10, 1.05], "market": "Home Win", "odds": 1.45}
     ]
 
@@ -171,7 +171,7 @@ def index():
         f['btts_market'] = "BTTS - Yes" if btts_pct >= 52.0 else "BTTS - No"
         f['ev'] = f"+{ev_calc}%" if ev_calc > 0 else f"{ev_calc}%"
         f['kelly_pct'] = f"{kelly_stake}%"
-        f['suggested_stake_gbp'] = f"£{round((bankroll * (kelly_stake / 100)), 2)}"
+        f['suggested_stake_gbp'] = f"Â£{round((bankroll * (kelly_stake / 100)), 2)}"
 
     # Market Filtering
     if selected_market != 'All Markets':
