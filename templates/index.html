@@ -2,75 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEM-V15 Sports Analytics Engine</title>
     <style>
-        :root {
-            --bg-main: #0b0f19;
-            --bg-card: #111827;
-            --bg-card-hover: #1f2937;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-primary: #3b82f6;
-            --accent-success: #10b981;
-            --border-color: #374151;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 1250px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
-        h1 { margin: 0; font-size: 1.75rem; color: #60a5fa; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; }
-        .nav-tab { padding: 10px 20px; background: var(--bg-card); color: var(--text-muted); text-decoration: none; border-radius: 8px; font-weight: 600; border: 1px solid var(--border-color); transition: all 0.2s; }
-        .nav-tab.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
-        .card { background: var(--bg-card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .metric-card { background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .metric-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .metric-value { font-size: 1.5rem; font-weight: 700; margin-top: 5px; color: var(--accent-success); }
+        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+        h1 { margin: 0; font-size: 1.5rem; color: #38bdf8; }
+        .metrics { display: flex; gap: 15px; }
+        .metric-badge { background: #1e293b; padding: 8px 15px; border-radius: 6px; border: 1px solid #334155; font-size: 0.9rem; }
+        .metric-badge span { color: #34d399; font-weight: bold; }
+        .nav { display: flex; gap: 15px; margin-bottom: 20px; }
+        .nav a { color: #38bdf8; text-decoration: none; padding: 10px 15px; background: #1e293b; border-radius: 6px; }
+        .nav a.active { background: #0284c7; color: #fff; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
-        th { background: #1f2937; color: #93c5fd; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-        tr:hover { background: var(--bg-card-hover); }
-        .btn { background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .btn:hover { background: #2563eb; }
-        .form-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 15px; }
-        select, input { background: #1f2937; color: white; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; }
-        .badge { background: #1e3a8a; color: #bfdbfe; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background: #334155; color: #93c5fd; font-size: 0.85rem; text-transform: uppercase; }
+        .btn { background: #0284c7; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #0369a1; }
+        input, select { background: #334155; color: white; border: 1px solid #475569; padding: 6px 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
         <h1>GEM-V15 Sports Analytics Engine</h1>
-        <div>
-            <span class="badge">Bankroll: £{{ bankroll }}</span>
-            <span class="badge">Progress: {{ progress_pct }}%</span>
+        <div class="metrics">
+            <div class="metric-badge">Bankroll: <span>£{{ bankroll }}</span></div>
+            <div class="metric-badge">Target Progress: <span>{{ progress_pct }}%</span></div>
+            <div class="metric-badge">Cycles Left: <span>{{ cycles_left }}</span></div>
         </div>
     </header>
 
-    <div class="nav-tabs">
-        <a href="/?tab=accagenerator" class="nav-tab {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
-        <a href="/?tab=betbuilder" class="nav-tab {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
-        <a href="/?tab=correctscore" class="nav-tab {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score Matrix</a>
+    <div class="nav">
+        <a href="/?tab=accagenerator" class="{% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
+        <a href="/?tab=betbuilder" class="{% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
+        <a href="/?tab=correctscore" class="{% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
     </div>
 
     {% if active_tab == 'accagenerator' %}
     <div class="card">
         <h2>Acca Generator & Value Accumulator</h2>
-        <form method="GET" action="/" class="form-group">
+        <form method="GET" action="/" style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center;">
             <input type="hidden" name="tab" value="accagenerator">
             <label>Legs (2-10):</label>
-            <input type="number" name="legs" value="{{ acca_legs }}" min="2" max="10" style="width: 70px;">
+            <input type="number" name="legs" value="{{ acca_legs }}" min="2" max="10" style="width: 60px;">
             <label>Market Filter:</label>
             <select name="market_filter">
                 {% for m in market_options %}
                 <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
                 {% endfor %}
             </select>
-            <button type="submit" class="btn">Generate Acca</button>
+            <button type="submit" class="btn">Generate</button>
         </form>
 
-        <h3>Active Acca Slip (Combined Odds: <span style="color: #60a5fa;">{{ combined_odds }}</span>)</h3>
+        <h3>Active Acca Slip (Combined Odds: <span style="color: #38bdf8;">{{ combined_odds }}</span>)</h3>
         <table>
             <thead>
                 <tr>
@@ -78,13 +64,13 @@
                     <th>League</th>
                     <th>Market</th>
                     <th>Odds</th>
-                    <th>EV %</th>
+                    <th>EV</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in current_acca %}
                 <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.home }} vs {{ item.away }}</td>
                     <td>{{ item.league }}</td>
                     <td>{{ item.market }}</td>
                     <td><strong>{{ item.odds }}</strong></td>
@@ -94,7 +80,7 @@
             </tbody>
         </table>
 
-        <form method="POST" action="/submit_acca" style="margin-top: 20px;">
+        <form method="POST" action="/submit_acca" style="margin-top: 15px;">
             <input type="hidden" name="summary_fixture" value="Multi-Leg Accumulator ({{ acca_legs }} Legs)">
             <input type="hidden" name="summary_market" value="{{ selected_market }}">
             <input type="hidden" name="combined_odds" value="{{ combined_odds }}">
@@ -111,7 +97,7 @@
                     <th>Fixture</th>
                     <th>League</th>
                     <th>Time</th>
-                    <th>Suggested Market</th>
+                    <th>Market</th>
                     <th>Odds</th>
                 </tr>
             </thead>
@@ -143,7 +129,7 @@
             <tbody>
                 {% for item in slate %}
                 <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.home }} vs {{ item.away }}</td>
                     <td>{{ item.league }}</td>
                     <td>
                         {% if item.builder %}
@@ -178,11 +164,11 @@
             <tbody>
                 {% for item in slate %}
                 <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.home }} vs {{ item.away }}</td>
                     <td>{{ item.league }}</td>
-                    <td><span class="badge" style="font-size: 1rem;">{{ item.correct_score }}</span></td>
+                    <td><strong>{{ item.correct_score }}</strong></td>
                     <td>{{ item.cs_odds }}</td>
-                    <td style="color: #38bdf8;">{{ item.btts_prob }}</td>
+                    <td>{{ item.btts_prob }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
