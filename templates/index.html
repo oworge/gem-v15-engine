@@ -82,13 +82,13 @@
 
     {% elif active_tab == 'betbuilder' %}
     <div class="card">
-        <h2>Smart Bet Builder Selections</h2>
+        <h2>5-Leg Smart Bet Builder Selections</h2>
         <table>
             <thead>
                 <tr>
                     <th>Fixture</th>
                     <th>League</th>
-                    <th>Recommended Combo Legs</th>
+                    <th>5-Leg Combo Package</th>
                 </tr>
             </thead>
             <tbody>
@@ -97,15 +97,13 @@
                     <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
                     <td>{{ item.league }}</td>
                     <td>
-                        {% if item.builder %}
-                            <ul style="margin: 0; padding-left: 20px;">
-                            {% for leg in item.builder %}
-                                <li>{{ leg }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <span>{{ item.market }}</span>
-                        {% endif %}
+                        <ol style="margin: 0; padding-left: 20px; color: #38bdf8;">
+                            <li>Result / Double Chance: <span style="color: #f3f4f6;">{{ item.home }} Win or Draw</span></li>
+                            <li>Total Goals: <span style="color: #f3f4f6;">Over 1.5 Match Goals</span></li>
+                            <li>Both Teams To Score: <span style="color: #f3f4f6;">BTTS - Yes</span></li>
+                            <li>Player Prop / Fouls: <span style="color: #f3f4f6;">Over 1.5 Shots on Target</span></li>
+                            <li>Discipline / Cards: <span style="color: #f3f4f6;">Over 3.5 Total Cards</span></li>
+                        </ol>
                     </td>
                 </tr>
                 {% endfor %}
