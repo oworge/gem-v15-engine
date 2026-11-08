@@ -48,7 +48,7 @@
                     <span>{{ f.home }} vs {{ f.away }}</span>
                     <span class="badge">Rating: {{ f.rating }}</span>
                 </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
                 <div class="metrics">
                     <div>Selected Market: <span class="metric-val" style="color: #4ade80;">{{ f.market }}</span></div>
                     <div>Decimal Odds: <span class="metric-val">{{ f.odds }}</span></div>
@@ -66,7 +66,7 @@
                     <span>{{ f.home }} vs {{ f.away }}</span>
                     <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">EV: {{ f.ev }}</span>
                 </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
                 <div class="metrics">
                     <div>Model Pick: <span class="metric-val" style="color: #4ade80;">{{ f.market }}</span></div>
                     <div>Odds: <span class="metric-val">{{ f.odds }}</span></div>
@@ -84,7 +84,7 @@
                     <span>{{ f.home }} vs {{ f.away }}</span>
                     <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">5-Leg Builder @ {{ f.builder_odds }}</span>
                 </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }} (EV: {{ f.ev }})</div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }} (EV: {{ f.ev }})</div>
                 <div class="builder-list">
                     <div style="font-weight: bold; color: #38bdf8; margin-bottom: 6px;">Builder Selections (5 Legs):</div>
                     {% for leg in f.builder %}
@@ -103,7 +103,7 @@
                     <span>{{ f.home }} vs {{ f.away }}</span>
                     <span class="badge" style="background: #831843; border-color: #db2777;">BTTS Value Pick</span>
                 </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
                 <div class="metrics">
                     <div>Market Selection: <span class="metric-val" style="color: #f472b6;">{{ f.market }}</span></div>
                     <div>Decimal Odds: <span class="metric-val">{{ f.odds }}</span></div>
@@ -121,7 +121,7 @@
                     <span>{{ f.home }} vs {{ f.away }}</span>
                     <span class="badge" style="background: #312e81; border-color: #6366f1; color: #818cf8;">Model Exact Score: {{ f.correct_score }}</span>
                 </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
                 <div class="metrics">
                     <div>Predicted Score: <span class="metric-val" style="color: #4ade80; font-size: 15px;">{{ f.correct_score }}</span></div>
                     <div>Market Odds: <span class="metric-val">{{ f.cs_odds }}</span></div>
@@ -166,7 +166,7 @@
                     <span>Leg {{ loop.index }}: {{ f.home }} vs {{ f.away }}</span>
                     <span class="badge">{{ f.market }} @ {{ f.odds }}</span>
                 </div>
-                <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">{{ f.league }} | Kickoff: {{ f.time }} (EV: {{ f.ev }})</div>
+                <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }} (EV: {{ f.ev }})</div>
             </div>
         {% endfor %}
     {% endif %}
