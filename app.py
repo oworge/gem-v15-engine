@@ -1,86 +1,51 @@
-﻿# -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, redirect, url_for
-from datetime import datetime
-import csv, os
-from models import calculate_million_target_progress
-from api import fetch_live_global_fixtures
+﻿from flask import Flask, render_template, request, redirect, url_for
+import os
 
 app = Flask(__name__)
 
-LEDGER_FILE = "bankroll_ledger.csv"
-FOOTBALL_DATA_KEY = os.environ.get("FOOTBALL_DATA_KEY", "e10a0006eda94810a953a275036a7654")
-API_URL = "https://api.football-data.org/v4/matches"
-
-MARKET_OPTIONS = [
-    "All Markets", "Over 1.5 Goals", "Over 2.5 Goals", 
-    "BTTS - Yes", "Home Win", "Away Win", "Under 2.5 Goals", "Double Chance"
-]
-
-def init_ledger():
-    if not os.path.exists(LEDGER_FILE):
-        with open(LEDGER_FILE, mode="w", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(["Timestamp", "Fixture", "Market", "Odds", "EV_%", "Kelly_Stake_%", "Result"])
-
-def log_trade(fixture, market, odds, ev, stake):
-    init_ledger()
-    with open(LEDGER_FILE, mode="a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fixture, market, odds, ev, stake, "PENDING"])
+# Sample/Engine data provider ensuring clean separation of fields
+def get_fixture_slate():
+    return [
+        {"home": "Genoa", "away": "AC Milan", "league": "Serie A", "time": "14:00 GMT", "market": "Over 1.5 Goals", "odds": "1.91", "ev": "+21.6%", "correct_score": "1-1", "cs_odds": "6.50", "btts_prob": "62.1%"},
+        {"home": "Monza", "away": "Atalanta", "league": "Serie A", "time": "16:30 GMT", "market": "Over 1.5 Goals", "odds": "1.85", "ev": "+18.7%", "correct_score": "0-2", "cs_odds": "7.20", "btts_prob": "54.0%"},
+        {"home": "Inter Milan", "away": "Como 1907", "league": "Serie A", "time": "19:45 GMT", "market": "Home Win", "odds": "1.45", "ev": "+12.4%", "correct_score": "2-0", "cs_odds": "5.80", "btts_prob": "45.0%"},
+        {"home": "Fiorentina", "away": "Juventus", "league": "Serie A", "time": "12:30 GMT", "market": "BTTS - Yes", "odds": "1.95", "ev": "+15.2%", "correct_score": "1-1", "cs_odds": "6.10", "btts_prob": "63.0%"},
+        {"home": "Köln", "away": "Bayer Leverkusen", "league": "Bundesliga", "time": "15:30 GMT", "market": "Away Win", "odds": "1.75", "ev": "+14.8%", "correct_score": "1-2", "cs_odds": "8.00", "btts_prob": "68.1%"},
+        {"home": "Freiburg", "away": "Union Berlin", "league": "Bundesliga", "time": "17:30 GMT", "market": "Under 2.5 Goals", "odds": "1.80", "ev": "+11.5%", "correct_score": "1-0", "cs_odds": "7.50", "btts_prob": "48.2%"}
+    ]
 
 @app.route("/")
 def index():
-    tab = request.args.get("tab", "accagenerator")
-    bankroll = float(request.args.get("bankroll", 1000.0))
-    acca_legs = min(10, max(2, int(request.args.get("legs", 4))))
-    selected_market = request.args.get("market_filter", "All Markets")
+    active_tab = request.args.get("tab", "dailypicks")
+    slate = get_fixture_slate()
     
-    slate = fetch_live_global_fixtures(bankroll, FOOTBALL_DATA_KEY, API_URL)
-
-    if selected_market != "All Markets":
-        filtered_pool = [f for f in slate if selected_market.lower() in f["market"].lower()]
-    else:
-        filtered_pool = slate
-
-    if len(filtered_pool) < acca_legs:
-        filtered_pool = slate
-
-    current_acca = filtered_pool[:acca_legs]
+    # Acca generator setup
+    acca_legs = int(request.args.get("legs", 3))
+    selected_market = request.args.get("market_filter", "Over 1.5 Goals")
+    market_options = ["Over 1.5 Goals", "Home Win", "BTTS - Yes", "Under 2.5 Goals"]
     
-    try:
-        combined_odds = 1.0
-        for item in current_acca:
-            combined_odds *= item["odds"]
-        combined_odds = round(combined_odds, 2)
-    except Exception:
-        combined_odds = 1.0
-
-    progress_pct, cycles_left = calculate_million_target_progress(bankroll)
+    filtered_slate = [f for f in slate if selected_market in f["market"] or selected_market == "All"]
+    current_acca = filtered_slate[:acca_legs]
+    
+    # Calculate combined odds safely
+    combined = 1.0
+    for item in current_acca:
+        try:
+            combined *= float(item["odds"])
+        except ValueError:
+            pass
+    combined_odds = round(combined, 2)
 
     return render_template(
         "index.html",
-        active_tab=tab,
+        active_tab=active_tab,
         slate=slate,
         current_acca=current_acca,
         acca_legs=acca_legs,
+        market_options=market_options,
         selected_market=selected_market,
-        market_options=MARKET_OPTIONS,
-        combined_odds=combined_odds,
-        bankroll=bankroll,
-        progress_pct=progress_pct,
-        cycles_left=cycles_left
+        combined_odds=combined_odds
     )
 
-@app.route("/submit_acca", methods=["POST"])
-def submit_acca():
-    summary_fixture = request.form.get("summary_fixture", "Custom Accumulator")
-    summary_market = request.form.get("summary_market", "Multi-Leg Acca")
-    odds = float(request.form.get("combined_odds", 1.0))
-    stake_pct = request.form.get("stake_pct", "2.0%")
-    
-    log_trade(summary_fixture, summary_market, odds, "+12.5%", stake_pct)
-    return redirect(url_for("index", tab="accagenerator", submitted="true"))
-
 if __name__ == "__main__":
-    init_ledger()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, port=5000)
