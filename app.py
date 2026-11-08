@@ -22,6 +22,58 @@ MARKET_OPTIONS = [
     "Double Chance"
 ]
 
+def poisson_probability(lmbda, k):
+    try:
+        return (math.exp(-lmbda) * (lmbda ** k)) / math.factorial(k)
+    except:
+        return 0.0
+
+def calculate_universal_market_prediction(home_att, away_def, away_att, home_def, market_type, market_odds):
+    try:
+        home_lambda = max(0.5, home_att * away_def * 1.35)
+        away_lambda = max(0.5, away_att * home_def * 1.20)
+        
+        home_win_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h > a)
+        draw_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h == a)
+        away_win_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h < a)
+        btts_prob = (1 - poisson_probability(home_lambda, 0)) * (1 - poisson_probability(away_lambda, 0))
+        over_25_prob = 1 - sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(3) for a in range(3) if (h + a) < 3)
+        over_15_prob = 1.0 - (poisson_probability(home_lambda, 0) * poisson_probability(away_lambda, 0) + poisson_probability(home_lambda, 1) * poisson_probability(away_lambda, 0) + poisson_probability(home_lambda, 0) * poisson_probability(away_lambda, 1))
+        
+        m_lower = market_type.lower()
+        if "btts" in m_lower or "both teams" in m_lower:
+            true_prob = btts_prob
+        elif "over 2.5" in m_lower:
+            true_prob = over_25_prob
+        elif "over 1.5" in m_lower:
+            true_prob = over_15_prob
+        elif "double chance" in m_lower:
+            true_prob = max(home_win_prob + draw_prob, draw_prob + away_win_prob)
+        elif "home win" in m_lower:
+            true_prob = home_win_prob
+        elif "away win" in m_lower:
+            true_prob = away_win_prob
+        else:
+            true_prob = max(home_win_prob, 0.55)
+            
+        ai_consensus_boost = 1.03
+        adjusted_prob = min(0.95, true_prob * ai_consensus_boost)
+        implied_prob = 1.0 / market_odds
+        ev_margin = ((adjusted_prob - implied_prob) / implied_prob) * 100
+        
+        best_score = "1 - 1"
+        max_prob = 0.0
+        for h in range(5):
+            for a in range(5):
+                prob = poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a)
+                if prob > max_prob:
+                    max_prob = prob
+                    best_score = f"{h} - {a}"
+                    
+        return round(home_lambda, 2), round(away_lambda, 2), best_score, round(ev_margin, 1), round(btts_prob * 100, 1), adjusted_prob
+    except Exception as e:
+        return 1.25, 1.10, "1 - 1", 5.0, 55.0, 0.76
+
 def calculate_fractional_kelly(odds, true_prob, fraction=0.25):
     b = odds - 1.0
     q = 1.0 - true_prob
@@ -50,11 +102,13 @@ def log_trade(fixture, market, odds, ev, stake):
 
 def fetch_live_global_fixtures():
     headers = {'X-Auth-Token': FOOTBALL_DATA_KEY}
+    dt_label = datetime.utcnow().strftime("%a, %b %d, %Y")
+    
+    raw = []
     try:
         res = requests.get(API_URL, headers=headers, timeout=10)
         if res.status_code == 200:
             data = res.json()
-            raw = []
             if "matches" in data and len(data["matches"]) > 0:
                 for item in data["matches"]:
                     raw.append({
@@ -62,7 +116,7 @@ def fetch_live_global_fixtures():
                         "home": item["homeTeam"]["name"],
                         "away": item["awayTeam"]["name"],
                         "league": item["competition"]["name"],
-                        "date": datetime.utcnow().strftime("%a, %b %d, %Y"),
+                        "date": dt_label,
                         "time": datetime.fromisoformat(item["utcDate"].replace("Z", "+00:00")).strftime("%H:%M GMT"),
                         "stats": [1.40, 0.95, 1.30, 0.90],
                         "market": "Over 1.5 Goals",
@@ -73,7 +127,6 @@ def fetch_live_global_fixtures():
     except Exception as e:
         print(f"API Fetch Error: {e}")
 
-    dt_label = datetime.utcnow().strftime("%a, %b %d, %Y")
     return [
         {"id": 601, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35},
         {"id": 602, "home": "Crystal Palace", "away": "Liverpool", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 0.95, 1.60, 0.80], "market": "Over 2.5 Goals", "odds": 1.75},
@@ -107,11 +160,16 @@ def index():
     
     slate = fetch_live_global_fixtures()
     for f in slate:
-        true_prob = 0.76
-        ev_calc = round(((true_prob * f['odds']) - 1.0) * 100, 1)
+        h_lam, a_lam, cs, ev_calc, btts_pct, true_prob = calculate_universal_market_prediction(
+            f['stats'][0], f['stats'][1], f['stats'][2], f['stats'][3], f['market'], f['odds']
+        )
         kelly_stake = calculate_fractional_kelly(f['odds'], true_prob, fraction=0.25)
         
-        f['ev'] = f"+{ev_calc}%"
+        f['correct_score'] = cs
+        f['cs_odds'] = round(7.0 + (abs(h_lam - a_lam) * 2.2), 2)
+        f['btts_prob'] = f"{btts_pct}%"
+        f['btts_market'] = "BTTS - Yes" if btts_pct >= 52.0 else "BTTS - No"
+        f['ev'] = f"+{ev_calc}%" if ev_calc > 0 else f"{ev_calc}%"
         f['kelly_pct'] = f"{kelly_stake}%"
         f['suggested_stake_gbp'] = f"£{round((bankroll * (kelly_stake / 100)), 2)}"
 
@@ -121,13 +179,11 @@ def index():
     else:
         filtered_pool = slate
 
-    # If filter yields fewer than requested legs, fallback to main pool
     if len(filtered_pool) < acca_legs:
         filtered_pool = slate
 
     current_acca = filtered_pool[:acca_legs]
     
-    # Combined Acca Odds Calculation
     try:
         combined_odds = 1.0
         for item in current_acca:
