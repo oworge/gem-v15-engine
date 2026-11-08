@@ -35,6 +35,7 @@
         <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
         <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
         <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS Specials</a>
+        <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
         <a href="/?tab=accagen" class="tab-btn {% if active_tab == 'accagen' %}active{% endif %}">Acca Generator</a>
     </div>
 
@@ -74,7 +75,7 @@
             </div>
         {% endfor %}
 
-    <!-- TAB 3: Bet Builder (5 Selections per Fixture with Player Props, Fouls Won & Committed) -->
+    <!-- TAB 3: Bet Builder -->
     {% elif active_tab == 'betbuilder' %}
         <h2>🛠️ Advanced Bet Builder (5-Leg Combos: Outcome, Shots, Fouls Won & Committed)</h2>
         {% for f in slate %}
@@ -93,7 +94,7 @@
             </div>
         {% endfor %}
 
-    <!-- TAB 4: BTTS Specials (All High-Value BTTS Found) -->
+    <!-- TAB 4: BTTS Specials -->
     {% elif active_tab == 'btts' %}
         <h2>⚽ Both Teams To Score (BTTS) High-Value Specials</h2>
         {% for f in slate if 'BTTS' in f['market'] or 'BTTS' in f['builder'][0] %}
@@ -111,7 +112,25 @@
             </div>
         {% endfor %}
 
-    <!-- TAB 5: Acca Generator -->
+    <!-- TAB 5: Correct Score -->
+    {% elif active_tab == 'correctscore' %}
+        <h2>🎯 Poisson Model Correct Score Projections</h2>
+        {% for f in slate %}
+            <div class="card">
+                <div class="match-header">
+                    <span>{{ f.home }} vs {{ f.away }}</span>
+                    <span class="badge" style="background: #312e81; border-color: #6366f1; color: #818cf8;">Model Exact Score: {{ f.correct_score }}</span>
+                </div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
+                <div class="metrics">
+                    <div>Predicted Score: <span class="metric-val" style="color: #4ade80; font-size: 15px;">{{ f.correct_score }}</span></div>
+                    <div>Market Odds: <span class="metric-val">{{ f.cs_odds }}</span></div>
+                    <div>Model Confidence: <span class="metric-val" style="color: #fcd34d;">{{ f.rating }}</span></div>
+                </div>
+            </div>
+        {% endfor %}
+
+    <!-- TAB 6: Acca Generator -->
     {% elif active_tab == 'accagen' %}
         <h2>⚡ Dynamic Acca Generator</h2>
         <form method="GET" action="/">
