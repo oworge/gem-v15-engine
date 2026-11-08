@@ -16,6 +16,9 @@
         .badge-hq { background: #78350f; color: #fcd34d; border: 1px solid #d97706; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
         .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
         .metric-val { color: #38bdf8; font-weight: bold; }
+        .builder-list { margin-top: 12px; background: #030712; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; font-size: 13px; }
+        .builder-item { padding: 4px 0; color: #cbd5e1; display: flex; align-items: center; gap: 8px; }
+        .builder-item::before { content: "🔹"; font-size: 10px; color: #38bdf8; }
         .controls-bar { background: #111827; padding: 15px; border-radius: 8px; border: 1px solid #374151; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         select { background: #1f2937; color: #fff; border: 1px solid #4b5563; padding: 6px 12px; border-radius: 6px; font-weight: bold; }
     </style>
@@ -71,38 +74,39 @@
             </div>
         {% endfor %}
 
-    <!-- TAB 3: Bet Builder -->
+    <!-- TAB 3: Bet Builder (5 Selections per Fixture with Player Props, Fouls Won & Committed) -->
     {% elif active_tab == 'betbuilder' %}
-        <h2>🛠️ Advanced Bet Builder Multi-Markets</h2>
-        {% for f in slate if '&' in f['market'] or 'Win &' in f['market'] %}
+        <h2>🛠️ Advanced Bet Builder (5-Leg Combos: Outcome, Shots, Fouls Won & Committed)</h2>
+        {% for f in slate %}
             <div class="card">
                 <div class="match-header">
                     <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">Builder Combo</span>
+                    <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">5-Leg Builder @ {{ f.builder_odds }}</span>
                 </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
-                <div class="metrics">
-                    <div>Builder Selection: <span class="metric-val" style="color: #60a5fa;">{{ f.market }}</span></div>
-                    <div>Combined Odds: <span class="metric-val">{{ f.odds }}</span></div>
-                    <div>Expected Value: <span class="metric-val" style="color: #4ade80;">{{ f.ev }}</span></div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }} (EV: {{ f.ev }})</div>
+                <div class="builder-list">
+                    <div style="font-weight: bold; color: #38bdf8; margin-bottom: 6px;">Builder Selections (5 Legs):</div>
+                    {% for leg in f.builder %}
+                        <div class="builder-item">{{ leg }}</div>
+                    {% endfor %}
                 </div>
             </div>
         {% endfor %}
 
-    <!-- TAB 4: BTTS Specials -->
+    <!-- TAB 4: BTTS Specials (All High-Value BTTS Found) -->
     {% elif active_tab == 'btts' %}
-        <h2>⚽ Both Teams To Score (BTTS) Specials</h2>
-        {% for f in slate if 'BTTS' in f['market'] %}
+        <h2>⚽ Both Teams To Score (BTTS) High-Value Specials</h2>
+        {% for f in slate if 'BTTS' in f['market'] or 'BTTS' in f['builder'][0] %}
             <div class="card">
                 <div class="match-header">
                     <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #831843; border-color: #db2777;">BTTS Market</span>
+                    <span class="badge" style="background: #831843; border-color: #db2777;">BTTS Value Pick</span>
                 </div>
                 <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
                 <div class="metrics">
                     <div>Market Selection: <span class="metric-val" style="color: #f472b6;">{{ f.market }}</span></div>
                     <div>Decimal Odds: <span class="metric-val">{{ f.odds }}</span></div>
-                    <div>Expected Value: <span class="metric-val" style="color: #4ade80;">{{ f.ev }}</span></div>
+                    <div>Model EV: <span class="metric-val" style="color: #4ade80;">{{ f.ev }}</span></div>
                 </div>
             </div>
         {% endfor %}
