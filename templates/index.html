@@ -26,13 +26,16 @@
         <span style="color: #94a3b8; font-size: 12px;">GEM V6.1 Engine | Kelly Staking Active</span>
     </div>
 
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
         <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' or not active_tab %}active{% endif %}">Daily Picks</a>
         <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
-        <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder BTTS</a>
+        <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
+        <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS Specials</a>
         <a href="/?tab=accagen" class="tab-btn {% if active_tab == 'accagen' %}active{% endif %}">Acca Generator</a>
     </div>
 
+    <!-- TAB 1: Daily Picks -->
     {% if not active_tab or active_tab == 'dailypicks' %}
         <h2>🔥 Daily Picks (12 Global High-Confidence Predictions Across All Markets)</h2>
         {% for f in slate %}
@@ -50,6 +53,7 @@
             </div>
         {% endfor %}
 
+    <!-- TAB 2: All Fixtures -->
     {% elif active_tab == 'allfixtures' %}
         <h2>📋 Complete Master Fixture Slate</h2>
         {% for f in slate %}
@@ -67,23 +71,43 @@
             </div>
         {% endfor %}
 
+    <!-- TAB 3: Bet Builder -->
     {% elif active_tab == 'betbuilder' %}
-        <h2>🛠️ Bet Builder & BTTS Specials</h2>
-        {% for f in slate if 'BTTS' in f['market'] or 'Over' in f['market'] %}
+        <h2>🛠️ Advanced Bet Builder Multi-Markets</h2>
+        {% for f in slate if '&' in f['market'] or 'Win &' in f['market'] %}
             <div class="card">
                 <div class="match-header">
                     <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #831843; border-color: #db2777;">BTTS Builder</span>
+                    <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">Builder Combo</span>
                 </div>
                 <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
                 <div class="metrics">
-                    <div>Primary Market: <span class="metric-val" style="color: #f472b6;">{{ f.market }}</span></div>
-                    <div>Builder Odds: <span class="metric-val">{{ f.odds }}</span></div>
+                    <div>Builder Selection: <span class="metric-val" style="color: #60a5fa;">{{ f.market }}</span></div>
+                    <div>Combined Odds: <span class="metric-val">{{ f.odds }}</span></div>
                     <div>Expected Value: <span class="metric-val" style="color: #4ade80;">{{ f.ev }}</span></div>
                 </div>
             </div>
         {% endfor %}
 
+    <!-- TAB 4: BTTS Specials -->
+    {% elif active_tab == 'btts' %}
+        <h2>⚽ Both Teams To Score (BTTS) Specials</h2>
+        {% for f in slate if 'BTTS' in f['market'] %}
+            <div class="card">
+                <div class="match-header">
+                    <span>{{ f.home }} vs {{ f.away }}</span>
+                    <span class="badge" style="background: #831843; border-color: #db2777;">BTTS Market</span>
+                </div>
+                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | Kickoff: {{ f.time }}</div>
+                <div class="metrics">
+                    <div>Market Selection: <span class="metric-val" style="color: #f472b6;">{{ f.market }}</span></div>
+                    <div>Decimal Odds: <span class="metric-val">{{ f.odds }}</span></div>
+                    <div>Expected Value: <span class="metric-val" style="color: #4ade80;">{{ f.ev }}</span></div>
+                </div>
+            </div>
+        {% endfor %}
+
+    <!-- TAB 5: Acca Generator -->
     {% elif active_tab == 'accagen' %}
         <h2>⚡ Dynamic Acca Generator</h2>
         <form method="GET" action="/">
