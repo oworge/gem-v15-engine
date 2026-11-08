@@ -1,174 +1,371 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>EDGEMETRIX V300 - Syndicate Command HQ</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGEMETRIX V300 - �1M Quant Engine</title>
     <style>
-        body { background: #07090e; color: #f1f5f9; font-family: system-ui, sans-serif; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        h1 { font-size: 20px; color: #38bdf8; margin: 0; }
-        .nav-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 25px; background: #111827; padding: 12px; border-radius: 8px; border: 1px solid #374151; }
-        .tab-btn { background: #1f2937; color: #94a3b8; border: 1px solid #4b5563; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 13px; display: inline-block; }
-        .tab-btn.active { background: #0284c7; color: #ffffff; border-color: #38bdf8; }
-        .card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
-        .match-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; color: #fff; flex-wrap: wrap; gap: 8px; }
-        .badge { background: #064e3b; color: #4ade80; border: 1px solid #059669; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
-        .badge-hq { background: #78350f; color: #fcd34d; border: 1px solid #d97706; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
-        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
-        .metric-val { color: #38bdf8; font-weight: bold; }
-        .builder-list { margin-top: 12px; background: #030712; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; font-size: 13px; }
-        .builder-item { padding: 4px 0; color: #cbd5e1; display: flex; align-items: center; gap: 8px; }
-        .builder-item::before { content: "🔹"; font-size: 10px; color: #38bdf8; }
-        .controls-bar { background: #111827; padding: 15px; border-radius: 8px; border: 1px solid #374151; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-        select { background: #1f2937; color: #fff; border: 1px solid #4b5563; padding: 6px 12px; border-radius: 6px; font-weight: bold; }
+        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #238636; --blue: #58a6ff; --gold: #d29922; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .target-box { background: #1c2128; border: 1px solid var(--gold); padding: 10px 15px; border-radius: 6px; font-weight: bold; color: var(--gold); }
+        .nav { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .nav a { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+        .nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 12px; }
+        .fixture-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #8b949e; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
+        .teams { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
+        .metric-badge { background: #21262d; border: 1px solid var(--border); padding: 8px; border-radius: 6px; text-align: center; }
+        .metric-label { font-size: 0.75em; color: #8b949e; text-transform: uppercase; margin-bottom: 4px; }
+        .metric-val { font-size: 1.1em; font-weight: bold; }
+        .val-gold { color: var(--gold); }
+        .val-green { color: #3fb950; }
+        .val-blue { color: var(--blue); }
+        .controls-box { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        select, input, button { background: #21262d; border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 6px; font-size: 0.95em; }
+        button { background: var(--accent); font-weight: bold; cursor: pointer; }
+        .submit-btn { background: #1f6feb; border: none; padding: 12px 20px; font-size: 1em; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>EDGEMETRIX V300 <span class="badge-hq">Syndicate Command HQ</span></h1>
-        <span style="color: #94a3b8; font-size: 12px;">GEM V15.0 Engine | Kelly Staking Active</span>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="nav-tabs">
-        <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' or not active_tab %}active{% endif %}">Daily Picks</a>
-        <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
-        <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
-        <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS Specials</a>
-        <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
-        <a href="/?tab=accagen" class="tab-btn {% if active_tab == 'accagen' %}active{% endif %}">Acca Generator</a>
-    </div>
-
-    <!-- TAB 1: Daily Picks -->
-    {% if not active_tab or active_tab == 'dailypicks' %}
-        <h2>🔥 Daily Picks (20 Global High-Confidence Predictions Across All Leagues)</h2>
-        {% for f in slate %}
-            <div class="card">
-                <div class="match-header">
-                    <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge">Rating: {{ f.rating }}</span>
-                </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
-                <div class="metrics">
-                    <div>Selected Market: <span class="metric-val" style="color: #4ade80;">{{ f.market }}</span></div>
-                    <div>Decimal Odds: <span class="metric-val">{{ f.odds }}</span></div>
-                    <div>Model EV: <span class="metric-val" style="color: #c084fc;">{{ f.ev }}</span></div>
-                </div>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2 style="margin:0;">EDGEMETRIX V300</h2>
+                <small style="color: #8b949e;">Quant Kelly Engine | �1M Target Progress</small>
             </div>
-        {% endfor %}
-
-    <!-- TAB 2: All Fixtures -->
-    {% elif active_tab == 'allfixtures' %}
-        <h2>📋 Complete Master Global Fixture Slate</h2>
-        {% for f in slate %}
-            <div class="card">
-                <div class="match-header">
-                    <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">EV: {{ f.ev }}</span>
-                </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
-                <div class="metrics">
-                    <div>Model Pick: <span class="metric-val" style="color: #4ade80;">{{ f.market }}</span></div>
-                    <div>Odds: <span class="metric-val">{{ f.odds }}</span></div>
-                    <div>Confidence Rating: <span class="metric-val" style="color: #fcd34d;">{{ f.rating }}</span></div>
-                </div>
+            <div class="target-box">
+                Target: �1,000,000 | Progress: {{ progress_pct }}% ({{ cycles_left }} Cycles)
             </div>
-        {% endfor %}
+        </div>
 
-    <!-- TAB 3: Bet Builder -->
-    {% elif active_tab == 'betbuilder' %}
-        <h2>🛠️ Advanced Bet Builder (5-Leg Combos: Outcome, Shots, Fouls Won & Committed)</h2>
-        {% for f in slate %}
-            <div class="card">
-                <div class="match-header">
-                    <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #1e3a8a; border-color: #3b82f6;">5-Leg Builder @ {{ f.builder_odds }}</span>
-                </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }} (EV: {{ f.ev }})</div>
-                <div class="builder-list">
-                    <div style="font-weight: bold; color: #38bdf8; margin-bottom: 6px;">Builder Selections (5 Legs):</div>
-                    {% for leg in f.builder %}
-                        <div class="builder-item">{{ leg }}</div>
+        <div class="nav">
+            <a href="/?tab=accagenerator" class="{% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator (10-Leg)</a>
+            <a href="/?tab=dailypicks" class="{% if active_tab == 'dailypicks' %}active{% endif %}">Daily +EV Slate</a>
+        </div>
+
+        {% if active_tab == 'accagenerator' %}
+        <div class="controls-box">
+            <form method="GET" action="/" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="hidden" name="tab" value="accagenerator">
+                <label>Legs (Max 10):</label>
+                <input type="number" name="legs" value="{{ acca_legs }}" min="2" max="10" style="width: 60px;">
+                
+                <label>Filter Market:</label>
+                <select name="market_filter">
+                    {% for m in market_options %}
+                        <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
                     {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-
-    <!-- TAB 4: BTTS Specials -->
-    {% elif active_tab == 'btts' %}
-        <h2>⚽ Both Teams To Score (BTTS) High-Value Specials</h2>
-        {% for f in slate if 'BTTS' in f['market'] or 'BTTS' in f['builder'][0] %}
-            <div class="card">
-                <div class="match-header">
-                    <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #831843; border-color: #db2777;">BTTS Value Pick</span>
-                </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
-                <div class="metrics">
-                    <div>Market Selection: <span class="metric-val" style="color: #f472b6;">{{ f.market }}</span></div>
-                    <div>Decimal Odds: <span class="metric-val">{{ f.odds }}</span></div>
-                    <div>Model EV: <span class="metric-val" style="color: #4ade80;">{{ f.ev }}</span></div>
-                </div>
-            </div>
-        {% endfor %}
-
-    <!-- TAB 5: Correct Score -->
-    {% elif active_tab == 'correctscore' %}
-        <h2>🎯 Poisson Model Correct Score Projections</h2>
-        {% for f in slate %}
-            <div class="card">
-                <div class="match-header">
-                    <span>{{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge" style="background: #312e81; border-color: #6366f1; color: #818cf8;">Model Exact Score: {{ f.correct_score }}</span>
-                </div>
-                <div style="font-size: 13px; color: #38bdf8; margin-top: 4px; font-weight: bold;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }}</div>
-                <div class="metrics">
-                    <div>Predicted Score: <span class="metric-val" style="color: #4ade80; font-size: 15px;">{{ f.correct_score }}</span></div>
-                    <div>Market Odds: <span class="metric-val">{{ f.cs_odds }}</span></div>
-                    <div>Model Confidence: <span class="metric-val" style="color: #fcd34d;">{{ f.rating }}</span></div>
-                </div>
-            </div>
-        {% endfor %}
-
-    <!-- TAB 6: Acca Generator -->
-    {% elif active_tab == 'accagen' %}
-        <h2>⚡ Dynamic Acca Generator</h2>
-        <form method="GET" action="/">
-            <input type="hidden" name="tab" value="accagen">
-            <div class="controls-bar">
+                </select>
+                <button type="submit">Update Generator</button>
+            </form>
+            
+            <div style="margin-top: 15px; background: #1c2128; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <label style="font-weight: bold; margin-right: 8px; font-size: 13px;">Number of Legs:</label>
-                    <select name="legs" onchange="this.form.submit()">
-                        <option value="2" {% if acca_legs == 2 %}selected{% endif %}>2-Fold</option>
-                        <option value="3" {% if acca_legs == 3 %}selected{% endif %}>3-Fold</option>
-                        <option value="4" {% if acca_legs == 4 %}selected{% endif %}>4-Fold</option>
-                        <option value="5" {% if acca_legs == 5 %}selected{% endif %}>5-Fold</option>
-                    </select>
+                    <strong>Selected Acca Legs:</strong> {{ current_acca|length }} Fixtures
                 </div>
                 <div>
-                    <label style="font-weight: bold; margin-right: 8px; font-size: 13px;">Market Filter:</label>
-                    <select name="market_filter" onchange="this.form.submit()">
-                        <option value="All" {% if selected_market == 'All' %}selected{% endif %}>All Markets</option>
-                        <option value="Double Chance" {% if selected_market == 'Double Chance' %}selected{% endif %}>Double Chance</option>
-                        <option value="BTTS" {% if selected_market == 'BTTS' %}selected{% endif %}>BTTS</option>
-                        <option value="Goals" {% if selected_market == 'Goals' %}selected{% endif %}>Goals</option>
-                    </select>
-                </div>
-                <div style="margin-left: auto; font-size: 16px; font-weight: bold; color: #4ade80;">
-                    Combined Odds: <span style="color: #38bdf8;">{{ combined_odds }}</span>
+                    <strong>Combined Odds:</strong> <span style="color: var(--gold); font-size: 1.2em;">@{{ combined_odds }}</span>
                 </div>
             </div>
-        </form>
 
+            <form method="POST" action="/submit_acca">
+                <input type="hidden" name="summary_fixture" value="{{ current_acca|length }}-Leg Compound Accumulator">
+                <input type="hidden" name="summary_market" value="{{ selected_market }}">
+                <input type="hidden" name="combined_odds" value="{{ combined_odds }}">
+                <input type="hidden" name="stake_pct" value="2.0%">
+                <button type="submit" class="submit-btn">Submit Acca to Bankroll Ledger</button>
+            </form>
+        </div>
+
+        <h3>Active Accumulator Legs</h3>
         {% for f in current_acca %}
-            <div class="card">
-                <div class="match-header">
-                    <span>Leg {{ loop.index }}: {{ f.home }} vs {{ f.away }}</span>
-                    <span class="badge">{{ f.market }} @ {{ f.odds }}</span>
-                </div>
-                <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">{{ f.league }} | 📅 {{ f.date }} — ⏰ {{ f.time }} (EV: {{ f.ev }})</div>
+        <div class="card">
+            <div class="fixture-header">
+                <span>{{ f.league }} � {{ f.time }}</span>
+                <span>ID: #{{ f.id }}</span>
             </div>
+            <div class="teams">{{ f.home }} vs {{ f.away }}</div>
+            <div class="metrics-grid">
+                <div class="metric-badge">
+                    <div class="metric-label">Market Target</div>
+                    <div class="metric-val val-blue">{{ f.market }}</div>
+                </div>
+                <div class="metric-badge">
+                    <div class="metric-label">Market Odds</div>
+                    <div class="metric-val val-gold">@{{ f.odds }}</div>
+                </div>
+                <div class="metric-badge">
+                    <div class="metric-label">Correct Score</div>
+                    <div class="metric-val val-green">{{ f.correct_score }} (@{{ f.cs_odds }})</div>
+                </div>
+                <div class="metric-badge">
+                    <div class="metric-label">BTTS Prob</div>
+                    <div class="metric-val val-blue">{{ f.btts_prob }}</div>
+                </div>
+                <div class="metric-badge">
+                    <div class="metric-label">Model EV</div>
+                    <div class="metric-val val-green">{{ f.ev }}</div>
+                </div>
+                <div class="metric-badge">
+                    <div class="metric-label">Kelly Stake</div>
+                    <div class="metric-val">{{ f.kelly_pct }} ({{ f.suggested_stake_gbp }})</div>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-    {% endif %}
-</body>
-</html>
+
+        {% else %}
+
+        <h3>Full Daily Slate
+
+if (!(Test-Path templates)) { New-Item -ItemType Directory -Path templates }
+$html = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+RURHRU1FVFJJWCBWMzAwIC0gwqExTSBRdWFudCBFbmdpbmU8L3RpdGxlPgogICAgPHN0eWxlPgogICAgICAgIDpyb290IHsgLS1iZzogIzBkMTExNzsgLS1jYXJkOiAjMTYxYjIyOyAtLWJvcmRlcjogIzMwMzYzZDsgLS10ZXh0OiAjYzlkMWQ5OyAtLWFjY2VudDogIzIzODYzNjsgLS1ibHVlOiAjNThhNmZmOyAtLWdvbGQ6ICNkMjk5MjI7IH0KICAgICAgICBib2R5IHsgZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBzYW5zLXNlcmlmOyBiYWNrZ3JvdW5kOiB2YXIoLS1iZyk7IGNvbG9yOiB2YXIoLS10ZXh0KTsgbWFyZ2luOiAwOyBwYWRkaW5nOiAxNXB4OyB9CiAgICAgICAgLmNvbnRhaW5lciB7IG1heC13aWR0aDogMTAwMHB4OyBtYXJnaW46IDAgYXV0bzsgfQogICAgICAgIC5oZWFkZXIgeyBiYWNrZ3JvdW5kOiB2YXIoLS1jYXJkKTsgYm9yZGVyOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsgcGFkZGluZzogMTVweDsgYm9yZGVyLXJhZGl1czogOHB4OyBtYXJnaW4tYm90dG9tOiAxNXB4OyBkaXNwbGF5OiBmY3g7IGp1c3RpZnktY29udGVudDogc3BhY2UtYmV0d2VlbjsgYWxpZ24taXRlbXM6IGNlbnRlcjsgZmxleC13cmFwOiB3cmFwOyBnYXA6IDEwcHg7IH0KICAgICAgICAudGFyZ2V0LWJveCB7IGJhY2tncm91bmQ6ICMxYzIxMjg7IGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWdvbGQpOyBwYWRkaW5nOiAxMHB4IDE1cHg7IGJvcmRlci1yYWRpdXM6IDZweDsgZm9udC13ZWlnaHQ6IGJvbGQ7IGNvbG9yOiB2YXIoLS1nb2xkKTsgfQogICAgICAgIC5uYXYgeyBkaXNwbGF5OiBmY3g7IGdhcDogMTBweDsgbWFyZ2luLWJvdHRvbTogMTVweDsgZmxleC13cmFwOiB3cmFwOyB9CiAgICAgICAgLm5hdiBhIHsgYmFja2dyb3VuZDogdmFyKC0tY2FyZCk7IGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWJvcmRlcik7IGNvbG9yOiB2YXIoLS10ZXh0KTsgcGFkZGluZzogOHB4IDE2cHg7IGJvcmRlci1yYWRpdXM6IDZweDsgdGV4dC1kZWNvcmF0aW9uOiBub25lOyBmb250LXdlaWdodDogNjAwOyB9CiAgICAgICAgLm5hdiBhLmFjdGl2ZSB7IGJhY2tncm91bmQ6IHZhcigtLWFjY2VudCk7IGNvbG9yOiB3aGl0ZTsgYm9yZGVyLWNvbG9yOiB2YXIoLS1hY2NlbnQpOyB9CiAgICAgICAgLmNhcmQgeyBiYWNrZ3JvdW5kOiB2YXIoLS1jYXJkKTsgYm9yZGVyOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsgYm9yZGVyLXJhZGl1czogOHB4OyBwYWRkaW5nOiAxNXB4OyBtYXJnaW
+Set-Content -Path app.py -Value @'
+from flask import Flask, render_template, request, redirect, url_for
+from datetime import datetime
+import math
+import csv
+import os
+import requests
+
+app = Flask(__name__)
+
+LEDGER_FILE = "bankroll_ledger.csv"
+FOOTBALL_DATA_KEY = os.environ.get("FOOTBALL_DATA_KEY", "e10a0006eda94810a953a275036a7654")
+API_URL = "https://api.football-data.org/v4/matches"
+
+MARKET_OPTIONS = [
+    "All Markets",
+    "Over 1.5 Goals",
+    "Over 2.5 Goals",
+    "BTTS - Yes",
+    "Home Win",
+    "Away Win",
+    "Under 2.5 Goals",
+    "Double Chance"
+]
+
+def poisson_probability(lmbda, k):
+    try:
+        return (math.exp(-lmbda) * (lmbda ** k)) / math.factorial(k)
+    except:
+        return 0.0
+
+def gavin_browne_correct_score(home_lambda, away_lambda):
+    """
+    Gavin Browne (Metro) Correct Score Matrix:
+    Evaluates Poisson probability matrix across standard realistic outcomes (0-0 through 3-3),
+    applying home-advantage baseline weighting and capping high-variance outlier scorelines.
+    """
+    best_score = "1 - 1"
+    max_prob = 0.0
+    
+    # Restrict matrix search to core realistic scorelines (0 to 3 goals each)
+    for h in range(4):
+        for a in range(4):
+            # Base Poisson probability for score (h, a)
+            prob = poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a)
+            
+            # Gavin Browne Metro Weighting: Small preference to standard baseline home scores (1-0, 2-0, 2-1)
+            if h > a and (h - a) <= 2:
+                prob *= 1.05
+            elif h == a and h <= 1: # 0-0 or 1-1 low scoring draws
+                prob *= 1.03
+                
+            if prob > max_prob:
+                max_prob = prob
+                best_score = f"{h} - {a}"
+                
+    # Calculate estimated value odds based on probability density
+    model_cs_odds = round(1.0 / max(max_prob, 0.05), 2)
+    return best_score, model_cs_odds
+
+def calculate_universal_market_prediction(home_att, away_def, away_att, home_def, market_type, market_odds):
+    try:
+        home_lambda = max(0.5, home_att * away_def * 1.35)
+        away_lambda = max(0.5, away_att * home_def * 1.20)
+        
+        home_win_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h > a)
+        draw_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h == a)
+        away_win_prob = sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(5) for a in range(5) if h < a)
+        btts_prob = (1 - poisson_probability(home_lambda, 0)) * (1 - poisson_probability(away_lambda, 0))
+        over_25_prob = 1 - sum(poisson_probability(home_lambda, h) * poisson_probability(away_lambda, a) for h in range(3) for a in range(3) if (h + a) < 3)
+        over_15_prob = 1.0 - (poisson_probability(home_lambda, 0) * poisson_probability(away_lambda, 0) + poisson_probability(home_lambda, 1) * poisson_probability(away_lambda, 0) + poisson_probability(home_lambda, 0) * poisson_probability(away_lambda, 1))
+        
+        m_lower = market_type.lower()
+        if "btts" in m_lower or "both teams" in m_lower:
+            true_prob = btts_prob
+        elif "over 2.5" in m_lower:
+            true_prob = over_25_prob
+        elif "over 1.5" in m_lower:
+            true_prob = over_15_prob
+        elif "double chance" in m_lower:
+            true_prob = max(home_win_prob + draw_prob, draw_prob + away_win_prob)
+        elif "home win" in m_lower:
+            true_prob = home_win_prob
+        elif "away win" in m_lower:
+            true_prob = away_win_prob
+        else:
+            true_prob = max(home_win_prob, 0.55)
+            
+        ai_consensus_boost = 1.03
+        adjusted_prob = min(0.95, true_prob * ai_consensus_boost)
+        implied_prob = 1.0 / market_odds
+        ev_margin = ((adjusted_prob - implied_prob) / implied_prob) * 100
+        
+        # Gavin Browne Metro Correct Score calculation
+        best_score, cs_odds = gavin_browne_correct_score(home_lambda, away_lambda)
+                    
+        return round(home_lambda, 2), round(away_lambda, 2), best_score, round(ev_margin, 1), round(btts_prob * 100, 1), adjusted_prob, cs_odds
+    except Exception as e:
+        return 1.25, 1.10, "1 - 1", 5.0, 55.0, 0.76, 7.50
+
+def calculate_fractional_kelly(odds, true_prob, fraction=0.25):
+    b = odds - 1.0
+    q = 1.0 - true_prob
+    full_kelly = (b * true_prob - q) / b
+    safe_stake = max(0.0, full_kelly * fraction)
+    return round(safe_stake * 100, 2)
+
+def calculate_million_target_progress(current_bankroll, target=1000000):
+    if current_bankroll <= 0:
+        return 0.0, 0
+    progress_pct = round((current_bankroll / target) * 100, 2)
+    cycles_needed = math.ceil(math.log(target / current_bankroll) / math.log(1.03)) if current_bankroll < target else 0
+    return progress_pct, cycles_needed
+
+def init_ledger():
+    if not os.path.exists(LEDGER_FILE):
+        with open(LEDGER_FILE, mode='w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(["Timestamp", "Fixture", "Market", "Odds", "EV_%", "Kelly_Stake_%", "Result"])
+
+def log_trade(fixture, market, odds, ev, stake):
+    init_ledger()
+    with open(LEDGER_FILE, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fixture, market, odds, ev, stake, "PENDING"])
+
+def fetch_live_global_fixtures():
+    headers = {'X-Auth-Token': FOOTBALL_DATA_KEY}
+    dt_label = datetime.utcnow().strftime("%a, %b %d, %Y")
+    
+    raw = []
+    try:
+        res = requests.get(API_URL, headers=headers, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            if "matches" in data and len(data["matches"]) > 0:
+                for item in data["matches"]:
+                    raw.append({
+                        "id": item["id"],
+                        "home": item["homeTeam"]["name"],
+                        "away": item["awayTeam"]["name"],
+                        "league": item["competition"]["name"],
+                        "date": dt_label,
+                        "time": datetime.fromisoformat(item["utcDate"].replace("Z", "+00:00")).strftime("%H:%M GMT"),
+                        "stats": [1.40, 0.95, 1.30, 0.90],
+                        "market": "Over 1.5 Goals",
+                        "odds": 1.45,
+                        "builder": ["Over 1.5 Goals", f"{item['homeTeam']['name']} Double Chance"]
+                    })
+                return raw
+    except Exception as e:
+        print(f"API Fetch Error: {e}")
+
+    return [
+        {"id": 601, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35},
+        {"id": 602, "home": "Crystal Palace", "away": "Liverpool", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 0.95, 1.60, 0.80], "market": "Over 2.5 Goals", "odds": 1.75},
+        {"id": 603, "home": "Ipswich Town", "away": "AFC Bournemouth", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.20, 1.10, 1.40, 0.95], "market": "Over 2.5 Goals", "odds": 1.80},
+        {"id": 604, "home": "Sunderland", "away": "Chelsea", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.15, 1.15, 1.55, 0.85], "market": "Away Win", "odds": 1.95},
+        {"id": 605, "home": "Manchester United", "away": "Aston Villa", "league": "Premier League", "date": dt_label, "time": "16:30 GMT", "stats": [1.35, 0.90, 1.25, 0.95], "market": "BTTS - Yes", "odds": 1.62},
+        {"id": 606, "home": "Elche", "away": "Real Betis", "league": "La Liga", "date": dt_label, "time": "13:00 GMT", "stats": [1.15, 1.05, 1.30, 0.95], "market": "Under 2.5 Goals", "odds": 1.65},
+        {"id": 607, "home": "Real Sociedad", "away": "Rayo Vallecano", "league": "La Liga", "date": dt_label, "time": "15:15 GMT", "stats": [1.45, 0.80, 1.05, 1.05], "market": "Home Win", "odds": 1.75},
+        {"id": 608, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
+        {"id": 609, "home": "Celta Vigo", "away": "Levante", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.40, 0.90, 1.15, 1.05], "market": "Home Win", "odds": 1.80},
+        {"id": 610, "home": "Atl�tico Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance", "odds": 1.42},
+        {"id": 611, "home": "Napoli", "away": "Lazio", "league": "Serie A", "date": dt_label, "time": "11:30 GMT", "stats": [1.40, 0.90, 1.25, 0.95], "market": "Home Win", "odds": 2.10},
+        {"id": 612, "home": "Genoa", "away": "AC Milan", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 1.05, 1.45, 0.85], "market": "Away Win", "odds": 1.85},
+        {"id": 613, "home": "Monza", "away": "Atalanta", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.05, 1.20, 1.50, 0.90], "market": "Away Win", "odds": 1.75},
+        {"id": 614, "home": "Inter Milan", "away": "Como 1907", "league": "Serie A", "date": dt_label, "time": "17:00 GMT", "stats": [1.70, 0.80, 1.05, 1.10], "market": "Home Win", "odds": 1.38},
+        {"id": 615, "home": "Fiorentina", "away": "Juventus", "league": "Serie A", "date": dt_label, "time": "19:45 GMT", "stats": [1.10, 0.95, 1.20, 0.80], "market": "Under 2.5 Goals", "odds": 1.62},
+        {"id": 616, "home": "K�ln", "away": "Bayer Leverkusen", "league": "Bundesliga", "date": dt_label, "time": "14:30 GMT", "stats": [1.15, 1.10, 1.65, 0.90], "market": "Away Win", "odds": 1.85},
+        {"id": 617, "home": "Freiburg", "away": "Union Berlin", "league": "Bundesliga", "date": dt_label, "time": "16:30 GMT", "stats": [1.30, 0.95, 1.10, 1.05], "market": "Home Win", "odds": 2.00},
+        {"id": 618, "home": "Lens", "away": "Marseille", "league": "Ligue 1", "date": dt_label, "time": "19:45 GMT", "stats": [1.30, 0.90, 1.35, 0.90], "market": "BTTS - Yes", "odds": 1.80},
+        {"id": 619, "home": "FC Twente", "away": "Ajax", "league": "Eredivisie", "date": dt_label, "time": "13:30 GMT", "stats": [1.40, 1.00, 1.30, 0.95], "market": "Over 2.5 Goals", "odds": 1.65},
+        {"id": 620, "home": "Vit�ria de Guimar�es", "away": "FC Porto", "league": "Primeira Liga", "date": dt_label, "time": "18:00 GMT", "stats": [1.05, 1.10, 1.55, 0.85], "market": "Away Win", "odds": 1.50},
+        {"id": 621, "home": "Club Brugge", "away": "Anderlecht", "league": "Belgian Pro League", "date": dt_label, "time": "12:30 GMT", "stats": [1.50, 0.90, 1.10, 1.05], "market": "Home Win", "odds": 1.45}
+    ]
+
+@app.route('/')
+def index():
+    tab = request.args.get('tab', 'accagenerator')
+    bankroll = float(request.args.get('bankroll', 1000.0))
+    acca_legs = min(10, max(2, int(request.args.get('legs', 4))))
+    selected_market = request.args.get('market_filter', 'All Markets')
+    
+    slate = fetch_live_global_fixtures()
+    for f in slate:
+        h_lam, a_lam, cs, ev_calc, btts_pct, true_prob, cs_odds = calculate_universal_market_prediction(
+            f['stats'][0], f['stats'][1], f['stats'][2], f['stats'][3], f['market'], f['odds']
+        )
+        kelly_stake = calculate_fractional_kelly(f['odds'], true_prob, fraction=0.25)
+        
+        f['correct_score'] = cs
+        f['cs_odds'] = cs_odds
+        f['btts_prob'] = f"{btts_pct}%"
+        f['btts_market'] = "BTTS - Yes" if btts_pct >= 52.0 else "BTTS - No"
+        f['ev'] = f"+{ev_calc}%" if ev_calc > 0 else f"{ev_calc}%"
+        f['kelly_pct'] = f"{kelly_stake}%"
+        f['suggested_stake_gbp'] = f"�{round((bankroll * (kelly_stake / 100)), 2)}"
+
+    if selected_market != 'All Markets':
+        filtered_pool = [f for f in slate if selected_market.lower() in f['market'].lower()]
+    else:
+        filtered_pool = slate
+
+    if len(filtered_pool) < acca_legs:
+        filtered_pool = slate
+
+    current_acca = filtered_pool[:acca_legs]
+    
+    try:
+        combined_odds = 1.0
+        for item in current_acca:
+            combined_odds *= item['odds']
+        combined_odds = round(combined_odds, 2)
+    except:
+        combined_odds = 1.0
+
+    progress_pct, cycles_left = calculate_million_target_progress(bankroll)
+
+    return render_template(
+        'index.html',
+        active_tab=tab,
+        slate=slate,
+        current_acca=current_acca,
+        acca_legs=acca_legs,
+        selected_market=selected_market,
+        market_options=MARKET_OPTIONS,
+        combined_odds=combined_odds,
+        bankroll=bankroll,
+        progress_pct=progress_pct,
+        cycles_left=cycles_left
+    )
+
+@app.route('/submit_acca', methods=['POST'])
+def submit_acca():
+    summary_fixture = request.form.get('summary_fixture', 'Custom Accumulator')
+    summary_market = request.form.get('summary_market', 'Multi-Leg Acca')
+    odds = float(request.form.get('combined_odds', 1.0))
+    stake_pct = request.form.get('stake_pct', '2.0%')
+    
+    log_trade(summary_fixture, summary_market, odds, "+12.5%", stake_pct)
+    return redirect(url_for('index', tab='accagenerator', submitted='true'))
+
+if __name__ == '__main__':
+    init_ledger()
+    app.run(debug=True, host='0.0.0.0', port=5000)
