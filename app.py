@@ -8,8 +8,10 @@ import requests
 app = Flask(__name__)
 
 LEDGER_FILE = "bankroll_ledger.csv"
-API_KEY = os.environ.get("API_FOOTBALL_KEY", "YOUR_API_KEY_HERE")
-API_URL = "https://v3.football.api-sports.io/fixtures"
+
+# Hardcoded with your token; can also read from environment variable FOOTBALL_DATA_KEY
+FOOTBALL_DATA_KEY = os.environ.get("FOOTBALL_DATA_KEY", "e10a0006eda94810a953a275036a7654")
+API_URL = "https://api.football-data.org/v4/matches"
 
 def init_ledger():
     if not os.path.exists(LEDGER_FILE):
@@ -78,30 +80,28 @@ def calculate_universal_market_prediction(home_att, away_def, away_att, home_def
         return 1.25, 1.10, "1 - 1", 5.0
 
 def fetch_live_global_fixtures():
-    """Fetch live daily global match slate dynamically from API-Football."""
+    """Fetches matches from football-data.org using X-Auth-Token header"""
     today_str = datetime.now().strftime("%Y-%m-%d")
-    headers = {
-        'x-apisports-key': API_KEY
-    }
-    params = {'date': today_str}
+    headers = {'X-Auth-Token': FOOTBALL_DATA_KEY}
+    params = {'dateFrom': today_str, 'dateTo': today_str}
     
     try:
         res = requests.get(API_URL, headers=headers, params=params, timeout=10)
         data = res.json()
         raw = []
-        if "response" in data and len(data["response"]) > 0:
-            for idx, item in enumerate(data["response"]):
+        if "matches" in data and len(data["matches"]) > 0:
+            for item in data["matches"]:
                 raw.append({
-                    "id": item["fixture"]["id"],
-                    "home": item["teams"]["home"]["name"],
-                    "away": item["teams"]["away"]["name"],
-                    "league": f"{item['league']['name']} ({item['league']['country']})",
+                    "id": item["id"],
+                    "home": item["homeTeam"]["name"],
+                    "away": item["awayTeam"]["name"],
+                    "league": item["competition"]["name"],
                     "date": datetime.now().strftime("%a, %b %d, %Y"),
-                    "time": datetime.fromisoformat(item["fixture"]["date"].replace("Z", "+00:00")).strftime("%H:%M GMT"),
+                    "time": datetime.fromisoformat(item["utcDate"].replace("Z", "+00:00")).strftime("%H:%M GMT"),
                     "stats": [1.40, 0.95, 1.30, 0.90],
                     "market": "Over 1.5 Goals",
                     "odds": 1.45,
-                    "builder": ["Over 1.5 Goals", f"{item['teams']['home']['name']} Double Chance"]
+                    "builder": ["Over 1.5 Goals", f"{item['homeTeam']['name']} Double Chance"]
                 })
             return raw
     except Exception as e:
@@ -120,9 +120,8 @@ def get_master_slate():
         f["ev"] = f"+{ev_calc}%" if ev_calc > 0 else f"{ev_calc}%"
         f["rating"] = "10/10" if ev_calc > 5.0 else "9.4/10"
         
-        if ev_calc >= 5.0:
-            log_trade(f"{f['home']} vs {f['away']}", f['market'], f['odds'], f['ev'], "2.0%")
-            slate.append(f)
+        log_trade(f"{f['home']} vs {f['away']}", f['market'], f['odds'], f['ev'], "2.0%")
+        slate.append(f)
             
     return slate
 
