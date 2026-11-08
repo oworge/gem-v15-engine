@@ -27,9 +27,12 @@ def index():
     filtered_pool = slate if selected_market == 'All' else [f for f in slate if selected_market.lower() in f['market'].lower()]
     current_acca = filtered_pool[:acca_legs]
     
-    combined_odds = round(product := __import__('functools').reduce(lambda x, y: x * y, [l['odds'] for l in current_acca], 1.0), 2) if current_acca else 1.0
+    combined_odds = 1.0
+    for l in current_acca:
+        combined_odds *= l['odds']
+    combined_odds = round(combined_odds, 2)
 
     return render_template('index.html', active_tab=tab, slate=slate, current_acca=current_acca, acca_legs=acca_legs, selected_market=selected_market, combined_odds=combined_odds)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)

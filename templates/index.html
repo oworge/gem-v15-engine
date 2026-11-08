@@ -2,27 +2,28 @@
 <html>
 <head>
     <title>EDGEMETRIX V300 - Syndicate Command HQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background: #07090e; color: #f1f5f9; font-family: system-ui, sans-serif; margin: 0; padding: 25px; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; }
-        h1 { font-size: 22px; color: #38bdf8; margin: 0; }
+        body { background: #07090e; color: #f1f5f9; font-family: system-ui, sans-serif; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        h1 { font-size: 20px; color: #38bdf8; margin: 0; }
         .nav-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 25px; background: #111827; padding: 12px; border-radius: 8px; border: 1px solid #374151; }
         .tab-btn { background: #1f2937; color: #94a3b8; border: 1px solid #4b5563; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 13px; display: inline-block; }
         .tab-btn.active { background: #0284c7; color: #ffffff; border-color: #38bdf8; }
         .card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
-        .match-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: #fff; }
+        .match-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; color: #fff; flex-wrap: wrap; gap: 8px; }
         .badge { background: #064e3b; color: #4ade80; border: 1px solid #059669; font-size: 11px; padding: 3px 10px; border-radius: 4px; }
         .badge-hq { background: #78350f; color: #fcd34d; border: 1px solid #d97706; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: bold; }
-        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 15px; background: #030712; padding: 12px; border-radius: 8px; font-size: 13px; }
         .metric-val { color: #38bdf8; font-weight: bold; }
-        .controls-bar { background: #111827; padding: 15px; border-radius: 8px; border: 1px solid #374151; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; }
+        .controls-bar { background: #111827; padding: 15px; border-radius: 8px; border: 1px solid #374151; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         select { background: #1f2937; color: #fff; border: 1px solid #4b5563; padding: 6px 12px; border-radius: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>EDGEMETRIX V300 <span class="badge-hq">Syndicate Command HQ</span></h1>
-        <span style="color: #94a3b8;">GEM V6.1 Engine | Kelly Staking Active</span>
+        <span style="color: #94a3b8; font-size: 12px;">GEM V6.1 Engine | Kelly Staking Active</span>
     </div>
 
     <div class="nav-tabs">
@@ -89,7 +90,7 @@
             <input type="hidden" name="tab" value="accagen">
             <div class="controls-bar">
                 <div>
-                    <label style="font-weight: bold; margin-right: 8px;">Number of Legs:</label>
+                    <label style="font-weight: bold; margin-right: 8px; font-size: 13px;">Number of Legs:</label>
                     <select name="legs" onchange="this.form.submit()">
                         <option value="2" {% if acca_legs == 2 %}selected{% endif %}>2-Fold</option>
                         <option value="3" {% if acca_legs == 3 %}selected{% endif %}>3-Fold</option>
@@ -98,7 +99,7 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-weight: bold; margin-right: 8px;">Market Filter:</label>
+                    <label style="font-weight: bold; margin-right: 8px; font-size: 13px;">Market Filter:</label>
                     <select name="market_filter" onchange="this.form.submit()">
                         <option value="All" {% if selected_market == 'All' %}selected{% endif %}>All Markets</option>
                         <option value="Double Chance" {% if selected_market == 'Double Chance' %}selected{% endif %}>Double Chance</option>
