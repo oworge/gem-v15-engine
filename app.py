@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
 import math
 import csv
@@ -10,6 +10,17 @@ app = Flask(__name__)
 LEDGER_FILE = "bankroll_ledger.csv"
 FOOTBALL_DATA_KEY = os.environ.get("FOOTBALL_DATA_KEY", "e10a0006eda94810a953a275036a7654")
 API_URL = "https://api.football-data.org/v4/matches"
+
+MARKET_OPTIONS = [
+    "All Markets",
+    "Over 1.5 Goals",
+    "Over 2.5 Goals",
+    "BTTS - Yes",
+    "Home Win",
+    "Away Win",
+    "Under 2.5 Goals",
+    "Double Chance"
+]
 
 def calculate_fractional_kelly(odds, true_prob, fraction=0.25):
     b = odds - 1.0
@@ -65,7 +76,7 @@ def fetch_live_global_fixtures():
     dt_label = datetime.utcnow().strftime("%a, %b %d, %Y")
     return [
         {"id": 601, "home": "Brighton & Hove Albion", "away": "Brentford", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.45, 1.00, 1.35, 1.05], "market": "Over 1.5 Goals", "odds": 1.35},
-        {"id": 602, "home": "Crystal Palace", "away": "Liverpool", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 0.95, 1.60, 0.80], "market": "Liverpool Win & Over 1.5", "odds": 1.75},
+        {"id": 602, "home": "Crystal Palace", "away": "Liverpool", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 0.95, 1.60, 0.80], "market": "Over 2.5 Goals", "odds": 1.75},
         {"id": 603, "home": "Ipswich Town", "away": "AFC Bournemouth", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.20, 1.10, 1.40, 0.95], "market": "Over 2.5 Goals", "odds": 1.80},
         {"id": 604, "home": "Sunderland", "away": "Chelsea", "league": "Premier League", "date": dt_label, "time": "14:00 GMT", "stats": [1.15, 1.15, 1.55, 0.85], "market": "Away Win", "odds": 1.95},
         {"id": 605, "home": "Manchester United", "away": "Aston Villa", "league": "Premier League", "date": dt_label, "time": "16:30 GMT", "stats": [1.35, 0.90, 1.25, 0.95], "market": "BTTS - Yes", "odds": 1.62},
@@ -73,7 +84,7 @@ def fetch_live_global_fixtures():
         {"id": 607, "home": "Real Sociedad", "away": "Rayo Vallecano", "league": "La Liga", "date": dt_label, "time": "15:15 GMT", "stats": [1.45, 0.80, 1.05, 1.05], "market": "Home Win", "odds": 1.75},
         {"id": 608, "home": "Villarreal", "away": "Getafe", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.50, 0.85, 1.10, 1.00], "market": "Home Win", "odds": 1.45},
         {"id": 609, "home": "Celta Vigo", "away": "Levante", "league": "La Liga", "date": dt_label, "time": "17:30 GMT", "stats": [1.40, 0.90, 1.15, 1.05], "market": "Home Win", "odds": 1.80},
-        {"id": 610, "home": "Atlético Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance: X2", "odds": 1.42},
+        {"id": 610, "home": "Atlético Madrid", "away": "Barcelona", "league": "La Liga", "date": dt_label, "time": "20:00 GMT", "stats": [1.20, 0.80, 1.45, 0.85], "market": "Double Chance", "odds": 1.42},
         {"id": 611, "home": "Napoli", "away": "Lazio", "league": "Serie A", "date": dt_label, "time": "11:30 GMT", "stats": [1.40, 0.90, 1.25, 0.95], "market": "Home Win", "odds": 2.10},
         {"id": 612, "home": "Genoa", "away": "AC Milan", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.10, 1.05, 1.45, 0.85], "market": "Away Win", "odds": 1.85},
         {"id": 613, "home": "Monza", "away": "Atalanta", "league": "Serie A", "date": dt_label, "time": "14:00 GMT", "stats": [1.05, 1.20, 1.50, 0.90], "market": "Away Win", "odds": 1.75},
@@ -89,8 +100,10 @@ def fetch_live_global_fixtures():
 
 @app.route('/')
 def index():
-    tab = request.args.get('tab', 'dailypicks')
+    tab = request.args.get('tab', 'accagenerator')
     bankroll = float(request.args.get('bankroll', 1000.0))
+    acca_legs = min(10, max(2, int(request.args.get('legs', 4))))
+    selected_market = request.args.get('market_filter', 'All Markets')
     
     slate = fetch_live_global_fixtures()
     for f in slate:
@@ -101,10 +114,53 @@ def index():
         f['ev'] = f"+{ev_calc}%"
         f['kelly_pct'] = f"{kelly_stake}%"
         f['suggested_stake_gbp'] = f"£{round((bankroll * (kelly_stake / 100)), 2)}"
-        
+
+    # Market Filtering
+    if selected_market != 'All Markets':
+        filtered_pool = [f for f in slate if selected_market.lower() in f['market'].lower()]
+    else:
+        filtered_pool = slate
+
+    # If filter yields fewer than requested legs, fallback to main pool
+    if len(filtered_pool) < acca_legs:
+        filtered_pool = slate
+
+    current_acca = filtered_pool[:acca_legs]
+    
+    # Combined Acca Odds Calculation
+    try:
+        combined_odds = 1.0
+        for item in current_acca:
+            combined_odds *= item['odds']
+        combined_odds = round(combined_odds, 2)
+    except:
+        combined_odds = 1.0
+
     progress_pct, cycles_left = calculate_million_target_progress(bankroll)
 
-    return render_template('index.html', active_tab=tab, slate=slate, bankroll=bankroll, progress_pct=progress_pct, cycles_left=cycles_left)
+    return render_template(
+        'index.html',
+        active_tab=tab,
+        slate=slate,
+        current_acca=current_acca,
+        acca_legs=acca_legs,
+        selected_market=selected_market,
+        market_options=MARKET_OPTIONS,
+        combined_odds=combined_odds,
+        bankroll=bankroll,
+        progress_pct=progress_pct,
+        cycles_left=cycles_left
+    )
+
+@app.route('/submit_acca', methods=['POST'])
+def submit_acca():
+    summary_fixture = request.form.get('summary_fixture', 'Custom Accumulator')
+    summary_market = request.form.get('summary_market', 'Multi-Leg Acca')
+    odds = float(request.form.get('combined_odds', 1.0))
+    stake_pct = request.form.get('stake_pct', '2.0%')
+    
+    log_trade(summary_fixture, summary_market, odds, "+12.5%", stake_pct)
+    return redirect(url_for('index', tab='accagenerator', submitted='true'))
 
 if __name__ == '__main__':
     init_ledger()
