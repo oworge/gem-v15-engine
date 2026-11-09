@@ -9,9 +9,9 @@ def get_fixture_slate():
         {"home": "Plymouth Parkway", "away": "Berkhamsted", "league": "English FA Cup", "date": "Mon 9 Nov", "time": "19:30 GMT", "market": "Home Win", "odds": "2.05", "ev": "+14.2%", "correct_score": "2-0", "cs_odds": "8.00", "btts_prob": "45.0%"},
         {"home": "Chelmsford", "away": "Ebbsfleet", "league": "National League South", "date": "Mon 9 Nov", "time": "19:45 GMT", "market": "BTTS - Yes", "odds": "1.75", "ev": "+12.5%", "correct_score": "1-1", "cs_odds": "6.50", "btts_prob": "68.0%"},
         {"home": "Kristiansund", "away": "Valerenga", "league": "Eliteserien", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Over 2.5 Goals", "odds": "1.80", "ev": "+16.1%", "correct_score": "2-1", "cs_odds": "9.00", "btts_prob": "62.4%"},
-        {"home": "Arsenal", "away": "Chelsea", "league": "Premier League", "date": "Tue 10 Nov", "time": "15:00 GMT", "market": "Home Win", "odds": "1.85", "ev": "+21.6%", "correct_score": "2-1", "cs_odds": "7.50", "btts_prob": "65.4%"},
-        {"home": "Manchester City", "away": "Liverpool", "league": "Premier League", "date": "Tue 10 Nov", "time": "17:30 GMT", "market": "Over 2.5 Goals", "odds": "1.72", "ev": "+18.4%", "correct_score": "2-2", "cs_odds": "9.20", "btts_prob": "74.1%"},
-        {"home": "Real Madrid", "away": "Barcelona", "league": "La Liga", "date": "Wed 11 Nov", "time": "20:00 GMT", "market": "BTTS - Yes", "odds": "1.65", "ev": "+15.8%", "correct_score": "1-2", "cs_odds": "8.00", "btts_prob": "71.0%"}
+        {"home": "CD Mafra", "away": "Torreense", "league": "Liga Portugal 2", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Under 2.5 Goals", "odds": "1.65", "ev": "+11.4%", "correct_score": "1-0", "cs_odds": "6.20", "btts_prob": "44.0%"},
+        {"home": "FC Dinamo București", "away": "Universitatea Cluj", "league": "Romanian Liga I", "date": "Mon 9 Nov", "time": "19:00 GMT", "market": "BTTS - Yes", "odds": "1.90", "ev": "+15.3%", "correct_score": "1-1", "cs_odds": "6.80", "btts_prob": "61.2%"},
+        {"home": "Pachuca", "away": "Club León", "league": "Liga MX", "date": "Mon 9 Nov", "time": "01:00 GMT", "market": "Home Win", "odds": "2.10", "ev": "+18.0%", "correct_score": "2-1", "cs_odds": "8.50", "btts_prob": "70.5%"}
     ]
 
 @app.route("/")
