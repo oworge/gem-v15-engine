@@ -1,7 +1,6 @@
 from flask import Flask, request
 from datetime import datetime, timedelta
 import requests
-import os
 
 app = Flask(__name__)
 
