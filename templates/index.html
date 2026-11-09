@@ -3,110 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDGEMETRIX V300 PRO — Syndicate Terminal</title>
+    <title>EDGEMETRIX V300 PRO — AI Scorecast Terminal</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f19; color: #e2e8f0; margin: 0; padding: 20px; }
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-        .tab-btn { background-color: #111827; color: #94a3b8; border: 1px solid #1e293b; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.15s ease; }
-        .tab-btn:hover { background-color: #1e293b; color: #f8fafc; }
-        .tab-btn.active { background-color: #2563eb; color: #ffffff; border-color: #3b82f6; box-shadow: 0 0 14px rgba(37, 99, 235, 0.45); }
-        .card { background-color: #111827; border-radius: 12px; padding: 20px; border: 1px solid #1e293b; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #1e293b; }
-        th { background-color: #0b0f19; color: #38bdf8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .badge { background-color: #10b981; color: #022c22; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
-        .badge-blue { background-color: #0284c7; color: #e0f2fe; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
-        .btn-log { background-color: #2563eb; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-log:hover { background-color: #1d4ed8; }
+        :root {
+            --bg-dark: #070b12;
+            --card-bg: #0f172a;
+            --card-border: #1e293b;
+            --gold-primary: #eab308;
+            --gold-gradient: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
+            --blue-accent: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* HEADER BADGE & TITLE */
+        .ai-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .ai-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            color: var(--gold-primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .ai-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 12px 0 4px 0;
+            letter-spacing: -0.02em;
+        }
+        .ai-title span {
+            color: var(--gold-primary);
+        }
+        .ai-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* QUICK STAT FEATURE GRID */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .feature-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .check-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: rgba(234, 179, 8, 0.2);
+            color: var(--gold-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* NAVIGATION TABS */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .tab-btn {
+            background-color: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+            padding: 10px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background: var(--gold-gradient);
+            color: #000;
+            border-color: var(--gold-primary);
+            font-weight: 700;
+            box-shadow: 0 0 16px rgba(234, 179, 8, 0.35);
+        }
+
+        /* MAIN SLATE CARDS */
+        .pick-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .pick-card.featured {
+            border: 1.5px solid var(--gold-primary);
+            box-shadow: 0 0 16px rgba(234, 179, 8, 0.15);
+        }
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            left: 16px;
+            background: var(--gold-gradient);
+            color: #000;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .league-title {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .ev-badge {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .teams {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(2, 6, 23, 0.5);
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+        .gold-btn {
+            width: 100%;
+            background: var(--gold-gradient);
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 16px;
+            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 
-    <!-- EXACT ORIGINAL NAVIGATION BAR WITH TRUE CLV ADDED -->
-    <div class="nav-tabs">
-        <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
-        <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
-        <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
-        <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS</a>
-        <a href="/?tab=tacticalhealth" class="tab-btn {% if active_tab == 'tacticalhealth' %}active{% endif %}">Tactical Health</a>
-        <a href="/?tab=clvaudit" class="tab-btn {% if active_tab == 'clvaudit' %}active{% endif %}">CLV Audit Ledger</a>
-        <a href="/?tab=true_clv" class="tab-btn {% if active_tab == 'true_clv' %}active{% endif %}">TRUE CLV</a>
-        <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
-        <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
+<div class="container">
+
+    <!-- PRO HEADER -->
+    <div class="ai-header">
+        <div class="ai-pill">👑 AI ANALYSIS ENGINE ACTIVE</div>
+        <h1 class="ai-title">AI Scorecast <span>PRO</span></h1>
+        <p class="ai-subtitle">High-Confluence Quantitative Betting Terminal</p>
     </div>
 
-    <!-- TRUE CLV TAB VIEW -->
-    {% if active_tab == 'true_clv' %}
-    <div class="card">
-        <h3 style="color: #38bdf8; margin-top: 0;">TRUE CLV — Unconstrained Slate Audit</h3>
-        <p style="color: #94a3b8; font-size: 14px;">All selections exposed with dynamic Poisson expectations, model edges, and entry benchmark targets.</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Match & League</th>
-                    <th>Date / Time</th>
-                    <th>Market Selection</th>
-                    <th>Entry Odds</th>
-                    <th>Model Edge (+EV)</th>
-                    <th>True CLV Target</th>
-                    <th>Tactical Health</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in slate %}
-                <tr>
-                    <td><strong>{{ item.home }} vs {{ item.away }}</strong><br><small style="color: #64748b;">{{ item.league }}</small></td>
-                    <td>{{ item.date }}<br><small style="color: #64748b;">{{ item.time }}</small></td>
-                    <td><span style="color: #f59e0b; font-weight: bold;">{{ item.market }}</span></td>
-                    <td><strong>{{ item.odds }}</strong></td>
-                    <td><span class="badge">{{ item.ev }}</span></td>
-                    <td><span class="badge-blue">{{ item.clv_benchmark }}</span></td>
-                    <td><small>{{ item.tactical_health }}</small></td>
-                    <td>
-                        <form action="/" method="POST" style="margin:0;">
-                            <input type="hidden" name="home" value="{{ item.home }}">
-                            <input type="hidden" name="away" value="{{ item.away }}">
-                            <input type="hidden" name="market" value="{{ item.market }}">
-                            <input type="hidden" name="odds" value="{{ item.odds }}">
-                            <input type="hidden" name="stake" value="10.0">
-                            <input type="hidden" name="clv_edge" value="{{ item.clv_edge_pct }}">
-                            <button type="submit" class="btn-log">Log Bet</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- FEATURE GRID -->
+    <div class="feature-grid">
+        <div class="feature-card"><div class="check-icon">✓</div> Dynamic Poisson λ</div>
+        <div class="feature-card"><div class="check-icon">✓</div> Over 1.5 Goal Floor</div>
+        <div class="feature-card"><div class="check-icon">✓</div> Double Chance Buffers</div>
+        <div class="feature-card"><div class="check-icon">✓</div> +10% EV Value Filter</div>
     </div>
-    {% else %}
-    <!-- DEFAULT BOARD DISPLAY FOR ALL OTHER TABS -->
-    <div class="card">
-        <h3 style="color: #38bdf8; margin-top: 0;">{{ active_tab|upper }}</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Match</th>
-                    <th>League</th>
-                    <th>Market</th>
-                    <th>Odds</th>
-                    <th>Edge</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in slate %}
-                <tr>
-                    <td><strong>{{ item.home }} vs {{ item.away }}</strong></td>
-                    <td><small style="color: #64748b;">{{ item.league }}</small></td>
-                    <td>{{ item.market }}</td>
-                    <td><strong>{{ item.odds }}</strong></td>
-                    <td><span class="badge">{{ item.ev }}</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <!-- TAB NAVIGATION ROW -->
+    <div class="nav-tabs">
+        <a href="/?tab=true_clv" class="tab-btn {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}active{% endif %}">TRUE CLV</a>
+        <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
+        <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
+        <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
+        <a href="/?tab=tacticalhealth" class="tab-btn {% if active_tab == 'tacticalhealth' %}active{% endif %}">Tactical Health</a>
     </div>
-    {% endif %}
+
+    <!-- SELECTION CARDS VIEW -->
+    {% for item in slate %}
+    <div class="pick-card {% if loop.first %}featured{% endif %}">
+        {% if loop.first %}<div class="popular-badge">TOP VALUE PICK</div>{% endif %}
+        <div class="match-header">
+            <span class="league-title">{{ item.league }} • {{ item.time }}</span>
+            <span class="ev-badge">{{ item.ev }} EV</span>
+        </div>
+        <div class="teams">{{ item.home }} vs {{ item.away }}</div>
+        <div class="stats-row">
+            <div>Market: <strong style="color: var(--gold-primary);">{{ item.market }}</strong></div>
+            <div>Odds: <strong>{{ item.odds }}</strong></div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- ACTION BUTTON -->
+    <a href="/?tab=accagenerator" class="gold-btn">
+        EXECUTE PHASE 1 ACCA →
+    </a>
+
+</div>
 
 </body>
 </html>
