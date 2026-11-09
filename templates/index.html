@@ -27,7 +27,6 @@
             padding: 0 0 24px 0;
         }
 
-        /* HEADER BANNER MATCHING THE IMAGE STRUCTURE & COLORS */
         .hero-banner {
             position: relative;
             background: linear-gradient(180deg, rgba(7, 11, 18, 0.4) 0%, rgba(7, 11, 18, 0.95) 100%),
@@ -61,7 +60,6 @@
             margin: 0 0 8px 0;
             letter-spacing: -0.02em;
             color: #ffffff;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
         }
         .hero-title span {
             color: var(--gold-primary);
@@ -75,14 +73,12 @@
             font-size: 14px;
             max-width: 500px;
             margin: 0 auto;
-            line-height: 1.4;
         }
 
         .main-container {
             padding: 0 24px;
         }
 
-        /* HORIZONTAL PILL TAB NAVIGATION BAR */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -115,7 +111,6 @@
             font-weight: 800;
         }
 
-        /* DASHBOARD CARDS & TABLES */
         .card {
             background-color: var(--card-bg);
             border-radius: 16px;
@@ -135,7 +130,6 @@
             font-weight: 800;
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
         table {
             width: 100%;
@@ -152,186 +146,6 @@
             color: var(--gold-primary);
             font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .badge-green {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 12px;
-        }
-        .badge-gold {
-            background-color: rgba(250, 204, 21, 0.15);
-            color: var(--gold-primary);
-            border: 1px solid rgba(250, 204, 21, 0.3);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 12px;
-        }
-        .btn-log {
-            background: var(--gold-gradient
-cd C:\Users\User\gem-v15-engine
-
-@'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDGEMETRIX V300 PRO — Syndicate Terminal</title>
-    <style>
-        :root {
-            --bg-dark: #070b12;
-            --card-bg: #0d1527;
-            --card-border: #1e293b;
-            --tab-bg: #0d1527;
-            --tab-border: #1e2d4a;
-            --tab-hover-bg: #14213d;
-            --gold-primary: #facc15;
-            --gold-gradient: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-            --gold-shadow: rgba(250, 204, 21, 0.4);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0 0 24px 0;
-        }
-
-        /* HERO STADIUM BANNER HEADER */
-        .hero-banner {
-            position: relative;
-            background: linear-gradient(180deg, rgba(7, 11, 18, 0.4) 0%, rgba(7, 11, 18, 0.95) 100%),
-                        url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;
-            padding: 40px 20px 28px 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--card-border);
-            margin-bottom: 24px;
-        }
-
-        .ai-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(13, 21, 39, 0.85);
-            border: 1px solid rgba(250, 204, 21, 0.5);
-            color: var(--gold-primary);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
-            margin-bottom: 14px;
-        }
-
-        .hero-title {
-            font-size: 34px;
-            font-weight: 900;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.02em;
-            color: #ffffff;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-        }
-        .hero-title span {
-            color: var(--gold-primary);
-            background: var(--gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-subtitle {
-            color: var(--text-muted);
-            font-size: 14px;
-            max-width: 500px;
-            margin: 0 auto;
-            line-height: 1.4;
-        }
-
-        .main-container {
-            padding: 0 24px;
-        }
-
-        /* HORIZONTAL PILL TAB NAVIGATION BAR */
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .tab-btn {
-            background-color: var(--tab-bg);
-            color: var(--text-muted);
-            border: 1px solid var(--tab-border);
-            padding: 10px 20px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        .tab-btn:hover {
-            background-color: var(--tab-hover-bg);
-            color: var(--text-main);
-            border-color: rgba(250, 204, 21, 0.4);
-        }
-        .tab-btn.active {
-            background: var(--gold-gradient);
-            color: #000000;
-            border-color: var(--gold-primary);
-            box-shadow: 0 0 16px var(--gold-shadow);
-            font-weight: 800;
-        }
-
-        /* CARDS & TABLES */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1.5px solid var(--card-border);
-            margin-bottom: 20px;
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .card-title {
-            color: var(--gold-primary);
-            font-size: 18px;
-            font-weight: 800;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        th, td {
-            padding: 14px 12px;
-            border-bottom: 1px solid var(--card-border);
-            font-size: 14px;
-        }
-        th {
-            background-color: rgba(7, 11, 18, 0.7);
-            color: var(--gold-primary);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
         .badge-green {
             background-color: rgba(16, 185, 129, 0.15);
@@ -360,17 +174,26 @@ cd C:\Users\User\gem-v15-engine
             cursor: pointer;
             font-weight: 800;
             font-size: 13px;
-            box-shadow: 0 2px 10px rgba(250, 204, 21, 0.2);
-            transition: transform 0.1s ease;
         }
-        .btn-log:hover {
-            transform: scale(1.03);
+
+        .builder-grid {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .builder-item {
+            background-color: rgba(7, 11, 18, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
 <body>
 
-    <!-- STADIUM HERO BANNER -->
     <div class="hero-banner">
         <div class="ai-pill">👑 AI ANALYSIS ENGINE ACTIVE</div>
         <h1 class="hero-title">EDGEMETRIX V300 <span>PRO</span></h1>
@@ -378,7 +201,6 @@ cd C:\Users\User\gem-v15-engine
     </div>
 
     <div class="main-container">
-        <!-- NAVIGATION BAR -->
         <div class="nav-tabs">
             <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
             <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
@@ -391,7 +213,40 @@ cd C:\Users\User\gem-v15-engine
             <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
         </div>
 
-        <!-- MAIN TERMINAL TABLE -->
+        {% if active_tab == 'betbuilder' %}
+        <!-- BET BUILDER TAB: 5 SELECTIONS PER 1 FIXTURE -->
+        {% for match in builder_slate %}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title" style="margin:0;">{{ match.home }} vs {{ match.away }}</h3>
+                    <small style="color: var(--text-muted);">{{ match.league }} • {{ match.date }} ({{ match.time }})</small>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color: var(--text-muted); font-size: 12px;">5-LEG BUILDER ODDS:</span><br>
+                    <strong style="color: var(--gold-primary); font-size: 18px;">{{ match.combined_odds }}</strong>
+                </div>
+            </div>
+
+            <div class="builder-grid">
+                {% for leg in match.builder_legs %}
+                <div class="builder-item">
+                    <div>
+                        <span style="color: var(--gold-primary); font-weight:700;">Leg {{ loop.index }}:</span>
+                        <span>{{ leg.selection }}</span>
+                    </div>
+                    <div>
+                        <strong style="margin-right:10px;">{{ leg.odds }}</strong>
+                        <span class="badge-green">{{ leg.ev }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        {% else %}
+        <!-- DEFAULT TERMINAL TABLE -->
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">
@@ -449,6 +304,8 @@ cd C:\Users\User\gem-v15-engine
                 </tbody>
             </table>
         </div>
+        {% endif %}
+
     </div>
 
 </body>

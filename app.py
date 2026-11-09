@@ -76,6 +76,43 @@ def generate_true_clv_fixture(home_team, away_team, league, date, time, home_sta
         "btts_prob": f"{round(p_btts * 100, 1)}%"
     }
 
+def get_bet_builder_fixtures():
+    """
+    Returns 5 correlated micro-selections for a single fixture slate.
+    """
+    return [
+        {
+            "home": "Plymouth Parkway",
+            "away": "Berkhamsted",
+            "league": "English FA Cup",
+            "date": "Mon 9 Nov",
+            "time": "14:30 GMT",
+            "builder_legs": [
+                {"selection": "Double Chance: 1X (Home Win or Draw)", "odds": "1.30", "ev": "+12.4%"},
+                {"selection": "Over 1.5 Match Goals", "odds": "1.25", "ev": "+11.8%"},
+                {"selection": "Plymouth Parkway Over 0.5 First Half Goals", "odds": "1.55", "ev": "+14.1%"},
+                {"selection": "BTTS - Yes", "odds": "1.65", "ev": "+10.5%"},
+                {"selection": "Berkhamsted Under 1.5 Team Goals", "odds": "1.36", "ev": "+13.2%"}
+            ],
+            "combined_odds": "5.62"
+        },
+        {
+            "home": "Torreense",
+            "away": "União de Leiria",
+            "league": "Liga Portugal 2",
+            "date": "Mon 9 Nov",
+            "time": "20:15 GMT",
+            "builder_legs": [
+                {"selection": "Double Chance: 1X (Home Win or Draw)", "odds": "1.35", "ev": "+13.0%"},
+                {"selection": "Over 1.5 Match Goals", "odds": "1.28", "ev": "+10.9%"},
+                {"selection": "BTTS - Yes", "odds": "1.78", "ev": "+14.5%"},
+                {"selection": "Torreense Over 0.5 Team Goals", "odds": "1.22", "ev": "+11.2%"},
+                {"selection": "Half-Time Draw", "odds": "2.00", "ev": "+12.8%"}
+            ],
+            "combined_odds": "7.52"
+        }
+    ]
+
 def get_full_fixture_slate():
     return [
         generate_true_clv_fixture(
@@ -120,6 +157,7 @@ def get_full_fixture_slate():
 def index():
     active_tab = request.args.get("tab", "dailypicks")
     full_slate = get_full_fixture_slate()
+    builder_slate = get_bet_builder_fixtures()
     
     if request.method == "POST":
         home = request.form.get("home")
@@ -137,29 +175,6 @@ def index():
         conn.close()
         return redirect(url_for('index', tab='true_clv'))
 
-    try:
-        acca_legs = int(request.args.get("legs", 3))
-    except (ValueError, TypeError):
-        acca_legs = 3
-        
-    selected_market = request.args.get("market_filter", "All")
-    market_options = ["All", "Home Win", "Away Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
-    
-    if selected_market != "All":
-        filtered_slate = [f for f in full_slate if selected_market in f["market"]]
-    else:
-        filtered_slate = full_slate
-        
-    current_acca = filtered_slate[:acca_legs] if len(filtered_slate) >= acca_legs else full_slate[:acca_legs]
-    
-    combined = 1.0
-    for item in current_acca:
-        try:
-            combined *= float(item["odds"])
-        except (ValueError, TypeError):
-            pass
-    combined_odds = round(combined, 2)
-
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("SELECT home, away, market, odds, stake, status, clv_edge FROM tracked_slips")
@@ -170,12 +185,7 @@ def index():
         "index.html",
         active_tab=active_tab,
         slate=full_slate,
-        filtered_slate=filtered_slate,
-        current_acca=current_acca,
-        acca_legs=acca_legs,
-        market_options=market_options,
-        selected_market=selected_market,
-        combined_odds=combined_odds,
+        builder_slate=builder_slate,
         tracked_bets=tracked_bets
     )
 
