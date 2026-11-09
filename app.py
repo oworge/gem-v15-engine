@@ -1,13 +1,21 @@
+import os
 from flask import Flask, render_template, request
-app = Flask(__name__)
+
+app = Flask(__name__, template_folder='templates')
 
 @app.route('/')
 def index():
-    tab = request.args.get('tab', 'dailypicks')
-    dailypicks = [{'home': 'Arsenal', 'away': 'Chelsea', 'market': 'Home Win', 'odds': '1.85'}]
-    btts_slate = [{'home': 'Real Madrid', 'away': 'Barcelona', 'market': 'BTTS - Yes', 'odds': '1.70'}]
-    acca_slate = [{'home': 'Dortmund', 'away': 'Bayern', 'market': 'Over 2.5', 'odds': '1.90'}]
-    return render_template('index.html', active_tab=tab, dailypicks=dailypicks, btts_slate=btts_slate, acca_slate=acca_slate)
+    active_tab = request.args.get('tab', 'dailypicks')
+    daily_picks = [
+        {'match': 'Arsenal vs Chelsea', 'league': 'Premier League', 'market': 'Home Win', 'odds': '1.85', 'ev': '+8.4%'}
+    ]
+    btts_slate = [
+        {'match': 'Torreense vs Uniao de Leiria', 'league': 'Liga Portugal 2', 'market': 'BTTS - Yes', 'odds': '1.78'}
+    ]
+    acca_legs = [
+        {'match': 'Arsenal vs Chelsea', 'market': 'Home Win', 'odds': '1.85'}
+    ]
+    return render_template('index.html', active_tab=active_tab, daily_picks=daily_picks, btts_slate=btts_slate, acca_legs=acca_legs)
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(debug=True, port=5000)
