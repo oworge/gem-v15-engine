@@ -19,7 +19,8 @@ def init_db():
             market TEXT,
             odds TEXT,
             stake REAL,
-            status TEXT
+            status TEXT,
+            clv_edge TEXT
         )
     """)
     conn.commit()
@@ -30,34 +31,31 @@ init_db()
 def poisson_probability(lam, k):
     return (math.exp(-lam) * (lam ** k)) / math.factorial(k)
 
-def calculate_dynamic_lambdas(home_stats, away_stats, league_avg_home_goals, league_avg_away_goals):
-    """
-    10/10 Dynamic Lambda Engine:
-    Calculates expected goals (lambda) based on rolling team attack/defense ratings 
-    and league scoring baselines, completely eliminating static guesswork.
-    """
+def calculate_dynamic_lambdas(home_stats, away_stats, league_avg_home_goals=1.45, league_avg_away_goals=1.15):
     home_attack = home_stats.get("goals_scored_home", 1.5) / league_avg_home_goals
     home_defense = home_stats.get("goals_conceded_home", 1.0) / league_avg_away_goals
     
     away_attack = away_stats.get("goals_scored_away", 1.2) / league_avg_away_goals
     away_defense = away_stats.get("goals_conceded_away", 1.3) / league_avg_home_goals
     
-    # Expected goals formula: Attack Strength * Opponent Defense Strength * League Average
     lambda_home = round(home_attack * away_defense * league_avg_home_goals, 2)
     lambda_away = round(away_attack * home_defense * league_avg_away_goals, 2)
     
     return max(lambda_home, 0.2), max(lambda_away, 0.2)
 
-def generate_oracle_fixture(home_team, away_team, league, date, time, home_stats, away_stats, market, odds, ev, league_h_avg=1.45, league_a_avg=1.15):
+def generate_true_clv_fixture(home_team, away_team, league, date, time, home_stats, away_stats, market, odds, ev_raw, league_h_avg=1.45, league_a_avg=1.15):
     lam_home, lam_away = calculate_dynamic_lambdas(home_stats, away_stats, league_h_avg, league_a_avg)
     
-    # Exact Poisson Probability Distributons
     p_home_win = sum(poisson_probability(lam_home, i) * poisson_probability(lam_away, j) for i in range(6) for j in range(6) if i > j)
     p_draw = sum(poisson_probability(lam_home, i) * poisson_probability(lam_away, i) for i in range(6))
     p_away_win = 1.0 - p_home_win - p_draw
     
-    p_over_25 = 1.0 - sum(poisson_probability(lam_home, i) * poisson_probability(lam_away, j) for i in range(3) for j in range(3) if i + j <= 2)
     p_btts = (1.0 - poisson_probability(lam_home, 0)) * (1.0 - poisson_probability(lam_away, 0))
+    total_xG = round(lam_home + lam_away, 2)
+    ev_numeric = float(ev_raw.replace("+", "").replace("%", ""))
+    
+    clv_target = round(float(odds) * 0.97, 2)
+    clv_edge_pct = round(ev_numeric * 0.25, 1)
     
     return {
         "home": home_team,
@@ -67,46 +65,61 @@ def generate_oracle_fixture(home_team, away_team, league, date, time, home_stats
         "time": time,
         "market": market,
         "odds": odds,
-        "ev": ev,
+        "ev": ev_raw,
+        "ev_numeric": ev_numeric,
+        "total_xg": total_xG,
         "tactical_health": f"Oracle Verified (λH: {lam_home}, λA: {lam_away})",
-        "clv_benchmark": f"{round(float(odds)*0.97, 2)} (+{round(float(ev.replace('+','').replace('%',''))*0.25, 1)}% Edge)",
+        "clv_benchmark": f"{clv_target} (+{clv_edge_pct}% CLV Edge)",
+        "clv_edge_pct": f"+{clv_edge_pct}%",
         "correct_score": f"{round(lam_home)}-{round(lam_away)}",
         "cs_odds": str(round(7.0 + (abs(lam_home - lam_away) * 1.8), 2)),
         "btts_prob": f"{round(p_btts * 100, 1)}%"
     }
 
-def get_fixture_slate():
+def get_full_fixture_slate():
     return [
-        generate_oracle_fixture(
+        generate_true_clv_fixture(
             "FC Botoșani", "Oțelul Galați", "Romanian SuperLiga", "Mon 9 Nov", "18:00 GMT",
             {"goals_scored_home": 1.6, "goals_conceded_home": 0.9},
             {"goals_scored_away": 1.0, "goals_conceded_away": 1.4},
             "Under 2.5 Goals", "1.68", "+12.1%"
         ),
-        generate_oracle_fixture(
+        generate_true_clv_fixture(
             "Torreense", "União de Leiria", "Liga Portugal 2", "Mon 9 Nov", "20:15 GMT",
             {"goals_scored_home": 1.4, "goals_conceded_home": 1.1},
             {"goals_scored_away": 1.3, "goals_conceded_away": 1.2},
             "BTTS - Yes", "1.78", "+14.5%"
         ),
-        generate_oracle_fixture(
+        generate_true_clv_fixture(
             "Plymouth Parkway", "Berkhamsted", "English FA Cup", "Mon 9 Nov", "14:30 GMT",
             {"goals_scored_home": 2.1, "goals_conceded_home": 0.8},
             {"goals_scored_away": 0.9, "goals_conceded_away": 1.8},
             "Home Win", "2.05", "+14.2%"
         ),
-        generate_oracle_fixture(
+        generate_true_clv_fixture(
             "Hacken W", "Chelsea W", "Women's Champions League", "Mon 9 Nov", "17:45 GMT",
             {"goals_scored_home": 1.8, "goals_conceded_home": 1.5},
             {"goals_scored_away": 2.4, "goals_conceded_away": 0.6},
             "Over 2.5 Goals", "1.72", "+16.8%"
+        ),
+        generate_true_clv_fixture(
+            "Real Madrid W", "Paris FC W", "Women's Champions League", "Mon 9 Nov", "17:45 GMT",
+            {"goals_scored_home": 2.0, "goals_conceded_home": 0.7},
+            {"goals_scored_away": 1.1, "goals_conceded_away": 1.5},
+            "Home Win", "1.60", "+15.0%"
+        ),
+        generate_true_clv_fixture(
+            "Inter Milan W", "Man City W", "Women's Champions League", "Mon 9 Nov", "20:00 GMT",
+            {"goals_scored_home": 1.2, "goals_conceded_home": 1.6},
+            {"goals_scored_away": 2.2, "goals_conceded_away": 0.8},
+            "Away Win", "1.80", "+18.2%"
         )
     ]
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     active_tab = request.args.get("tab", "dailypicks")
-    slate = get_fixture_slate()
+    full_slate = get_full_fixture_slate()
     
     if request.method == "POST":
         home = request.form.get("home")
@@ -114,27 +127,30 @@ def index():
         market = request.form.get("market")
         odds = request.form.get("odds")
         stake = float(request.form.get("stake", 10.0))
+        clv_edge = request.form.get("clv_edge", "+0.0%")
         
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tracked_slips (home, away, market, odds, stake, status) VALUES (?, ?, ?, ?, ?, ?)",
-                       (home, away, market, odds, stake, "Active / Auditing"))
+        cursor.execute("INSERT INTO tracked_slips (home, away, market, odds, stake, status, clv_edge) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                       (home, away, market, odds, stake, "Active / Auditing", clv_edge))
         conn.commit()
         conn.close()
-        return redirect(url_for('index', tab='clvaudit'))
+        return redirect(url_for('index', tab='true_clv'))
 
     try:
         acca_legs = int(request.args.get("legs", 3))
     except (ValueError, TypeError):
         acca_legs = 3
         
-    selected_market = request.args.get("market_filter", "Home Win")
-    market_options = ["Home Win", "Over 2.5 Goals", "BTTS - Yes", "Under 2.5 Goals"]
+    selected_market = request.args.get("market_filter", "All")
+    market_options = ["All", "Home Win", "Away Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
     
-    filtered_slate = [f for f in slate if selected_market in f["market"] or selected_market == "All"]
-    current_acca = filtered_slate[:acca_legs] if filtered_slate else slate[:acca_legs]
-    if not current_acca:
-        current_acca = slate[:3]
+    if selected_market != "All":
+        filtered_slate = [f for f in full_slate if selected_market in f["market"]]
+    else:
+        filtered_slate = full_slate
+        
+    current_acca = filtered_slate[:acca_legs] if len(filtered_slate) >= acca_legs else full_slate[:acca_legs]
     
     combined = 1.0
     for item in current_acca:
@@ -146,14 +162,15 @@ def index():
 
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT home, away, market, odds, stake, status FROM tracked_slips")
+    cursor.execute("SELECT home, away, market, odds, stake, status, clv_edge FROM tracked_slips")
     tracked_bets = cursor.fetchall()
     conn.close()
 
     return render_template(
         "index.html",
         active_tab=active_tab,
-        slate=slate,
+        slate=full_slate,
+        filtered_slate=filtered_slate,
         current_acca=current_acca,
         acca_legs=acca_legs,
         market_options=market_options,
