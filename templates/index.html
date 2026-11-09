@@ -6,17 +6,18 @@
     <title>EDGEMETRIX V300 PRO — Syndicate Terminal</title>
     <style>
         :root {
-            --bg-dark: #070913;
-            --card-bg: #0f172a;
+            /* COLOR PALETTE FROM IMAGE 2 (AI SCORECAST PRO) */
+            --bg-dark: #070b12;
+            --card-bg: #0d1527;
             --card-border: #1e293b;
-            --tab-bg: #111827;
-            --tab-border: #1e293b;
-            --tab-hover: #1e293b;
-            --tab-active-bg: #2563eb;
-            --tab-active-shadow: rgba(37, 99, 235, 0.5);
+            --tab-bg: #0d1527;
+            --tab-border: #1e2d4a;
+            --tab-hover-bg: #14213d;
+            --gold-primary: #facc15;
+            --gold-gradient: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
+            --gold-shadow: rgba(250, 204, 21, 0.4);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --cyan-accent: #38bdf8;
             --emerald-badge: #10b981;
         }
 
@@ -28,16 +29,19 @@
             padding: 24px;
         }
 
-        /* MAIN HEADING */
+        /* EDGEMETRIX V300 PRO HEADER WITH GOLD PRO BADGE */
         .terminal-header {
             margin-bottom: 24px;
         }
         .terminal-header h1 {
-            color: var(--cyan-accent);
-            font-size: 26px;
-            font-weight: 800;
+            color: var(--text-main);
+            font-size: 28px;
+            font-weight: 900;
             margin: 0 0 6px 0;
             letter-spacing: -0.01em;
+        }
+        .terminal-header h1 span {
+            color: var(--gold-primary);
         }
         .terminal-header p {
             color: var(--text-muted);
@@ -45,7 +49,7 @@
             margin: 0;
         }
 
-        /* HORIZONTAL PILL NAVIGATION BAR (MATCHING YOUR IMAGE EXACTLY) */
+        /* HORIZONTAL PILL TAB NAVIGATION BAR (IMAGE 1 LAYOUT + IMAGE 2 COLORS) */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -55,34 +59,35 @@
         }
         .tab-btn {
             background-color: var(--tab-bg);
-            color: #d1d5db;
+            color: var(--text-muted);
             border: 1px solid var(--tab-border);
             padding: 10px 20px;
             border-radius: 12px;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
             transition: all 0.2s ease;
             white-space: nowrap;
         }
         .tab-btn:hover {
-            background-color: var(--tab-hover);
-            color: #ffffff;
+            background-color: var(--tab-hover-bg);
+            color: var(--text-main);
+            border-color: rgba(250, 204, 21, 0.4);
         }
         .tab-btn.active {
-            background-color: var(--tab-active-bg);
-            color: #ffffff;
-            border-color: #3b82f6;
-            box-shadow: 0 0 16px var(--tab-active-shadow);
-            font-weight: 600;
+            background: var(--gold-gradient);
+            color: #000000;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 16px var(--gold-shadow);
+            font-weight: 800;
         }
 
         /* DASHBOARD CARDS & TABLES */
         .card {
             background-color: var(--card-bg);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 20px;
-            border: 1px solid var(--card-border);
+            border: 1.5px solid var(--card-border);
             margin-bottom: 20px;
         }
         .card-header {
@@ -92,11 +97,12 @@
             margin-bottom: 16px;
         }
         .card-title {
-            color: var(--cyan-accent);
+            color: var(--gold-primary);
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
             margin: 0;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         table {
             width: 100%;
@@ -109,8 +115,8 @@
             font-size: 14px;
         }
         th {
-            background-color: rgba(15, 23, 42, 0.8);
-            color: var(--cyan-accent);
+            background-color: rgba(7, 11, 18, 0.7);
+            color: var(--gold-primary);
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -124,27 +130,29 @@
             font-weight: 700;
             font-size: 12px;
         }
-        .badge-blue {
-            background-color: rgba(56, 189, 248, 0.15);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+        .badge-gold {
+            background-color: rgba(250, 204, 21, 0.15);
+            color: var(--gold-primary);
+            border: 1px solid rgba(250, 204, 21, 0.3);
             padding: 4px 10px;
             border-radius: 6px;
             font-weight: 700;
             font-size: 12px;
         }
         .btn-log {
-            background-color: #2563eb;
-            color: white;
+            background: var(--gold-gradient);
+            color: #000000;
             border: none;
-            padding: 7px 16px;
+            padding: 8px 18px;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 800;
             font-size: 13px;
+            box-shadow: 0 2px 10px rgba(250, 204, 21, 0.2);
+            transition: transform 0.1s ease;
         }
         .btn-log:hover {
-            background-color: #1d4ed8;
+            transform: scale(1.03);
         }
     </style>
 </head>
@@ -152,11 +160,11 @@
 
     <!-- EDGEMETRIX V300 PRO HEADER -->
     <div class="terminal-header">
-        <h1>EDGEMETRIX V300 PRO</h1>
+        <h1>EDGEMETRIX V300 <span>PRO</span></h1>
         <p>Quantitative Football Prediction Engine & Syndicate Execution Terminal</p>
     </div>
 
-    <!-- HORIZONTAL DARK-PILL TAB NAVIGATION BAR -->
+    <!-- EXACT IMAGE 1 HORIZONTAL TAB BAR WITH IMAGE 2 GOLD COLOR PALETTE -->
     <div class="nav-tabs">
         <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
         <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
@@ -169,12 +177,12 @@
         <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
     </div>
 
-    <!-- MAIN SLATE DISPLAY -->
+    <!-- MAIN DASHBOARD CONTAINER -->
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
                 {% if active_tab == 'true_clv' %}
-                    TRUE CLV — AUDIT SLATE
+                    TRUE CLV — UNCONSTRAINED SLATE
                 {% else %}
                     {{ active_tab|replace('_', ' ')|upper }}
                 {% endif %}
@@ -204,11 +212,11 @@
                         <small style="color: var(--text-muted);">{{ item.league }}</small>
                     </td>
                     <td>{{ item.date }}<br><small style="color: var(--text-muted);">{{ item.time }}</small></td>
-                    <td><strong style="color: #f59e0b;">{{ item.market }}</strong></td>
+                    <td><strong style="color: var(--gold-primary);">{{ item.market }}</strong></td>
                     <td><strong>{{ item.odds }}</strong></td>
                     <td><span class="badge-green">{{ item.ev }}</span></td>
                     {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}
-                    <td><span class="badge-blue">{{ item.clv_benchmark }}</span></td>
+                    <td><span class="badge-gold">{{ item.clv_benchmark }}</span></td>
                     <td><small style="color: var(--text-muted);">{{ item.tactical_health }}</small></td>
                     {% endif %}
                     <td>
