@@ -52,30 +52,39 @@
         .fixture-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 22px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .fixture-title { font-size: 1.1rem; font-weight: 700; color: #f9fafb; margin-bottom: 4px; }
         .fixture-meta { font-size: 0.82rem; color: #38bdf8; margin-bottom: 12px; font-weight: 500; }
-        .fixture-details { display: flex; gap: 30px; font-size: 0.9rem; color: #d1d5db; background: rgba(7, 9, 19, 0.6); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); flex-wrap: wrap; }
+        .fixture-details { display: flex; gap: 30px; font-size: 0.9rem; color: #d1d5db; background: rgba(7, 9, 19, 0.6); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); flex-wrap: wrap; align-items: center; }
 
         .pill-green { background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3); }
         .pill-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(56, 189, 248, 0.3); }
         .pill-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .pill-score { background: #1e3a8a; color: #93c5fd; padding: 5px 12px; border-radius: 6px; font-weight: 700; border: 1px solid #3b82f6; }
+
+        .vip-btn { background: var(--gold-gradient); color: #070913; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; transition: transform 0.2s; }
+        .vip-btn:hover { transform: scale(1.03); }
+        input, select { background: #111827; color: white; border: 1px solid var(--border-active); padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="hero-banner">
-        <div class="hero-badge">👑 GEM V6.1 Engine Active</div>
+        <div class="hero-badge">👑 10/10 Syndicate Master Engine Active</div>
         <h1 class="hero-title">EDGEMETRIX V300 PRO</h1>
-        <p class="hero-subtitle">Equipped with Tactical Health & Closing Line Value (CLV) Audit modules.</p>
+        <p class="hero-subtitle">Live Poisson Probability Model & SQLite Database CLV Ledger Enabled.</p>
     </div>
 
     <div class="nav-tabs">
         <a href="/?tab=dailypicks" class="nav-tab {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
+        <a href="/?tab=allfixtures" class="nav-tab {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
+        <a href="/?tab=betbuilder" class="nav-tab {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
+        <a href="/?tab=btts" class="nav-tab {% if active_tab == 'btts' %}active{% endif %}">BTTS</a>
         <a href="/?tab=tacticalhealth" class="nav-tab {% if active_tab == 'tacticalhealth' %}active{% endif %}">Tactical Health</a>
-        <a href="/?tab=clvaudit" class="nav-tab {% if active_tab == 'clvaudit' %}active{% endif %}">CLV Audit</a>
+        <a href="/?tab=clvaudit" class="nav-tab {% if active_tab == 'clvaudit' %}active{% endif %}">CLV Audit Ledger</a>
         <a href="/?tab=accagenerator" class="nav-tab {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
+        <a href="/?tab=correctscore" class="nav-tab {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
     </div>
 
     {% if active_tab == 'dailypicks' %}
-    <h2 style="margin-bottom: 20px; font-size: 1.25rem; color: #fde68a;">🔥 Daily High-Confluence Selections</h2>
+    <h2 style="margin-bottom: 20px; font-size: 1.25rem; color: #fde68a;">🔥 Daily High-Confluence Selections (Poisson Calibrated)</h2>
     {% for item in slate %}
     <div class="fixture-card">
         <div class="fixture-title">{{ item.home }} vs {{ item.away }}</div>
@@ -84,20 +93,32 @@
             <div>Market: <span class="pill-green">{{ item.market }}</span></div>
             <div>Odds: <span class="pill-blue">{{ item.odds }}</span></div>
             <div>Model EV: <span class="pill-purple">{{ item.ev }}</span></div>
+            <div>
+                <form method="POST" action="/" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+                    <input type="hidden" name="home" value="{{ item.home }}">
+                    <input type="hidden" name="away" value="{{ item.away }}">
+                    <input type="hidden" name="market" value="{{ item.market }}">
+                    <input type="hidden" name="odds" value="{{ item.odds }}">
+                    <label style="font-size: 0.8rem; color: #9ca3af;">Stake (£):</label>
+                    <input type="number" name="stake" value="10" min="1" step="1" style="width: 60px;">
+                    <button type="submit" class="vip-btn">Lock & Audit</button>
+                </form>
+            </div>
         </div>
     </div>
     {% endfor %}
 
-    {% elif active_tab == 'tacticalhealth' %}
+    {% elif active_tab == 'allfixtures' %}
     <div class="card">
-        <h2>🛡️ Tactical Health & Fatigue Audit</h2>
+        <h2>Complete Global Fixture Pool</h2>
         <table>
             <thead>
                 <tr>
                     <th>Fixture</th>
                     <th>League</th>
-                    <th>Tactical Health Status</th>
-                    <th>Model Integrity</th>
+                    <th>Date & Time</th>
+                    <th>Market</th>
+                    <th>Odds</th>
                 </tr>
             </thead>
             <tbody>
@@ -105,8 +126,94 @@
                 <tr>
                     <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
                     <td>{{ item.league }}</td>
-                    <td><span class="pill-blue">{{ item.tactical_health }}</span></td>
-                    <td><span class="pill-green">Passed V6.1 Filters</span></td>
+                    <td>{{ item.date }} — {{ item.time }}</td>
+                    <td><span class="pill-blue">{{ item.market }}</span></td>
+                    <td><strong>{{ item.odds }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% elif active_tab == 'betbuilder' %}
+    <div class="card">
+        <h2>5-Leg Smart Bet Builder Selections</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fixture</th>
+                    <th>League</th>
+                    <th>Date</th>
+                    <th>5-Leg Combo Package</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in slate %}
+                <tr>
+                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.league }}</td>
+                    <td>{{ item.date }}</td>
+                    <td>
+                        <ol style="margin: 0; padding-left: 20px; color: #fbbf24; line-height: 1.6;">
+                            <li>Result / Double Chance: <span style="color: #f3f4f6;">{{ item.home }} Win or Draw</span></li>
+                            <li>Total Goals: <span style="color: #f3f4f6;">Over 1.5 Match Goals</span></li>
+                            <li>Both Teams To Score: <span style="color: #f3f4f6;">BTTS - Yes</span></li>
+                            <li>Player Prop / Fouls: <span style="color: #f3f4f6;">Over 1.5 Shots on Target</span></li>
+                            <li>Discipline / Cards: <span style="color: #f3f4f6;">Over 3.5 Total Cards</span></li>
+                        </ol>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% elif active_tab == 'btts' %}
+    <div class="card">
+        <h2>Both Teams To Score (BTTS) Specials</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fixture</th>
+                    <th>League</th>
+                    <th>Date</th>
+                    <th>BTTS Market & Probability</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in slate %}
+                <tr>
+                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.league }}</td>
+                    <td>{{ item.date }}</td>
+                    <td><span class="pill-green">BTTS - Yes</span> &nbsp;(Prob: <span class="pill-blue">{{ item.btts_prob }}</span>)</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% elif active_tab == 'tacticalhealth' %}
+    <div class="card">
+        <h2>🛡️ Tactical Health & Poisson Expectancy Matrix</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fixture</th>
+                    <th>League</th>
+                    <th>Predicted Score</th>
+                    <th>BTTS Prob</th>
+                    <th>Health Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in slate %}
+                <tr>
+                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.league }}</td>
+                    <td><span class="pill-blue">{{ item.correct_score }}</span></td>
+                    <td><span class="pill-green">{{ item.btts_prob }}</span></td>
+                    <td>{{ item.tactical_health }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -115,27 +222,34 @@
 
     {% elif active_tab == 'clvaudit' %}
     <div class="card">
-        <h2>📊 Closing Line Value (CLV) Audit Matrix</h2>
+        <h2>📊 Live SQLite CLV Audit Ledger</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Reviewing all bets locked directly from your daily picks terminal against closing market benchmarks.</p>
         <table>
             <thead>
                 <tr>
                     <th>Fixture</th>
                     <th>Market</th>
                     <th>Locked Odds</th>
-                    <th>Estimated Closing Line</th>
-                    <th>Beaten Line Edge</th>
+                    <th>Stake (£)</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                {% for item in slate %}
-                <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
-                    <td><span class="pill-blue">{{ item.market }}</span></td>
-                    <td><strong>{{ item.odds }}</strong></td>
-                    <td>{{ item.clv_benchmark.split(' ')[0] }}</td>
-                    <td><span class="pill-green">{{ item.clv_benchmark.split(' ')[1] }}</span></td>
-                </tr>
-                {% endfor %}
+                {% if tracked_bets %}
+                    {% for bet in tracked_bets %}
+                    <tr>
+                        <td><strong>{{ bet[0] }}</strong> vs {{ bet[1] }}</td>
+                        <td><span class="pill-blue">{{ bet[2] }}</span></td>
+                        <td><strong>{{ bet[3] }}</strong></td>
+                        <td>£{{ bet[4] }}</td>
+                        <td><span class="pill-green">{{ bet[5] }}</span></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">No active bets logged in database yet. Lock a pick from the Daily Picks tab!</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
@@ -143,6 +257,19 @@
     {% elif active_tab == 'accagenerator' %}
     <div class="card">
         <h2>Acca Generator & Value Accumulator</h2>
+        <form method="GET" action="/" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <input type="hidden" name="tab" value="accagenerator">
+            <label>Legs (2-10):</label>
+            <input type="number" name="legs" value="{{ acca_legs }}" min="2" max="10" style="width: 70px;">
+            <label>Market Filter:</label>
+            <select name="market_filter">
+                {% for m in market_options %}
+                <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="vip-btn" style="padding: 6px 14px;">Generate</button>
+        </form>
+
         <h3>Active Acca Slip (Combined Odds: <span class="pill-blue">{{ combined_odds }}</span>)</h3>
         <table>
             <thead>
@@ -162,6 +289,35 @@
                     <td><span class="pill-blue">{{ item.market }}</span></td>
                     <td><strong>{{ item.odds }}</strong></td>
                     <td><span class="pill-green">{{ item.ev }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% elif active_tab == 'correctscore' %}
+    <div class="card">
+        <h2>Gavin Browne Correct Score Matrix & Poisson Projections</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fixture</th>
+                    <th>League</th>
+                    <th>Date</th>
+                    <th>Predicted Score</th>
+                    <th>CS Odds</th>
+                    <th>BTTS Probability</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in slate %}
+                <tr>
+                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
+                    <td>{{ item.league }}</td>
+                    <td>{{ item.date }}</td>
+                    <td><span class="pill-score">{{ item.correct_score }}</span></td>
+                    <td><span class="pill-blue">{{ item.cs_odds }}</span></td>
+                    <td><span class="pill-green">{{ item.btts_prob }}</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
