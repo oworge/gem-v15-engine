@@ -6,11 +6,12 @@ app = Flask(__name__, template_folder=template_dir)
 
 def get_fixture_slate():
     return [
+        {"home": "FC Botoșani", "away": "Oțelul Galați", "league": "Romanian SuperLiga", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Under 2.5 Goals", "odds": "1.68", "ev": "+12.1%", "correct_score": "1-0", "cs_odds": "6.20", "btts_prob": "46.0%"},
         {"home": "Torreense", "away": "União de Leiria", "league": "Liga Portugal 2", "date": "Mon 9 Nov", "time": "20:15 GMT", "market": "BTTS - Yes", "odds": "1.78", "ev": "+14.5%", "correct_score": "1-1", "cs_odds": "6.50", "btts_prob": "54.0%"},
-        {"home": "FC Botoșani", "away": "Oțelul Galați", "league": "Romanian Liga I", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Under 2.5 Goals", "odds": "1.68", "ev": "+12.1%", "correct_score": "1-0", "cs_odds": "6.20", "btts_prob": "46.0%"},
-        {"home": "Plymouth Parkway", "away": "Berkhamsted", "league": "English FA Cup", "date": "Mon 9 Nov", "time": "19:30 GMT", "market": "Home Win", "odds": "2.05", "ev": "+14.2%", "correct_score": "2-0", "cs_odds": "8.00", "btts_prob": "45.0%"},
-        {"home": "Chelmsford", "away": "Ebbsfleet", "league": "National League South", "date": "Mon 9 Nov", "time": "19:45 GMT", "market": "BTTS - Yes", "odds": "1.75", "ev": "+12.5%", "correct_score": "1-1", "cs_odds": "6.50", "btts_prob": "68.0%"},
-        {"home": "Kristiansund", "away": "Vålerenga", "league": "Eliteserien", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Over 2.5 Goals", "odds": "1.80", "ev": "+16.1%", "correct_score": "2-1", "cs_odds": "9.00", "btts_prob": "62.4%"}
+        {"home": "Plymouth Parkway", "away": "Berkhamsted", "league": "English FA Cup", "date": "Mon 9 Nov", "time": "14:30 GMT", "market": "Home Win", "odds": "2.05", "ev": "+14.2%", "correct_score": "2-0", "cs_odds": "8.00", "btts_prob": "45.0%"},
+        {"home": "Hacken W", "away": "Chelsea W", "league": "Women's Champions League", "date": "Mon 9 Nov", "time": "17:45 GMT", "market": "Over 2.5 Goals", "odds": "1.72", "ev": "+16.8%", "correct_score": "1-2", "cs_odds": "8.50", "btts_prob": "72.0%"},
+        {"home": "Real Madrid W", "away": "Paris FC W", "league": "Women's Champions League", "date": "Mon 9 Nov", "time": "17:45 GMT", "market": "Home Win", "odds": "1.60", "ev": "+15.0%", "correct_score": "2-0", "cs_odds": "7.00", "btts_prob": "55.0%"},
+        {"home": "Inter Milan W", "away": "Man City W", "league": "Women's Champions League", "date": "Mon 9 Nov", "time": "20:00 GMT", "market": "Away Win", "odds": "1.80", "ev": "+18.2%", "correct_score": "1-3", "cs_odds": "9.50", "btts_prob": "68.5%"}
     ]
 
 @app.route("/")
@@ -24,7 +25,7 @@ def index():
         acca_legs = 3
         
     selected_market = request.args.get("market_filter", "Home Win")
-    market_options = ["Home Win", "Over 2.5 Goals", "BTTS - Yes", "Under 2.5 Goals", "Over 1.5 Goals"]
+    market_options = ["Home Win", "Over 2.5 Goals", "BTTS - Yes", "Under 2.5 Goals", "Away Link"]
     
     filtered_slate = [f for f in slate if selected_market in f["market"] or selected_market == "All"]
     current_acca = filtered_slate[:acca_legs] if filtered_slate else slate[:acca_legs]
