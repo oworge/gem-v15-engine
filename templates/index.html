@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDGEMETRIX V300 PRO — AI Scorecast Terminal</title>
+    <title>EDGEMETRIX V300 PRO — Syndicate Terminal</title>
     <style>
         :root {
-            --bg-dark: #070b12;
+            --bg-dark: #070913;
             --card-bg: #0f172a;
             --card-border: #1e293b;
-            --gold-primary: #eab308;
-            --gold-gradient: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-            --blue-accent: #2563eb;
+            --tab-bg: #111827;
+            --tab-border: #1e293b;
+            --tab-hover: #1e293b;
+            --tab-active-bg: #2563eb;
+            --tab-active-shadow: rgba(37, 99, 235, 0.5);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --cyan-accent: #38bdf8;
+            --emerald-badge: #10b981;
         }
 
         body {
@@ -21,239 +25,208 @@
             background-color: var(--bg-dark);
             color: var(--text-main);
             margin: 0;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 24px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-        }
-
-        /* HEADER BADGE & TITLE */
-        .ai-header {
-            text-align: center;
+        /* MAIN HEADING */
+        .terminal-header {
             margin-bottom: 24px;
         }
-        .ai-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(234, 179, 8, 0.1);
-            border: 1px solid rgba(234, 179, 8, 0.3);
-            color: var(--gold-primary);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+        .terminal-header h1 {
+            color: var(--cyan-accent);
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
         }
-        .ai-title {
-            font-size: 32px;
-            font-weight: 900;
-            margin: 12px 0 4px 0;
-            letter-spacing: -0.02em;
-        }
-        .ai-title span {
-            color: var(--gold-primary);
-        }
-        .ai-subtitle {
+        .terminal-header p {
             color: var(--text-muted);
             font-size: 14px;
             margin: 0;
         }
 
-        /* QUICK STAT FEATURE GRID */
-        .feature-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .feature-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .check-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background-color: rgba(234, 179, 8, 0.2);
-            color: var(--gold-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        /* NAVIGATION TABS */
+        /* HORIZONTAL PILL NAVIGATION BAR (MATCHING YOUR IMAGE EXACTLY) */
         .nav-tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 6px;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: center;
         }
         .tab-btn {
-            background-color: var(--card-bg);
-            color: var(--text-muted);
-            border: 1px solid var(--card-border);
-            padding: 10px 16px;
-            border-radius: 10px;
+            background-color: var(--tab-bg);
+            color: #d1d5db;
+            border: 1px solid var(--tab-border);
+            padding: 10px 20px;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
-            white-space: nowrap;
+            font-weight: 500;
+            font-size: 14px;
             transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            background-color: var(--tab-hover);
+            color: #ffffff;
         }
         .tab-btn.active {
-            background: var(--gold-gradient);
-            color: #000;
-            border-color: var(--gold-primary);
-            font-weight: 700;
-            box-shadow: 0 0 16px rgba(234, 179, 8, 0.35);
+            background-color: var(--tab-active-bg);
+            color: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 16px var(--tab-active-shadow);
+            font-weight: 600;
         }
 
-        /* MAIN SLATE CARDS */
-        .pick-card {
+        /* DASHBOARD CARDS & TABLES */
+        .card {
             background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
             border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            position: relative;
+            margin-bottom: 20px;
         }
-        .pick-card.featured {
-            border: 1.5px solid var(--gold-primary);
-            box-shadow: 0 0 16px rgba(234, 179, 8, 0.15);
-        }
-        .popular-badge {
-            position: absolute;
-            top: -10px;
-            left: 16px;
-            background: var(--gold-gradient);
-            color: #000;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
-        .match-header {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 16px;
         }
-        .league-title {
-            color: var(--text-muted);
+        .card-title {
+            color: var(--cyan-accent);
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 14px;
+        }
+        th {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: var(--cyan-accent);
             font-size: 12px;
-            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        .ev-badge {
+        .badge-green {
             background-color: rgba(16, 185, 129, 0.15);
             color: #34d399;
             border: 1px solid rgba(52, 211, 153, 0.3);
-            padding: 2px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
+            font-weight: 700;
             font-size: 12px;
-            font-weight: 700;
         }
-        .teams {
-            font-size: 16px;
+        .badge-blue {
+            background-color: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 4px 10px;
+            border-radius: 6px;
             font-weight: 700;
-            margin-bottom: 12px;
+            font-size: 12px;
         }
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: rgba(2, 6, 23, 0.5);
-            padding: 10px 12px;
-            border-radius: 10px;
+        .btn-log {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
             font-size: 13px;
         }
-        .gold-btn {
-            width: 100%;
-            background: var(--gold-gradient);
-            color: #000;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 16px;
-            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
+        .btn-log:hover {
+            background-color: #1d4ed8;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-
-    <!-- PRO HEADER -->
-    <div class="ai-header">
-        <div class="ai-pill">👑 AI ANALYSIS ENGINE ACTIVE</div>
-        <h1 class="ai-title">AI Scorecast <span>PRO</span></h1>
-        <p class="ai-subtitle">High-Confluence Quantitative Betting Terminal</p>
+    <!-- EDGEMETRIX V300 PRO HEADER -->
+    <div class="terminal-header">
+        <h1>EDGEMETRIX V300 PRO</h1>
+        <p>Quantitative Football Prediction Engine & Syndicate Execution Terminal</p>
     </div>
 
-    <!-- FEATURE GRID -->
-    <div class="feature-grid">
-        <div class="feature-card"><div class="check-icon">✓</div> Dynamic Poisson λ</div>
-        <div class="feature-card"><div class="check-icon">✓</div> Over 1.5 Goal Floor</div>
-        <div class="feature-card"><div class="check-icon">✓</div> Double Chance Buffers</div>
-        <div class="feature-card"><div class="check-icon">✓</div> +10% EV Value Filter</div>
-    </div>
-
-    <!-- TAB NAVIGATION ROW -->
+    <!-- HORIZONTAL DARK-PILL TAB NAVIGATION BAR -->
     <div class="nav-tabs">
-        <a href="/?tab=true_clv" class="tab-btn {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}active{% endif %}">TRUE CLV</a>
         <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
-        <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
         <a href="/?tab=allfixtures" class="tab-btn {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
+        <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
+        <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS</a>
         <a href="/?tab=tacticalhealth" class="tab-btn {% if active_tab == 'tacticalhealth' %}active{% endif %}">Tactical Health</a>
+        <a href="/?tab=clvaudit" class="tab-btn {% if active_tab == 'clvaudit' %}active{% endif %}">CLV Audit Ledger</a>
+        <a href="/?tab=true_clv" class="tab-btn {% if active_tab == 'true_clv' %}active{% endif %}">TRUE CLV</a>
+        <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
+        <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
     </div>
 
-    <!-- SELECTION CARDS VIEW -->
-    {% for item in slate %}
-    <div class="pick-card {% if loop.first %}featured{% endif %}">
-        {% if loop.first %}<div class="popular-badge">TOP VALUE PICK</div>{% endif %}
-        <div class="match-header">
-            <span class="league-title">{{ item.league }} • {{ item.time }}</span>
-            <span class="ev-badge">{{ item.ev }} EV</span>
+    <!-- MAIN SLATE DISPLAY -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                {% if active_tab == 'true_clv' %}
+                    TRUE CLV — AUDIT SLATE
+                {% else %}
+                    {{ active_tab|replace('_', ' ')|upper }}
+                {% endif %}
+            </h2>
         </div>
-        <div class="teams">{{ item.home }} vs {{ item.away }}</div>
-        <div class="stats-row">
-            <div>Market: <strong style="color: var(--gold-primary);">{{ item.market }}</strong></div>
-            <div>Odds: <strong>{{ item.odds }}</strong></div>
-        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Fixture & League</th>
+                    <th>Date / Time</th>
+                    <th>Market Selection</th>
+                    <th>Entry Odds</th>
+                    <th>Model Edge (+EV)</th>
+                    {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}
+                    <th>True CLV Target</th>
+                    <th>Tactical Metrics</th>
+                    {% endif %}
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in slate %}
+                <tr>
+                    <td>
+                        <strong>{{ item.home }} vs {{ item.away }}</strong><br>
+                        <small style="color: var(--text-muted);">{{ item.league }}</small>
+                    </td>
+                    <td>{{ item.date }}<br><small style="color: var(--text-muted);">{{ item.time }}</small></td>
+                    <td><strong style="color: #f59e0b;">{{ item.market }}</strong></td>
+                    <td><strong>{{ item.odds }}</strong></td>
+                    <td><span class="badge-green">{{ item.ev }}</span></td>
+                    {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}
+                    <td><span class="badge-blue">{{ item.clv_benchmark }}</span></td>
+                    <td><small style="color: var(--text-muted);">{{ item.tactical_health }}</small></td>
+                    {% endif %}
+                    <td>
+                        <form action="/" method="POST" style="margin:0;">
+                            <input type="hidden" name="home" value="{{ item.home }}">
+                            <input type="hidden" name="away" value="{{ item.away }}">
+                            <input type="hidden" name="market" value="{{ item.market }}">
+                            <input type="hidden" name="odds" value="{{ item.odds }}">
+                            <input type="hidden" name="stake" value="10.0">
+                            <input type="hidden" name="clv_edge" value="{{ item.clv_edge_pct }}">
+                            <button type="submit" class="btn-log">Log Bet</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% endfor %}
-
-    <!-- ACTION BUTTON -->
-    <a href="/?tab=accagenerator" class="gold-btn">
-        EXECUTE PHASE 1 ACCA →
-    </a>
-
-</div>
 
 </body>
 </html>
