@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDGEMETRIX V300 PRO — Syndicate Terminal</title>
+    <title>EDGEMETRIX V300 PRO -- Syndicate Terminal</title>
     <style>
         :root {
             --bg-dark: #070b12;
@@ -214,7 +214,6 @@
         </div>
 
         {% if active_tab == 'betbuilder' %}
-        <!-- BET BUILDER TAB: 5 SELECTIONS PER 1 FIXTURE -->
         {% for match in builder_slate %}
         <div class="card">
             <div class="card-header">
@@ -246,12 +245,13 @@
         {% endfor %}
 
         {% else %}
-        <!-- DEFAULT TERMINAL TABLE -->
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">
                     {% if active_tab == 'true_clv' %}
-                        TRUE CLV — UNCONSTRAINED SLATE
+                        TRUE CLV -- UNCONSTRAINED SLATE
+                    {% elif active_tab == 'correctscore' %}
+                        CORRECT SCORE -- POISSON MODEL MATRIX
                     {% else %}
                         {{ active_tab|replace('_', ' ')|upper }}
                     {% endif %}
@@ -263,8 +263,13 @@
                     <tr>
                         <th>Fixture & League</th>
                         <th>Date / Time</th>
+                        {% if active_tab == 'correctscore' %}
+                        <th>Predicted Correct Score</th>
+                        <th>CS Model Odds</th>
+                        {% else %}
                         <th>Market Selection</th>
                         <th>Entry Odds</th>
+                        {% endif %}
                         <th>Model Edge (+EV)</th>
                         {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}
                         <th>True CLV Target</th>
@@ -281,8 +286,15 @@
                             <small style="color: var(--text-muted);">{{ item.league }}</small>
                         </td>
                         <td>{{ item.date }}<br><small style="color: var(--text-muted);">{{ item.time }}</small></td>
+                        
+                        {% if active_tab == 'correctscore' %}
+                        <td><strong style="color: var(--gold-primary); font-size: 16px;">Score: {{ item.correct_score }}</strong></td>
+                        <td><strong style="color: #ffffff;">{{ item.cs_odds }}</strong></td>
+                        {% else %}
                         <td><strong style="color: var(--gold-primary);">{{ item.market }}</strong></td>
                         <td><strong>{{ item.odds }}</strong></td>
+                        {% endif %}
+
                         <td><span class="badge-green">{{ item.ev }}</span></td>
                         {% if active_tab == 'true_clv' or active_tab == 'clvaudit' %}
                         <td><span class="badge-gold">{{ item.clv_benchmark }}</span></td>
@@ -292,8 +304,8 @@
                             <form action="/" method="POST" style="margin:0;">
                                 <input type="hidden" name="home" value="{{ item.home }}">
                                 <input type="hidden" name="away" value="{{ item.away }}">
-                                <input type="hidden" name="market" value="{{ item.market }}">
-                                <input type="hidden" name="odds" value="{{ item.odds }}">
+                                <input type="hidden" name="market" value="{% if active_tab == 'correctscore' %}Score: {{ item.correct_score }}{% else %}{{ item.market }}{% endif %}">
+                                <input type="hidden" name="odds" value="{% if active_tab == 'correctscore' %}{{ item.cs_odds }}{% else %}{{ item.odds }}{% endif %}">
                                 <input type="hidden" name="stake" value="10.0">
                                 <input type="hidden" name="clv_edge" value="{{ item.clv_edge_pct }}">
                                 <button type="submit" class="btn-log">Log Bet</button>
