@@ -1,60 +1,16 @@
 ﻿from flask import Flask, render_template, request
 import os
-import datetime
-import requests
 
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
 app = Flask(__name__, template_folder=template_dir)
 
 def get_fixture_slate():
-    today_str = datetime.date.today().strftime('%Y-%m-%d')
-    api_key = os.environ.get('API_KEY')
-    
-    # Attempt to fetch live fixtures automatically if API key exists
-    if api_key:
-        try:
-            url = f"https://v3.football.api-sports.io/fixtures?date={today_str}"
-            headers = {
-                'x-rapidapi-key': api_key,
-                'x-rapidapi-host': 'v3.football.api-sports.io'
-            }
-            response = requests.get(url, headers=headers, timeout=5)
-            data = response.json()
-            
-            fixtures = []
-            for match in data.get('response', [])[:12]:
-                home_team = match['teams']['home']['name']
-                away_team = match['teams']['away']['name']
-                league_name = match['league']['name']
-                kickoff_time = match['fixture']['date'][11:16] + " GMT"
-                match_date = match['fixture']['date'][:10]
-                
-                fixtures.append({
-                    "home": home_team,
-                    "away": away_team,
-                    "league": league_name,
-                    "date": match_date,
-                    "time": kickoff_time,
-                    "market": "Home Win",
-                    "odds": "1.85",
-                    "ev": "+15.0%",
-                    "correct_score": "2-1",
-                    "cs_odds": "7.50",
-                    "btts_prob": "65.0%"
-                })
-            if fixtures:
-                return fixtures
-        except Exception:
-            pass  # Fall back to curated slate if network or API call fails
-
-    # Curated global fallback slate for today
     return [
+        {"home": "Torreense", "away": "União de Leiria", "league": "Liga Portugal 2", "date": "Mon 9 Nov", "time": "20:15 GMT", "market": "BTTS - Yes", "odds": "1.78", "ev": "+14.5%", "correct_score": "1-1", "cs_odds": "6.50", "btts_prob": "54.0%"},
+        {"home": "FC Botoșani", "away": "Oțelul Galați", "league": "Romanian Liga I", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Under 2.5 Goals", "odds": "1.68", "ev": "+12.1%", "correct_score": "1-0", "cs_odds": "6.20", "btts_prob": "46.0%"},
         {"home": "Plymouth Parkway", "away": "Berkhamsted", "league": "English FA Cup", "date": "Mon 9 Nov", "time": "19:30 GMT", "market": "Home Win", "odds": "2.05", "ev": "+14.2%", "correct_score": "2-0", "cs_odds": "8.00", "btts_prob": "45.0%"},
         {"home": "Chelmsford", "away": "Ebbsfleet", "league": "National League South", "date": "Mon 9 Nov", "time": "19:45 GMT", "market": "BTTS - Yes", "odds": "1.75", "ev": "+12.5%", "correct_score": "1-1", "cs_odds": "6.50", "btts_prob": "68.0%"},
-        {"home": "Kristiansund", "away": "Valerenga", "league": "Eliteserien", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Over 2.5 Goals", "odds": "1.80", "ev": "+16.1%", "correct_score": "2-1", "cs_odds": "9.00", "btts_prob": "62.4%"},
-        {"home": "CD Mafra", "away": "Torreense", "league": "Liga Portugal 2", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Under 2.5 Goals", "odds": "1.65", "ev": "+11.4%", "correct_score": "1-0", "cs_odds": "6.20", "btts_prob": "44.0%"},
-        {"home": "FC Dinamo București", "away": "Universitatea Cluj", "league": "Romanian Liga I", "date": "Mon 9 Nov", "time": "19:00 GMT", "market": "BTTS - Yes", "odds": "1.90", "ev": "+15.3%", "correct_score": "1-1", "cs_odds": "6.80", "btts_prob": "61.2%"},
-        {"home": "Pachuca", "away": "Club León", "league": "Liga MX", "date": "Mon 9 Nov", "time": "01:00 GMT", "market": "Home Win", "odds": "2.10", "ev": "+18.0%", "correct_score": "2-1", "cs_odds": "8.50", "btts_prob": "70.5%"}
+        {"home": "Kristiansund", "away": "Vålerenga", "league": "Eliteserien", "date": "Mon 9 Nov", "time": "18:00 GMT", "market": "Over 2.5 Goals", "odds": "1.80", "ev": "+16.1%", "correct_score": "2-1", "cs_odds": "9.00", "btts_prob": "62.4%"}
     ]
 
 @app.route("/")
