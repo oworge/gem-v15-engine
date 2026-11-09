@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EDGEMETRIX V300 — Syndicate Command HQ</title>
+    <title>EDGEMETRIX V300 PRO — Syndicate Command HQ</title>
     <style>
         :root {
             --bg-main: #070913;
@@ -32,33 +32,9 @@
             overflow: hidden;
         }
 
-        .hero-banner::before {
-            content: "🔥";
-            position: absolute;
-            top: 12px;
-            left: 15px;
-            font-size: 1.8rem;
-            filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
-            z-index: 3;
-        }
-
-        .hero-banner::after {
-            content: "🔥";
-            position: absolute;
-            top: 12px;
-            right: 15px;
-            font-size: 1.8rem;
-            filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
-            z-index: 3;
-        }
-
-        .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(251, 191, 36, 0.1); color: var(--gold-text); border: 1px solid rgba(251, 191, 36, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; position: relative; z-index: 2; }
-        .hero-title { margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 30%, #fbbf24 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; position: relative; z-index: 2; }
-        .hero-subtitle { color: var(--text-muted); font-size: 0.95rem; margin: 0; position: relative; z-index: 2; }
-
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 25px; }
-        .feature-pill { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; font-size: 0.88rem; font-weight: 600; color: #e5e7eb; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .feature-pill span { color: #fbbf24; font-size: 1rem; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(251, 191, 36, 0.1); color: var(--gold-text); border: 1px solid rgba(251, 191, 36, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+        .hero-title { margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 30%, #fbbf24 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtitle { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
         .nav-tab { padding: 10px 18px; background: var(--bg-card); color: var(--text-muted); text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border-color); transition: all 0.2s ease; }
@@ -71,11 +47,9 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.92rem; }
         th { background: #111827; color: #93c5fd; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; border-top: 1px solid var(--border-color); }
-        tr { transition: background 0.15s ease; }
         tr:hover { background: var(--bg-hover); }
 
-        .fixture-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 22px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.2s ease, border-color 0.2s ease; }
-        .fixture-card:hover { transform: translateY(-2px); border-color: rgba(251, 191, 36, 0.4); }
+        .fixture-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 22px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .fixture-title { font-size: 1.1rem; font-weight: 700; color: #f9fafb; margin-bottom: 4px; }
         .fixture-meta { font-size: 0.82rem; color: #38bdf8; margin-bottom: 12px; font-weight: 500; }
         .fixture-details { display: flex; gap: 30px; font-size: 0.9rem; color: #d1d5db; background: rgba(7, 9, 19, 0.6); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); flex-wrap: wrap; }
@@ -83,64 +57,47 @@
         .pill-green { background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3); }
         .pill-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(56, 189, 248, 0.3); }
         .pill-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(168, 85, 247, 0.3); }
-        .pill-score { background: #1e3a8a; color: #93c5fd; padding: 5px 12px; border-radius: 6px; font-weight: 700; border: 1px solid #3b82f6; }
-
-        input, select { background: #111827; color: white; border: 1px solid var(--border-active); padding: 9px 14px; border-radius: 8px; font-size: 0.9rem; outline: none; }
-        input:focus, select:focus { border-color: #fbbf24; box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2); }
-        
-        .vip-btn { background: var(--gold-gradient); color: #070913; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4); transition: transform 0.2s; }
-        .vip-btn:hover { transform: scale(1.02); }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="hero-banner">
-        <div class="hero-badge">👑 AI Analysis Engine Active</div>
+        <div class="hero-badge">👑 GEM V6.1 Engine Active</div>
         <h1 class="hero-title">EDGEMETRIX V300 PRO</h1>
-        <p class="hero-subtitle">Manage your predictions with AI-powered Poisson modeling & syndicate analytics.</p>
-    </div>
-
-    <div class="feature-grid">
-        <div class="feature-pill"><span>✔</span> Live Poisson Predictions</div>
-        <div class="feature-pill"><span>✔</span> Goal Count Analytics</div>
-        <div class="feature-pill"><span>✔</span> Syndicate Combo Access</div>
-        <div class="feature-pill"><span>✔</span> Gavin Browne Correct Score</div>
+        <p class="hero-subtitle">Equipped with Tactical Health & Closing Line Value (CLV) Audit modules.</p>
     </div>
 
     <div class="nav-tabs">
         <a href="/?tab=dailypicks" class="nav-tab {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks</a>
-        <a href="/?tab=allfixtures" class="nav-tab {% if active_tab == 'allfixtures' %}active{% endif %}">All Fixtures</a>
-        <a href="/?tab=betbuilder" class="nav-tab {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder</a>
-        <a href="/?tab=btts" class="nav-tab {% if active_tab == 'btts' %}active{% endif %}">BTTS</a>
+        <a href="/?tab=tacticalhealth" class="nav-tab {% if active_tab == 'tacticalhealth' %}active{% endif %}">Tactical Health</a>
+        <a href="/?tab=clvaudit" class="nav-tab {% if active_tab == 'clvaudit' %}active{% endif %}">CLV Audit</a>
         <a href="/?tab=accagenerator" class="nav-tab {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
-        <a href="/?tab=correctscore" class="nav-tab {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score</a>
     </div>
 
     {% if active_tab == 'dailypicks' %}
-    <h2 style="margin-bottom: 20px; font-size: 1.25rem; color: #fde68a;">🔥 Daily Picks (High-Confidence Predictions Across All Markets)</h2>
+    <h2 style="margin-bottom: 20px; font-size: 1.25rem; color: #fde68a;">🔥 Daily High-Confluence Selections</h2>
     {% for item in slate %}
     <div class="fixture-card">
         <div class="fixture-title">{{ item.home }} vs {{ item.away }}</div>
-        <div class="fixture-meta">{{ item.league }} &bull; Kickoff: {{ item.time }}</div>
+        <div class="fixture-meta">{{ item.league }} &bull; Date: {{ item.date }} &bull; Kickoff: {{ item.time }}</div>
         <div class="fixture-details">
-            <div>Selected Market: <span class="pill-green">{{ item.market }}</span></div>
-            <div>Decimal Odds: <span class="pill-blue">{{ item.odds }}</span></div>
+            <div>Market: <span class="pill-green">{{ item.market }}</span></div>
+            <div>Odds: <span class="pill-blue">{{ item.odds }}</span></div>
             <div>Model EV: <span class="pill-purple">{{ item.ev }}</span></div>
         </div>
     </div>
     {% endfor %}
 
-    {% elif active_tab == 'allfixtures' %}
+    {% elif active_tab == 'tacticalhealth' %}
     <div class="card">
-        <h2>Complete Global Fixture Pool</h2>
+        <h2>🛡️ Tactical Health & Fatigue Audit</h2>
         <table>
             <thead>
                 <tr>
                     <th>Fixture</th>
                     <th>League</th>
-                    <th>Time</th>
-                    <th>Market</th>
-                    <th>Odds</th>
+                    <th>Tactical Health Status</th>
+                    <th>Model Integrity</th>
                 </tr>
             </thead>
             <tbody>
@@ -148,63 +105,35 @@
                 <tr>
                     <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
                     <td>{{ item.league }}</td>
-                    <td>{{ item.time }}</td>
+                    <td><span class="pill-blue">{{ item.tactical_health }}</span></td>
+                    <td><span class="pill-green">Passed V6.1 Filters</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% elif active_tab == 'clvaudit' %}
+    <div class="card">
+        <h2>📊 Closing Line Value (CLV) Audit Matrix</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fixture</th>
+                    <th>Market</th>
+                    <th>Locked Odds</th>
+                    <th>Estimated Closing Line</th>
+                    <th>Beaten Line Edge</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in slate %}
+                <tr>
+                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
                     <td><span class="pill-blue">{{ item.market }}</span></td>
                     <td><strong>{{ item.odds }}</strong></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    {% elif active_tab == 'betbuilder' %}
-    <div class="card">
-        <h2>5-Leg Smart Bet Builder Selections</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fixture</th>
-                    <th>League</th>
-                    <th>5-Leg Combo Package</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in slate %}
-                <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
-                    <td>{{ item.league }}</td>
-                    <td>
-                        <ol style="margin: 0; padding-left: 20px; color: #fbbf24; line-height: 1.6;">
-                            <li>Result / Double Chance: <span style="color: #f3f4f6;">{{ item.home }} Win or Draw</span></li>
-                            <li>Total Goals: <span style="color: #f3f4f6;">Over 1.5 Match Goals</span></li>
-                            <li>Both Teams To Score: <span style="color: #f3f4f6;">BTTS - Yes</span></li>
-                            <li>Player Prop / Fouls: <span style="color: #f3f4f6;">Over 1.5 Shots on Target</span></li>
-                            <li>Discipline / Cards: <span style="color: #f3f4f6;">Over 3.5 Total Cards</span></li>
-                        </ol>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    {% elif active_tab == 'btts' %}
-    <div class="card">
-        <h2>Both Teams To Score (BTTS) Specials</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fixture</th>
-                    <th>League</th>
-                    <th>BTTS Market & Probability</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in slate %}
-                <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
-                    <td>{{ item.league }}</td>
-                    <td><span class="pill-green">BTTS - Yes</span> &nbsp;(Prob: <span class="pill-blue">{{ item.btts_prob }}</span>)</td>
+                    <td>{{ item.clv_benchmark.split(' ')[0] }}</td>
+                    <td><span class="pill-green">{{ item.clv_benchmark.split(' ')[1] }}</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -214,19 +143,6 @@
     {% elif active_tab == 'accagenerator' %}
     <div class="card">
         <h2>Acca Generator & Value Accumulator</h2>
-        <form method="GET" action="/" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-            <input type="hidden" name="tab" value="accagenerator">
-            <label>Legs (2-10):</label>
-            <input type="number" name="legs" value="{{ acca_legs }}" min="2" max="10" style="width: 70px;">
-            <label>Market Filter:</label>
-            <select name="market_filter">
-                {% for m in market_options %}
-                <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="vip-btn" style="padding: 9px 18px; font-size: 0.85rem;">Generate</button>
-        </form>
-
         <h3>Active Acca Slip (Combined Odds: <span class="pill-blue">{{ combined_odds }}</span>)</h3>
         <table>
             <thead>
@@ -246,33 +162,6 @@
                     <td><span class="pill-blue">{{ item.market }}</span></td>
                     <td><strong>{{ item.odds }}</strong></td>
                     <td><span class="pill-green">{{ item.ev }}</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    {% elif active_tab == 'correctscore' %}
-    <div class="card">
-        <h2>Gavin Browne Correct Score Matrix & Poisson Projections</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fixture</th>
-                    <th>League</th>
-                    <th>Predicted Score</th>
-                    <th>CS Odds</th>
-                    <th>BTTS Probability</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in slate %}
-                <tr>
-                    <td><strong>{{ item.home }}</strong> vs {{ item.away }}</td>
-                    <td>{{ item.league }}</td>
-                    <td><span class="pill-score">{{ item.correct_score }}</span></td>
-                    <td><span class="pill-blue">{{ item.cs_odds }}</span></td>
-                    <td><span class="pill-green">{{ item.btts_prob }}</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
