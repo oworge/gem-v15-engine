@@ -1,8 +1,12 @@
 ﻿def fetch_live_fixtures():
 import sqlite3
-from datetime import datetime
-from flask import Flask, request, render_template_string
+from flask import Flask, request
+from datetime import datetime, timedelta
+import math
+import os
+import requests
 
+app = Flask(__name__)
 app = Flask(__name__)
 
 TEMPLATE = '''
