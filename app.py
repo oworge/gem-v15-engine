@@ -1,3 +1,4 @@
+from baselines import calculate_dynamic_baselines, get_adjusted_xg
 ﻿import math, random
 from datetime import datetime, date
 from flask import Flask, request, render_template_string
