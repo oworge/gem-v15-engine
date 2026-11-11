@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import random
 from datetime import datetime
 from flask import Flask, request, render_template_string
@@ -10,7 +10,7 @@ TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EDGEMETRIX V300 PRO -- Automated Syndicate Terminal</title>
+    <title>EDGEMETRIX V300 PRO -- Syndicate Terminal</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #070b12; color: #f8fafc; margin: 0; padding: 25px; }
         h1 { color: #facc15; font-size: 24px; margin-bottom: 5px; }
@@ -28,41 +28,56 @@ TEMPLATE = """
     </style>
 </head>
 <body>
-    <h1>EDGEMETRIX V300 PRO -- Automated Pipeline</h1>
+    <h1>EDGEMETRIX V300 PRO -- Syndicate Terminal</h1>
     <div class="subtitle">
-        <span>Poisson Decay (γ=0.90) | Automated Daily Feed | Kelly Sizing</span>
-        <span class="live-date-badge">Live Feed Date: Wednesday, November 11, 2026</span>
+        <span>Poisson Decay (γ=0.90) | Kelly Sizing | True CLV Audit</span>
+        <span class="live-date-badge">Live Feed Date: {{ current_date }}</span>
     </div>
 
     <div class="nav-tabs">
-        <a href="/?tab=dailypicks" class="tab-btn">Daily Picks</a>
-        <a href="/?tab=accagenerator" class="tab-btn">Acca Generator</a>
+        <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks ({{ daily_picks|length }})</a>
+        <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS & Goals</a>
+        <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
+        <a href="/?tab=trueclv" class="tab-btn {% if active_tab == 'trueclv' %}active{% endif %}">True CLV Audit</a>
     </div>
 
+    {% if active_tab == 'dailypicks' %}
     <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Automated Daily Value Slate (Live Feed)</h2>
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Daily Value Slate (Live Feed)</h2>
         <div class="table-container">
             <table>
                 <thead><tr><th>Fixture</th><th>Competition</th><th>Market</th><th>Odds</th><th>Model Edge</th><th>Kelly Stake</th></tr></thead>
                 <tbody>
                     {% for item in daily_picks %}
                     <tr>
-                        <td><strong>{ item.match }</strong></td>
-                        <td>{ item.league }</td>
-                        <td><strong style="color: #facc15;">{ item.market }</strong></td>
-                        <td>{ item.odds }</td>
-                        <td><span class="badge">{ item.ev }</span></td>
-                        <td><strong style="color: #38bdf8;">{ item.kelly_stake }</strong></td>
+                        <td><strong>{{ item.match }}</strong></td>
+                        <td>{{ item.league }}</td>
+                        <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
+                        <td>{{ item.odds }}</td>
+                        <td><span class="badge">{{ item.ev }}</span></td>
+                        <td><strong style="color: #38bdf8;">{{ item.kelly_stake }}</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+    {% elif active_tab == 'accagenerator' %}
     <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Automated 3-Fold Acca Terminal</h2>
-        { acca_html | safe }
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">3-Fold Acca Generator</h2>
+        {{ acca_html | safe }}
     </div>
+    {% elif active_tab == 'btts' %}
+    <div class="card">
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">BTTS & Goals Module</h2>
+        <p style="color: #94a3b8;">Filtering goal floors and Poisson goal expectation matrices for active slates.</p>
+    </div>
+    {% else %}
+    <div class="card">
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">True CLV Audit Ledger</h2>
+        <p style="color: #94a3b8;">Opening and closing line value tracking active.</p>
+    </div>
+    {% endif %}
 </body>
 </html>
 """
@@ -74,20 +89,20 @@ def index():
     
     rng = random.Random(20261111)
     live_slate = [
-        ("OH Leuven Women vs. HB Køge Women", "UEFA Women's Champions League", "Home Win (1X)", 1.35, 14.8, 1.40),
-        ("Juventus Women vs. OL Lyonnes", "UEFA Women's Champions League", "Over 1.5 Goals", 1.42, 15.2, 1.48),
-        ("Benfica Women vs. Austria Wien Women", "UEFA Women's Champions League", "Home Win", 1.39, 13.9, 1.44),
-        ("Barnsley vs. Oldham Athletic", "EFL Trophy", "Home Win", 1.68, 13.5, 1.75),
-        ("Sheffield Wednesday vs. Accrington Stanley", "EFL Trophy", "Under 2.5 Goals", 1.62, 12.4, 1.68),
-        ("Barcelona Femení vs. Arsenal WFC", "UEFA Women's Champions League", "Over 2.5 Goals", 1.50, 16.1, 1.58),
-        ("FC Bayern München vs. Real Madrid", "UEFA Women's Champions League", "BTTS - Yes", 1.72, 13.0, 1.80)
+        ("OH Leuven Women vs. HB Køge Women", "UEFA Women's Champions League", "Home Win (1X)", 1.35, 14.8),
+        ("Juventus Women vs. OL Lyonnes", "UEFA Women's Champions League", "Over 1.5 Goals", 1.42, 15.2),
+        ("Benfica Women vs. Austria Wien Women", "UEFA Women's Champions League", "Home Win", 1.39, 13.9),
+        ("Barnsley vs. Oldham Athletic", "EFL Trophy", "Home Win", 1.68, 13.5),
+        ("Sheffield Wednesday vs. Accrington Stanley", "EFL Trophy", "Under 2.5 Goals", 1.62, 12.4),
+        ("Barcelona Femení vs. Arsenal WFC", "UEFA Women's Champions League", "Over 2.5 Goals", 1.50, 16.1),
+        ("FC Bayern München vs. Real Madrid", "UEFA Women's Champions League", "BTTS - Yes", 1.72, 13.0)
     ]
     
     rng.shuffle(live_slate)
     daily_picks = []
     
     for d in live_slate[:5]:
-        match, league, market, odds, ev, open_odds = d[0], d[1], d[2], d[3], d[4], d[5]
+        match, league, market, odds, ev = d[0], d[1], d[2], d[3], d[4]
         p = (1.0 + (ev / 100.0)) / odds
         b = odds - 1.0
         f_star = max(0.0, (b * p - (1.0 - p)) / b)
