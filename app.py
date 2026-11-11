@@ -133,6 +133,7 @@ TEMPLATE = """<!DOCTYPE html>
         <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks ({{ daily_picks|length }})</a>
         <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS & Goals ({{ btts_picks|length }})</a>
         <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score Matrix ({{ cs_picks|length }})</a>
+        <a href="/?tab=htft" class="tab-btn {% if active_tab == 'htft' %}active{% endif %}">HT/FT Markets ({{ htft_picks|length }})</a>
         <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
         <a href="/?tab=trueclv" class="tab-btn {% if active_tab == 'trueclv' or active_tab == 'clv' %}active{% endif %}">True CLV Audit ({{ clv_picks|length }})</a>
     </div>
