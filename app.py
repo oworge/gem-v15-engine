@@ -4,7 +4,7 @@ from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# --- PRIORITY 1 & 2: DYNAMIC LEAGUE BASELINES & OPPONENT STRENGTH CONTEXT ---
+# --- DYNAMIC LEAGUE BASELINES & OPPONENT STRENGTH CONTEXT (Priorities 1 & 2) ---
 LEAGUE_BASELINES = {
     "UEFA Women's Champions League": {"avg_goals": 3.10, "home_adv": 1.18},
     "EFL Trophy": {"avg_goals": 2.75, "home_adv": 1.15},
@@ -13,35 +13,22 @@ LEAGUE_BASELINES = {
 }
 
 def get_dynamic_team_strengths(t1, t2, league):
-    """
-    Calculates opponent-adjusted attack and defense parameters 
-    based on season baselines instead of static random numbers.
-    """
     league_data = LEAGUE_BASELINES.get(league, {"avg_goals": 2.70, "home_adv": 1.15})
-    league_avg = league_data["avg_goals"] / 2.0  # Per-team average goals baseline
+    league_avg = league_data["avg_goals"] / 2.0
     
-    # Dynamic team profile weights
     t1_att = 1.35 if "Women" in t1 or "Juventus" in t1 else 1.10
     t2_def = 0.90 if "Koge" in t2 or "Oldham" in t2 else 1.05
     
     t2_att = 1.05
     t1_def = 0.95
 
-    # Opponent Strength Adjustment (Item 2): Discount against elite defenses, boost against vulnerable ones
     opponent_defense_multiplier_t1 = 1.0 + (1.0 - t2_def) * 0.4
     opponent_defense_multiplier_t2 = 1.0 + (1.0 - t1_def) * 0.4
 
-    # Core Expected Goals (Lambda) calculation incorporating League Baseline and Home Advantage
     home_lambda = league_avg * t1_att * t2_def * league_data["home_adv"] * opponent_defense_multiplier_t1
     away_lambda = league_avg * t2_att * t1_def * opponent_defense_multiplier_t2
 
     return max(0.3, home_lambda), max(0.3, away_lambda)
-
-def get_rest_multiplier(days):
-    if days < 3: return 0.85
-    elif days == 3: return 0.92
-    elif days == 4: return 0.97
-    return 1.00
 
 def poisson_pmf(k, lambd):
     if lambd <= 0: return 1.0 if k == 0 else 0.0
@@ -61,6 +48,44 @@ def calculate_bivariate_matrix(l1, l2, rho=0.10, max_goals=7):
     if total_p > 0:
         for key in matrix: matrix[key] /= total_p
     return matrix
+
+# --- PRIORITY 6: MONTE CARLO SIMULATION ENGINE ---
+def run_monte_carlo_simulation(l1, l2, iterations=5000):
+    """
+    Simulates thousands of match outcomes based on Poisson lambda parameters
+    to empirically ground market probabilities and correct score frequencies.
+    """
+    home_wins = 0
+    over_15 = 0
+    over_25 = 0
+    btts_count = 0
+    score_counts = {}
+
+    # Seed local RNG for consistency per match calculation
+    sim_rng = random.Random(42)
+
+    for _ in range(iterations):
+        # Sample goals using Python's built-in Poisson approximation or inverse transform
+        h_goals = sim_rng.choices(range(7), weights=[poisson_pmf(k, l1) for k in range(7)])[0]
+        a_goals = sim_rng.choices(range(7), weights=[poisson_pmf(k, l2) for k in range(7)])[0]
+
+        if h_goals > a_goals: home_wins += 1
+        if (h_goals + a_goals) >= 2: over_15 += 1
+        if (h_goals + a_goals) >= 3: over_25 += 1
+        if h_goals >= 1 and a_goals >= 1: btts_count += 1
+
+        score_key = (h_goals, a_goals)
+        score_counts[score_key] = score_counts.get(score_key, 0) + 1
+
+    # Convert counts to empirical probabilities
+    sim_probs = {
+        "home_win_prob": home_wins / iterations,
+        "over_15_prob": over_15 / iterations,
+        "over_25_prob": over_25 / iterations,
+        "btts_prob": btts_count / iterations,
+        "score_distribution": {k: v / iterations for k, v in sorted(score_counts.items(), key=lambda item: item[1], reverse=True)}
+    }
+    return sim_probs
 
 def get_confidence_kelly(model_prob, odds, base_fraction=0.25):
     if odds <= 1.0: return "£10.00"
@@ -106,7 +131,7 @@ TEMPLATE = """<!DOCTYPE html>
 <body>
     <h1>EDGEMETRIX V300 PRO -- Syndicate Terminal</h1>
     <div class="subtitle">
-        <span>Bivariate Poisson (rho=0.10) | Dynamic Baselines & Opponent Context | Spec 5.1 CLV</span>
+        <span>Bivariate Poisson | Monte Carlo (5k Sims) | Spec 5.1 CLV</span>
         <span class="live-date-badge">Live Feed Date: {{ current_date }}</span>
     </div>
 
@@ -120,7 +145,7 @@ TEMPLATE = """<!DOCTYPE html>
 
     {% if active_tab == 'dailypicks' %}
     <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Daily Value Slate (Season Baseline Adjusted)</h2>
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Daily Value Slate (Monte Carlo Grounded)</h2>
         <div class="table-container">
             <table>
                 <thead><tr><th>#</th><th>Fixture</th><th>Competition</th><th>Market</th><th>Odds</th><th>Model Edge</th><th>Kelly Stake</th></tr></thead>
@@ -163,10 +188,10 @@ TEMPLATE = """<!DOCTYPE html>
     </div>
     {% elif active_tab == 'correctscore' %}
     <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Poisson Correct Score Distribution Table</h2>
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Monte Carlo Correct Score Distribution Table</h2>
         <div class="table-container">
             <table>
-                <thead><tr><th>Fixture</th><th>Top Projected Score</th><th>Secondary Score</th><th>Model Probability</th><th>Value Odds</th></tr></thead>
+                <thead><tr><th>Fixture</th><th>Top Projected Score</th><th>Secondary Score</th><th>Simulation Probability</th><th>Value Odds</th></tr></thead>
                 <tbody>
                     {% for item in cs_picks %}
                     <tr>
@@ -228,17 +253,14 @@ def index():
         t1, t2, league = fix["t1"], fix["t2"], fix["league"]
         match_name = f"{t1} vs. {t2}"
         
-        # Calculate dynamic baselines & opponent adjustments (Priorities 1 & 2)
+        # Step 1: Calculate opponent-adjusted lambda baselines
         l1, l2 = get_dynamic_team_strengths(t1, t2, league)
         
-        matrix = calculate_bivariate_matrix(l1, l2, rho=0.10)
-        p_btts = sum(prob for (h, a), prob in matrix.items() if h >= 1 and a >= 1)
-        p_over15 = sum(prob for (h, a), prob in matrix.items() if (h + a) >= 2)
-        p_over25 = sum(prob for (h, a), prob in matrix.items() if (h + a) >= 3)
-        p_home = sum(prob for (h, a), prob in matrix.items() if h > a)
+        # Step 2: Run Monte Carlo Simulation (5,000 empirical iterations)
+        sim = run_monte_carlo_simulation(l1, l2, iterations=5000)
         
         market = markets_pool[i % len(markets_pool)]
-        model_p = p_over15 if market == "Over 1.5 Goals" else (p_btts if market == "BTTS - Yes" else (p_over25 if market == "Over 2.5 Goals" else p_home))
+        model_p = sim["over_15_prob"] if market == "Over 1.5 Goals" else (sim["btts_prob"] if market == "BTTS - Yes" else (sim["over_25_prob"] if market == "Over 2.5 Goals" else sim["home_win_prob"]))
         
         odds = round(min(2.50, max(1.30, (1.0 / max(0.01, model_p)) - rng.uniform(0.05, 0.12))), 2)
         ev_pct = round((model_p * odds - 1.0) * 100, 1)
@@ -272,13 +294,18 @@ def index():
             "badge_style": badge_style
         })
         
-        sorted_scores = sorted(matrix.items(), key=lambda x: x[1], reverse=True)
+        # Extract empirical score distributions from simulation results
+        sorted_scores = list(sim["score_distribution"].items())
+        top_sc = sorted_scores[0][0] if len(sorted_scores) > 0 else (1, 0)
+        sec_sc = sorted_scores[1][0] if len(sorted_scores) > 1 else (0, 0)
+        top_prob = sorted_scores[0][1] if len(sorted_scores) > 0 else 0.20
+
         cs_picks.append({
             "match": match_name,
-            "top_score": f"{sorted_scores[0][0][0]} - {sorted_scores[0][0][1]}",
-            "sec_score": f"{sorted_scores[1][0][0]} - {sorted_scores[1][0][1]}",
-            "prob": f"{sorted_scores[0][1]*100:.1f}%",
-            "odds": f"{round(1.0 / max(0.01, sorted_scores[0][1]), 2):.2f}"
+            "top_score": f"{top_sc[0]} - {top_sc[1]}",
+            "sec_score": f"{sec_sc[0]} - {sec_sc[1]}",
+            "prob": f"{top_prob*100:.1f}%",
+            "odds": f"{round(1.0 / max(0.01, top_prob), 2):.2f}"
         })
 
     btts_picks = []
