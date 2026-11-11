@@ -24,7 +24,7 @@ TEMPLATE = """<!DOCTYPE html>
 <body>
     <h1>EDGEMETRIX V300 PRO -- Syndicate Terminal</h1>
     <div class="subtitle">
-        <span>Bivariate Poisson (rho=0.10) | Confidence Kelly | Spec 5.1 CLV Classification</span>
+        <span>Bivariate Poisson (rho=0.10) | Strict £40 Kelly Cap | Strict League Segregation</span>
         <span class="live-date-badge">Live Feed Date: {{ current_date }}</span>
     </div>
 
@@ -141,12 +141,8 @@ from flask import Flask, request, render_template_string
 app = Flask(__name__)
 
 LEAGUE_HOME_ADVANTAGE = {
-    "Premier League": 1.30, "Championship": 1.22, "League One": 1.15,
-    "League Two": 1.13, "National League": 1.10, "Scottish Premiership": 1.18,
-    "Bundesliga": 1.28, "Bundesliga 2": 1.16, "Ligue 1": 1.24, "La Liga": 1.26,
-    "Serie A": 1.23, "Primeira Liga": 1.20, "Eredivisie": 1.17, "Super Lig": 1.21,
-    "MLS": 1.22, "Brasileirao": 1.19, "Liga MX": 1.25, "Saudi Pro League": 1.14,
-    "UEFA Women's Champions League": 1.18, "EFL Trophy": 1.15
+    "UEFA Women's Champions League": 1.18,
+    "EFL Trophy": 1.15
 }
 
 def get_rest_multiplier(days):
@@ -184,8 +180,10 @@ def get_confidence_kelly(model_prob, odds, base_fraction=0.25):
     f_star = (b * model_prob - (1.0 - model_prob)) / b
     if f_star <= 0: return "£0.00"
     mult = 1.20 if model_prob >= 0.75 else (1.00 if model_prob >= 0.65 else (0.75 if model_prob >= 0.55 else 0.40))
-    stake = round(1000.0 * (base_fraction * mult * f_star), 2)
-    return f"£{min(stake, 40.0):.2f}"
+    # Hard cap at £40.00 max
+    raw_stake = 1000.0 * (base_fraction * mult * f_star)
+    capped_stake = min(raw_stake, 40.0)
+    return f"£{max(0.0, capped_stake):.2f}"
 
 @app.route('/')
 def index():
@@ -193,8 +191,18 @@ def index():
     formatted_date = "Wednesday, November 11, 2026"
     rng = random.Random(20261111)
     
-    TEAMS_WOMEN = ["Barcelona Femeni", "Arsenal WFC", "FC Bayern Munchen", "Real Madrid", "Roma Women", "VfL Wolfsburg", "Paris Saint-Germain", "Chelsea Women", "Juventus Women", "OL Lyonnes"]
-    TEAMS_EFL = ["Barnsley", "Oldham Athletic", "Sheffield Wednesday", "Accrington Stanley", "Wigan Athletic", "Charlton Athletic", "Bolton Wanderers", "Reading", "Blackpool", "Lincoln City"]
+    # Strictly segregated team lists
+    TEAMS_WOMEN = [
+        "Barcelona Femeni", "Arsenal WFC", "FC Bayern Munchen", "Real Madrid",
+        "Roma Women", "VfL Wolfsburg", "Paris Saint-Germain", "Chelsea Women",
+        "Juventus Women", "OL Lyonnes", "Benfica Women", "Austria Wien Women",
+        "OH Leuven Women", "HB Koge Women", "Twente Women", "Valur Women"
+    ]
+    TEAMS_EFL = [
+        "Barnsley", "Oldham Athletic", "Sheffield Wednesday", "Accrington Stanley",
+        "Wigan Athletic", "Charlton Athletic", "Bolton Wanderers", "Reading",
+        "Blackpool", "Lincoln City", "Wycombe Wanderers", "Stockport County"
+    ]
     markets_pool = ["Home Win (1X)", "Over 1.5 Goals", "Home Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
     
     daily_picks, btts_picks, cs_picks, clv_picks = [], [], [], []
@@ -210,7 +218,7 @@ def index():
             league = "EFL Trophy"
             
         match_name = f"{t1} vs. {t2}"
-        ha_mult = LEAGUE_HOME_ADVANTAGE.get(league, 1.18)
+        ha_mult = LEAGUE_HOME_ADVANTAGE.get(league, 1.15)
         
         l1 = max(0.2, (rng.uniform(1.2, 2.1) * ha_mult * get_rest_multiplier(rng.choice([2, 3, 4, 5]))) + get_h2h_bias(rng.uniform(1.0, 2.0), rng.uniform(0.8, 1.5)))
         l2 = max(0.2, (rng.uniform(0.9, 1.6) * get_rest_multiplier(rng.choice([3, 4, 5]))) + get_h2h_bias(rng.uniform(0.8, 1.5), rng.uniform(1.0, 2.0)))
