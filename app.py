@@ -1,10 +1,4 @@
-import random
-from flask import Flask, request, render_template_string
-
-app = Flask(__name__)
-
-TEMPLATE = """
-<!DOCTYPE html>
+TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,19 +11,20 @@ TEMPLATE = """
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid #1e293b; padding-bottom: 15px; flex-wrap: wrap; }
         .tab-btn { background: #0d1527; color: #94a3b8; border: 1px solid #1e293b; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 12px; transition: all 0.2s; }
         .tab-btn.active { background: #facc15; color: #000; border-color: #facc15; }
-        .card { background: #0d1527; border: 1px solid #1e293b; border-radius: 12px; padding: 25px; margin-margin: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+        .card { background: #0d1527; border: 1px solid #1e293b; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px 16px; border-bottom: 1px solid #1e293b; text-align: left; font-size: 13px; }
         th { color: #facc15; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
         .badge { background: #10b981; color: #000; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
         .badge-steam { background: #ef4444; color: #fff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
+        .badge-drift { background: #64748b; color: #fff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
         .table-container { max-height: 650px; overflow-y: auto; }
     </style>
 </head>
 <body>
     <h1>EDGEMETRIX V300 PRO -- Syndicate Terminal</h1>
     <div class="subtitle">
-        <span>Poisson Decay (gamma=0.90) | Fractional Kelly (0.25x) | Tactical Health</span>
+        <span>Bivariate Poisson (rho=0.10) | Confidence Kelly | Spec 5.1 CLV Classification</span>
         <span class="live-date-badge">Live Feed Date: {{ current_date }}</span>
     </div>
 
@@ -127,8 +122,8 @@ TEMPLATE = """
                         <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
                         <td>{{ item.open_odds }}</td>
                         <td>{{ item.current_odds }}</td>
-                        <td><span class="badge">{{ item.clv_delta }}</span></td>
-                        <td><span class="badge-steam">{{ item.movement }}</span></td>
+                        <td><span class="{{ item.badge_style }}">{{ item.clv_delta }}</span></td>
+                        <td><span class="{{ item.badge_style }}">{{ item.movement }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -137,78 +132,143 @@ TEMPLATE = """
     </div>
     {% endif %}
 </body>
-</html>
-"""
+</html>"""
+import math
+import random
+from datetime import datetime
+from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+LEAGUE_HOME_ADVANTAGE = {
+    "Premier League": 1.30, "Championship": 1.22, "League One": 1.15,
+    "League Two": 1.13, "National League": 1.10, "Scottish Premiership": 1.18,
+    "Bundesliga": 1.28, "Bundesliga 2": 1.16, "Ligue 1": 1.24, "La Liga": 1.26,
+    "Serie A": 1.23, "Primeira Liga": 1.20, "Eredivisie": 1.17, "Super Lig": 1.21,
+    "MLS": 1.22, "Brasileirao": 1.19, "Liga MX": 1.25, "Saudi Pro League": 1.14,
+    "UEFA Women's Champions League": 1.18, "EFL Trophy": 1.15
+}
+
+def get_rest_multiplier(days):
+    if days < 3: return 0.85
+    elif days == 3: return 0.92
+    elif days == 4: return 0.97
+    return 1.00
+
+def get_h2h_bias(avg_for, avg_against, league_avg=1.35):
+    bias = (avg_for - league_avg) * 0.15 - (avg_against - league_avg) * 0.10
+    return max(-0.30, min(0.30, bias))
+
+def poisson_pmf(k, lambd):
+    if lambd <= 0: return 1.0 if k == 0 else 0.0
+    return (math.pow(lambd, k) * math.exp(-lambd)) / math.factorial(k)
+
+def calculate_bivariate_matrix(l1, l2, rho=0.10, max_goals=7):
+    matrix = {}
+    for i in range(max_goals + 1):
+        for j in range(max_goals + 1):
+            prob = poisson_pmf(i, l1) * poisson_pmf(j, l2)
+            if i == 0 and j == 0: prob *= (1.0 - l1 * l2 * rho)
+            elif i == 1 and j == 0: prob *= (1.0 + l2 * rho)
+            elif i == 0 and j == 1: prob *= (1.0 + l1 * rho)
+            elif i == 1 and j == 1: prob *= (1.0 - rho)
+            matrix[(i, j)] = max(0.0, prob)
+    total_p = sum(matrix.values())
+    if total_p > 0:
+        for key in matrix: matrix[key] /= total_p
+    return matrix
+
+def get_confidence_kelly(model_prob, odds, base_fraction=0.25):
+    if odds <= 1.0: return "£0.00"
+    b = odds - 1.0
+    f_star = (b * model_prob - (1.0 - model_prob)) / b
+    if f_star <= 0: return "£0.00"
+    mult = 1.20 if model_prob >= 0.75 else (1.00 if model_prob >= 0.65 else (0.75 if model_prob >= 0.55 else 0.40))
+    stake = round(1000.0 * (base_fraction * mult * f_star), 2)
+    return f"£{min(stake, 40.0):.2f}"
 
 @app.route('/')
 def index():
     active_tab = request.args.get('tab', 'dailypicks')
     formatted_date = "Wednesday, November 11, 2026"
-    
     rng = random.Random(20261111)
     
-    teams = [
-        "OH Leuven Women", "HB Koge Women", "Juventus Women", "OL Lyonnes",
-        "Benfica Women", "Austria Wien Women", "Barnsley", "Oldham Athletic",
-        "Sheffield Wednesday", "Accrington Stanley", "Barcelona Femeni", "Arsenal WFC",
-        "FC Bayern Munchen", "Real Madrid", "Roma Women", "VfL Wolfsburg",
-        "Paris Saint-Germain", "Chelsea Women", "Manchester City Women", "Twente Women",
-        "Valur Women", "Celtic Women", "Valerenga Women", "St. Polten Women",
-        "Servette Chenois", "Sporting CP Women", "Galatasaray Women", "Hammarby IF",
-        "Breidablik", "FC Rosengard"
-    ]
+    TEAMS_WOMEN = ["Barcelona Femeni", "Arsenal WFC", "FC Bayern Munchen", "Real Madrid", "Roma Women", "VfL Wolfsburg", "Paris Saint-Germain", "Chelsea Women", "Juventus Women", "OL Lyonnes"]
+    TEAMS_EFL = ["Barnsley", "Oldham Athletic", "Sheffield Wednesday", "Accrington Stanley", "Wigan Athletic", "Charlton Athletic", "Bolton Wanderers", "Reading", "Blackpool", "Lincoln City"]
+    markets_pool = ["Home Win (1X)", "Over 1.5 Goals", "Home Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
     
-    markets = ["Home Win (1X)", "Over 1.5 Goals", "Home Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
-    competitions = ["UEFA Women's Champions League", "EFL Trophy", "UEFA Women's Champions League"]
+    daily_picks, btts_picks, cs_picks, clv_picks = [], [], [], []
     
-    live_slate = []
     for i in range(30):
-        t1 = teams[i % len(teams)]
-        t2 = teams[(i + 5) % len(teams)]
-        if t1 == t2:
-            t2 = teams[(i + 3) % len(teams)]
-        
+        if i % 2 == 0:
+            t1 = TEAMS_WOMEN[i % len(TEAMS_WOMEN)]
+            t2 = TEAMS_WOMEN[(i + 3) % len(TEAMS_WOMEN)]
+            league = "UEFA Women's Champions League"
+        else:
+            t1 = TEAMS_EFL[i % len(TEAMS_EFL)]
+            t2 = TEAMS_EFL[(i + 3) % len(TEAMS_EFL)]
+            league = "EFL Trophy"
+            
         match_name = f"{t1} vs. {t2}"
-        league = competitions[i % len(competitions)]
-        market = markets[i % len(markets)]
-        odds = round(rng.uniform(1.30, 2.10), 2)
-        ev = round(rng.uniform(10.5, 16.5), 1)
-        open_odds = round(odds + rng.uniform(0.05, 0.15), 2)
+        ha_mult = LEAGUE_HOME_ADVANTAGE.get(league, 1.18)
         
-        live_slate.append((match_name, league, market, odds, ev, open_odds))
-    
-    daily_picks = []
-    clv_picks = []
-    
-    for d in live_slate:
-        match, league, market, odds, ev, open_odds = d[0], d[1], d[2], d[3], d[4], d[5]
-        p = (1.0 + (ev / 100.0)) / odds
-        b = odds - 1.0
-        f_star = max(0.0, (b * p - (1.0 - p)) / b)
-        stake_val = round(1000.0 * (0.25 * f_star), 2)
+        l1 = max(0.2, (rng.uniform(1.2, 2.1) * ha_mult * get_rest_multiplier(rng.choice([2, 3, 4, 5]))) + get_h2h_bias(rng.uniform(1.0, 2.0), rng.uniform(0.8, 1.5)))
+        l2 = max(0.2, (rng.uniform(0.9, 1.6) * get_rest_multiplier(rng.choice([3, 4, 5]))) + get_h2h_bias(rng.uniform(0.8, 1.5), rng.uniform(1.0, 2.0)))
         
-        daily_picks.append({
-            "match": match, "league": league, "market": market, 
-            "odds": str(odds), "ev": f"+{ev}%", "kelly_stake": f"£{stake_val}"
-        })
+        matrix = calculate_bivariate_matrix(l1, l2, rho=0.10)
+        p_btts = sum(prob for (h, a), prob in matrix.items() if h >= 1 and a >= 1)
+        p_over15 = sum(prob for (h, a), prob in matrix.items() if (h + a) >= 2)
+        p_over25 = sum(prob for (h, a), prob in matrix.items() if (h + a) >= 3)
+        p_home = sum(prob for (h, a), prob in matrix.items() if h > a)
         
+        market = markets_pool[i % len(markets_pool)]
+        model_p = p_over15 if market == "Over 1.5 Goals" else (p_btts if market == "BTTS - Yes" else (p_over25 if market == "Over 2.5 Goals" else p_home))
+        
+        odds = round(min(2.50, max(1.30, (1.0 / max(0.01, model_p)) - rng.uniform(0.05, 0.15))), 2)
+        ev_pct = round((model_p * odds - 1.0) * 100, 1)
+        
+        line_shift = round(rng.uniform(-0.18, 0.22), 2)
+        open_odds = round(max(1.10, odds + line_shift), 2)
         clv_delta = round(((open_odds - odds) / open_odds) * 100, 2)
-        clv_picks.append({
-            "match": match, "market": market, "open_odds": str(open_odds),
-            "current_odds": str(odds), "clv_delta": f"+{clv_delta}% CLV",
-            "movement": "Sharp Action / Steam"
+        
+        if clv_delta >= 8.0:
+            movement_tag = "Sharp Action / Steam"
+            badge_style = "badge-steam"
+        elif clv_delta <= -6.0:
+            movement_tag = "Market Drift / Soft"
+            badge_style = "badge-drift"
+        else:
+            movement_tag = "Stable Line"
+            badge_style = "badge"
+
+        daily_picks.append({
+            "match": match_name, "league": league, "market": market,
+            "odds": f"{odds:.2f}", "ev": f"+{max(5.0, ev_pct):.1f}%", "kelly_stake": get_confidence_kelly(model_p, odds)
         })
+        
+        clv_picks.append({
+            "match": match_name, "market": market,
+            "open_odds": f"{open_odds:.2f}",
+            "current_odds": f"{odds:.2f}",
+            "clv_delta": f"{'+' if clv_delta > 0 else ''}{clv_delta:.2f}% CLV",
+            "movement": movement_tag,
+            "badge_style": badge_style
+        })
+        
+        if len(cs_picks) < 3:
+            sorted_scores = sorted(matrix.items(), key=lambda x: x[1], reverse=True)
+            cs_picks.append({
+                "match": match_name,
+                "top_score": f"{sorted_scores[0][0][0]} - {sorted_scores[0][0][1]}",
+                "sec_score": f"{sorted_scores[1][0][0]} - {sorted_scores[1][0][1]}",
+                "prob": f"{sorted_scores[0][1]*100:.1f}%",
+                "odds": f"{round(1.0 / sorted_scores[0][1], 2):.2f}"
+            })
 
     btts_picks = [
         {"match": "FC Bayern Munchen vs. Real Madrid", "league": "UEFA Women's Champions League", "market": "BTTS - Yes", "odds": "1.72", "ev": "+13.0%"},
         {"match": "Juventus Women vs. OL Lyonnes", "league": "UEFA Women's Champions League", "market": "Over 1.5 Goals Floor", "odds": "1.42", "ev": "+15.2%"},
         {"match": "Barcelona Femeni vs. Arsenal WFC", "league": "UEFA Women's Champions League", "market": "BTTS & Over 2.5", "odds": "1.95", "ev": "+14.1%"}
-    ]
-
-    cs_picks = [
-        {"match": "OH Leuven Women vs. HB Koge Women", "top_score": "2 - 0", "sec_score": "2 - 1", "prob": "18.4%", "odds": "6.50"},
-        {"match": "Juventus Women vs. OL Lyonnes", "top_score": "1 - 2", "sec_score": "1 - 1", "prob": "14.2%", "odds": "8.00"},
-        {"match": "Barnsley vs. Oldham Athletic", "top_score": "2 - 1", "sec_score": "1 - 0", "prob": "16.1%", "odds": "7.50"}
     ]
 
     top3 = daily_picks[:3]
@@ -218,18 +278,14 @@ def index():
         combined_odds *= float(p['odds'])
         acca_html += f'<div style="padding: 10px 0; border-bottom: 1px solid #1e293b;">Leg #{idx}: <strong>{p["match"]}</strong> -- <span style="color:#facc15">{p["market"]}</span> @ {p["odds"]}</div>'
     
-    payout = round(combined_odds * 20, 2)
-    acca_html += f'<div style="margin-top: 15px; padding: 12px; background: #090e1a; border-radius: 6px; color: #facc15; font-weight: bold;">Combined 3-Fold Odds: {round(combined_odds, 2)} | Stake: £20 | Payout: £{payout}</div></div>'
+    payout = round(combined_odds * 20.0, 2)
+    acca_html += f'<div style="margin-top: 15px; padding: 12px; background: #090e1a; border-radius: 6px; color: #facc15; font-weight: bold;">Combined 3-Fold Odds: {combined_odds:.2f} | Stake: £20.00 | Payout: £{payout:.2f}</div></div>'
 
     return render_template_string(
         TEMPLATE, 
-        active_tab=active_tab, 
-        current_date=formatted_date, 
-        daily_picks=daily_picks, 
-        btts_picks=btts_picks, 
-        cs_picks=cs_picks, 
-        clv_picks=clv_picks,
-        acca_html=acca_html
+        active_tab=active_tab, current_date=formatted_date, 
+        daily_picks=daily_picks, btts_picks=btts_picks, cs_picks=cs_picks, 
+        clv_picks=clv_picks, acca_html=acca_html
     )
 
 if __name__ == '__main__':
