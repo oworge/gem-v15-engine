@@ -4,7 +4,6 @@ from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# --- DYNAMIC LEAGUE BASELINES & OPPONENT STRENGTH CONTEXT (Priorities 1 & 2) ---
 LEAGUE_BASELINES = {
     "UEFA Women's Champions League": {"avg_goals": 3.10, "home_adv": 1.18},
     "EFL Trophy": {"avg_goals": 2.75, "home_adv": 1.15},
@@ -34,27 +33,15 @@ def poisson_pmf(k, lambd):
     if lambd <= 0: return 1.0 if k == 0 else 0.0
     return (math.pow(lambd, k) * math.exp(-lambd)) / math.factorial(k)
 
-# --- PRIORITY 7: CONFIDENCE CALIBRATION LAYER ---
 def apply_confidence_calibration(raw_prob):
-    """
-    Corrects model overconfidence based on historical backtest bins.
-    Maps raw probability estimates to empirical win frequencies.
-    """
-    if raw_prob >= 0.80:
-        return raw_prob * 0.91  # Downward adjustment for extreme confidence tiers
-    elif raw_prob >= 0.70:
-        return raw_prob * 0.94
-    elif raw_prob >= 0.60:
-        return raw_prob * 0.97
-    return raw_prob # Fairly calibrated at lower probability tiers
+    if raw_prob >= 0.80: return raw_prob * 0.91
+    elif raw_prob >= 0.70: return raw_prob * 0.94
+    elif raw_prob >= 0.60: return raw_prob * 0.97
+    return raw_prob
 
 def run_monte_carlo_simulation(l1, l2, iterations=5000):
-    home_wins = 0
-    over_15 = 0
-    over_25 = 0
-    btts_count = 0
+    home_wins, over_15, over_25, btts_count = 0, 0, 0, 0
     score_counts = {}
-
     sim_rng = random.Random(42)
 
     for _ in range(iterations):
@@ -69,14 +56,13 @@ def run_monte_carlo_simulation(l1, l2, iterations=5000):
         score_key = (h_goals, a_goals)
         score_counts[score_key] = score_counts.get(score_key, 0) + 1
 
-    sim_probs = {
+    return {
         "home_win_prob": apply_confidence_calibration(home_wins / iterations),
         "over_15_prob": apply_confidence_calibration(over_15 / iterations),
         "over_25_prob": apply_confidence_calibration(over_25 / iterations),
         "btts_prob": apply_confidence_calibration(btts_count / iterations),
         "score_distribution": {k: v / iterations for k, v in sorted(score_counts.items(), key=lambda item: item[1], reverse=True)}
     }
-    return sim_probs
 
 def get_confidence_kelly(model_prob, odds, base_fraction=0.25):
     if odds <= 1.0: return "£10.00"
@@ -85,7 +71,7 @@ def get_confidence_kelly(model_prob, odds, base_fraction=0.25):
     if f_star <= 0: return "£15.00"
     mult = 1.20 if model_prob >= 0.75 else (1.00 if model_prob >= 0.65 else (0.75 if model_prob >= 0.55 else 0.50))
     raw_stake = 1000.0 * (base_fraction * mult * f_star)
-    capped_stake = min(max(10.0, raw_stake), 40.0)  # Strict £40 max cap
+    capped_stake = min(max(10.0, raw_stake), 40.0)
     return f"£{capped_stake:.2f}"
 
 def get_daily_fixtures():
@@ -104,8 +90,15 @@ TEMPLATE = """<!DOCTYPE html>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #070b12; color: #f8fafc; margin: 0; padding: 25px; }
         h1 { color: #facc15; font-size: 24px; margin-bottom: 5px; }
-        .subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
+        .subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
         .live-date-badge { background: #1e293b; color: #38bdf8; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; border: 1px solid #334155; }
+        
+        /* VALUE ALERT BANNER */
+        .value-alert-banner { background: linear-gradient(135deg, #7f1d1d, #991b1b); border: 1px solid #ef4444; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 5px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 15px rgba(239,68,68,0.8); } 100% { box-shadow: 0 0 5px rgba(239,68,68,0.4); } }
+        .alert-title { color: #f8fafc; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .alert-action { background: #facc15; color: #000; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid #1e293b; padding-bottom: 15px; flex-wrap: wrap; }
         .tab-btn { background: #0d1527; color: #94a3b8; border: 1px solid #1e293b; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 12px; transition: all 0.2s; }
         .tab-btn.active { background: #facc15; color: #000; border-color: #facc15; }
@@ -125,6 +118,16 @@ TEMPLATE = """<!DOCTYPE html>
         <span>Calibrated Monte Carlo | Spec 5.1 CLV</span>
         <span class="live-date-badge">Live Feed Date: {{ current_date }}</span>
     </div>
+
+    {% if active_alert %}
+    <div class="value-alert-banner">
+        <div class="alert-title">
+            <span style="font-size: 18px;">🚨</span> 
+            <span><strong>SHARP VALUE ALERT:</strong> Lock in <strong>{{ active_alert.match }}</strong> ({{ active_alert.market }}) @ <strong>{{ active_alert.odds }}</strong> before steam closes!</span>
+        </div>
+        <div class="alert-action">Take Value Now</div>
+    </div>
+    {% endif %}
 
     <div class="nav-tabs">
         <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks ({{ daily_picks|length }})</a>
@@ -239,6 +242,7 @@ def index():
     
     markets_pool = ["Home Win (1X)", "Over 1.5 Goals", "Home Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
     daily_picks, btts_picks, cs_picks, clv_picks = [], [], [], []
+    active_alert = None
     
     for i, fix in enumerate(fixtures):
         t1, t2, league = fix["t1"], fix["t2"], fix["league"]
@@ -261,6 +265,9 @@ def index():
         if clv_delta >= 8.0:
             movement_tag = "Sharp Action / Steam"
             badge_style = "badge-steam"
+            # Capture top active steam alert for the banner
+            if not active_alert:
+                active_alert = {"match": match_name, "market": market, "odds": f"{odds:.2f}"}
         elif clv_delta <= -6.0:
             movement_tag = "Market Drift / Soft"
             badge_style = "badge-drift"
@@ -319,7 +326,7 @@ def index():
         TEMPLATE, 
         active_tab=active_tab, current_date=formatted_date, 
         daily_picks=daily_picks, btts_picks=btts_picks, cs_picks=cs_picks, 
-        clv_picks=clv_picks, acca_html=acca_html
+        clv_picks=clv_picks, acca_html=acca_html, active_alert=active_alert
     )
 
 if __name__ == '__main__':
