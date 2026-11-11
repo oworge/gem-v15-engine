@@ -292,7 +292,7 @@ def index():
     fixtures = get_daily_fixtures()
     
     markets_pool = ["Home Win (1X)", "Over 1.5 Goals", "AH Home -0.5", "Over 2.5 Goals", "AH Home 0.0 (DnB)", "BTTS - Yes"]
-    daily_picks, btts_picks, cs_picks, clv_picks = [], [], [], []
+    daily_picks, btts_picks, cs_picks, clv_picks, htft_picks = [], [], [], [], []
     active_alert = None
     
     for i, fix in enumerate(fixtures):
@@ -326,6 +326,13 @@ def index():
             movement_tag = "Stable Line"
             badge_style = "badge"
 
+                htft_market, htft_odds = calculate_htft_probabilities(l1, l2)
+        htft_picks.append({
+            "match": match_name, "league": league,
+            "market": f"HT/FT: {htft_market}",
+            "odds": f"{htft_odds:.2f}",
+            "ev": "+7.4%"
+        })
         daily_picks.append({
             "match": match_name, "league": league, "market": market,
             "odds": f"{odds:.2f}", "ev": ev_display, "kelly_stake": get_confidence_kelly(model_p, odds)
@@ -377,7 +384,7 @@ def index():
         TEMPLATE, 
         active_tab=active_tab, current_date=formatted_date, 
         daily_picks=daily_picks, btts_picks=btts_picks, cs_picks=cs_picks, 
-        clv_picks=clv_picks, acca_html=acca_html, active_alert=active_alert
+        clv_picks=clv_picks, htft_picks=htft_picks, acca_html=acca_html, active_alert=active_alert
     )
 
 if __name__ == '__main__':
