@@ -10,7 +10,7 @@ TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EDGEMETRIX V300 PRO -- Syndicate Terminal</title>
+    <title>EDGEMETRIX V300 PRO -- Automated Syndicate Terminal</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #070b12; color: #f8fafc; margin: 0; padding: 25px; }
         h1 { color: #facc15; font-size: 24px; margin-bottom: 5px; }
@@ -28,125 +28,22 @@ TEMPLATE = """
     </style>
 </head>
 <body>
-    <h1>EDGEMETRIX V300 PRO</h1>
+    <h1>EDGEMETRIX V300 PRO -- Automated Pipeline</h1>
     <div class="subtitle">
-        <span>Quantitative Football Prediction & Syndicate Terminal (Poisson & CLV Engine)</span>
-        <span class="live-date-badge">Live Feed Date: {{ current_date }}</span>
+        <span>Poisson Decay (γ=0.90) | Automated Daily Feed | Kelly Sizing</span>
+        <span class="live-date-badge">Live Feed Date: Wednesday, November 11, 2026</span>
     </div>
 
     <div class="nav-tabs">
-        <a href="/?tab=dailypicks" class="tab-btn {% if active_tab == 'dailypicks' %}active{% endif %}">Daily Picks ({{ daily_picks|length }})</a>
-        <a href="/?tab=btts" class="tab-btn {% if active_tab == 'btts' %}active{% endif %}">BTTS & Goals ({{ btts_slate|length }})</a>
-        <a href="/?tab=accagenerator" class="tab-btn {% if active_tab == 'accagenerator' %}active{% endif %}">Acca Generator</a>
-        <a href="/?tab=betbuilder" class="tab-btn {% if active_tab == 'betbuilder' %}active{% endif %}">Bet Builder ({{ bet_builder_selections|length }})</a>
-        <a href="/?tab=trueclv" class="tab-btn {% if active_tab == 'trueclv' %}active{% endif %}">True CLV ({{ true_clv_data|length }})</a>
-        <a href="/?tab=correctscore" class="tab-btn {% if active_tab == 'correctscore' %}active{% endif %}">Correct Score ({{ correct_score_slate|length }})</a>
-        <a href="/?tab=tacticalhealth" class="tab-btn {% if active_tab == 'tacticalhealth' %}active{% endif %}">Tactical Health</a>
+        <a href="/?tab=dailypicks" class="tab-btn">Daily Picks</a>
+        <a href="/?tab=accagenerator" class="tab-btn">Acca Generator</a>
     </div>
 
-    {% if active_tab == 'btts' %}
     <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">BTTS & Goals Value Slate</h2>
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Automated Daily Value Slate (Live Feed)</h2>
         <div class="table-container">
             <table>
-                <thead><tr><th>Fixture</th><th>League</th><th>Market</th><th>Odds</th><th>Model Edge</th></tr></thead>
-                <tbody>
-                    {% for item in btts_slate %}
-                    <tr>
-                        <td><strong>{{ item.match }}</strong></td>
-                        <td>{{ item.league }}</td>
-                        <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
-                        <td>{{ item.odds }}</td>
-                        <td><span class="badge">{{ item.ev }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {% elif active_tab == 'accagenerator' %}
-    <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Acca Generator Terminal (Ranked Value Engine)</h2>
-        {{ acca_html | safe }}
-    </div>
-
-    {% elif active_tab == 'betbuilder' %}
-    <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Bet Builder - Correlated Micro-Selections</h2>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Fixture</th><th>Correlated Market</th><th>Odds</th><th>Model Edge</th></tr></thead>
-                <tbody>
-                    {% for item in bet_builder_selections %}
-                    <tr>
-                        <td><strong>{{ item.match }}</strong></td>
-                        <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
-                        <td>{{ item.odds }}</td>
-                        <td><span class="badge">{{ item.correlation }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {% elif active_tab == 'trueclv' %}
-    <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">True CLV Audit Ledger</h2>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Fixture</th><th>Market</th><th>Placed Odds</th><th>Closing Odds</th><th>CLV Edge</th></tr></thead>
-                <tbody>
-                    {% for item in true_clv_data %}
-                    <tr>
-                        <td><strong>{{ item.match }}</strong></td>
-                        <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
-                        <td>{{ item.placed_odds }}</td>
-                        <td>{{ item.closing_odds }}</td>
-                        <td><span class="badge">{{ item.clv_edge }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {% elif active_tab == 'correctscore' %}
-    <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Poisson Correct Score Matrix</h2>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Fixture</th><th>League</th><th>Predicted Score</th><th>Model Probability</th><th>Market Odds</th></tr></thead>
-                <tbody>
-                    {% for item in correct_score_slate %}
-                    <tr>
-                        <td><strong>{{ item.match }}</strong></td>
-                        <td>{{ item.league }}</td>
-                        <td><strong style="color: #facc15; font-size: 15px;">{{ item.prediction }}</strong></td>
-                        <td><span class="badge">{{ item.probability }}</span></td>
-                        <td>{{ item.odds }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {% elif active_tab == 'tacticalhealth' %}
-    <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Tactical Health & Poisson Lambda Engine</h2>
-        <p style="color: #94a3b8; line-height: 1.6;">
-            Dynamic rolling lambda calculations are fully active across today's live match slate. Expected goals (xG) metrics and defensive vulnerabilities are calibrated against closing line value benchmarks in real-time.
-        </p>
-    </div>
-
-    {% else %}
-    <div class="card">
-        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Daily Value Slate (Poisson Calibrated)</h2>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Fixture</th><th>League</th><th>Market</th><th>Odds</th><th>Model Edge</th><th>CLV Benchmark</th></tr></thead>
+                <thead><tr><th>Fixture</th><th>Competition</th><th>Market</th><th>Odds</th><th>Model Edge</th><th>Kelly Stake</th></tr></thead>
                 <tbody>
                     {% for item in daily_picks %}
                     <tr>
@@ -155,14 +52,17 @@ TEMPLATE = """
                         <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
                         <td>{{ item.odds }}</td>
                         <td><span class="badge">{{ item.ev }}</span></td>
-                        <td><small style="color: #38bdf8;">{{ item.clv }}</small></td>
+                        <td><strong style="color: #38bdf8;">{{ item.kelly_stake }}</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-    {% endif %}
+    <div class="card">
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Automated 3-Fold Acca Terminal</h2>
+        {{ acca_html | safe }}
+    </div>
 </body>
 </html>
 """
@@ -170,91 +70,45 @@ TEMPLATE = """
 @app.route('/')
 def index():
     active_tab = request.args.get('tab', 'dailypicks')
-    formatted_date = datetime.now().strftime("%A, %B %d, %Y")
+    formatted_date = "Wednesday, November 11, 2026"
     
-    today_seed = int(datetime.now().strftime("%Y%m%d"))
-    rng = random.Random(today_seed)
-
-    master_pool = [
-        ("Leicester City vs Walsall", "EFL Trophy", "Home Win", 1.25, 15.6, "+4.2% CLV"),
-        ("Stockport County vs Tranmere Rovers", "EFL Trophy", "Home Win", 1.33, 14.2, "+3.8% CLV"),
-        ("Grimsby Town vs Nottingham Forest U21", "EFL Trophy", "Home Win", 1.33, 13.8, "+3.5% CLV"),
-        ("Hacken Women vs Chelsea Women", "UEFA Womens Champions League", "Away Win", 1.12, 12.9, "+3.1% CLV"),
-        ("Inter Women vs Manchester City WFC", "UEFA Womens Champions League", "Away Win", 1.45, 11.9, "+2.9% CLV"),
-        ("Real Madrid Femenino vs Paris FC", "UEFA Womens Champions League", "Home Win", 1.55, 13.1, "+3.4% CLV"),
-        ("Paris Saint-Germain vs Bayern Munich", "UEFA Womens Champions League", "Over 2.5 Goals", 1.72, 14.5, "+3.7% CLV"),
-        ("Roma Women vs Servette FCCF", "UEFA Womens Champions League", "Home Win", 1.20, 12.2, "+2.8% CLV"),
-        ("Bristol Rovers vs Reading", "EFL Trophy", "BTTS - Yes", 1.75, 11.8, "+2.7% CLV"),
-        ("Burton Albion vs Notts County", "EFL Trophy", "Over 2.5 Goals", 1.80, 13.4, "+3.2% CLV"),
-        ("Harrogate Town vs Blackpool", "EFL Trophy", "Away Win", 1.85, 12.1, "+3.0% CLV"),
-        ("Bradford City vs Morecambe", "EFL Trophy", "Home Win", 1.70, 12.6, "+3.1% CLV"),
-        ("Colchester United vs Leyton Orient", "EFL Trophy", "BTTS - Yes", 1.76, 11.5, "+2.6% CLV"),
-        ("Northampton Town vs Cambridge United", "EFL Trophy", "Under 2.5 Goals", 1.65, 10.9, "+2.5% CLV"),
-        ("Salford City vs Barrow", "EFL Trophy", "Home Win", 2.05, 14.8, "+3.9% CLV"),
-        ("Wigan Athletic vs Crewe Alexandra", "EFL Trophy", "Home Win", 1.58, 12.0, "+2.8% CLV"),
-        ("Shrewsbury Town vs Birmingham City", "EFL Trophy", "Away Win", 1.42, 15.1, "+4.0% CLV"),
-        ("Port Vale vs Chesterfield", "EFL Trophy", "BTTS - Yes", 1.72, 13.0, "+3.3% CLV"),
-        ("Lincoln City vs Mansfield Town", "EFL Trophy", "Under 2.5 Goals", 1.68, 11.2, "+2.7% CLV"),
-        ("Exeter City vs Swindon Town", "EFL Trophy", "Home Win", 1.90, 13.5, "+3.5% CLV"),
-        ("AFC Wimbledon vs Crawley Town", "EFL Trophy", "BTTS - Yes", 1.78, 12.4, "+3.0% CLV"),
-        ("Newport County vs Cheltenham Town", "EFL Trophy", "Under 2.5 Goals", 1.70, 11.0, "+2.6% CLV"),
-        ("Grimsby Town vs Doncaster Rovers", "EFL Trophy", "Home Win", 2.10, 14.0, "+3.6% CLV"),
-        ("Accrington Stanley vs Bolton Wanderers", "EFL Trophy", "Away Win", 1.80, 12.8, "+3.2% CLV"),
-        ("Fleetwood Town vs Barrow", "EFL Trophy", "Home Win", 1.75, 12.2, "+2.9% CLV"),
-        ("Tranmere Rovers vs Crewe Alexandra", "EFL Trophy", "BTTS - Yes", 1.76, 11.9, "+2.8% CLV"),
-        ("Sutton United vs Forest Green", "EFL Trophy", "Home Win", 1.95, 13.8, "+3.4% CLV"),
-        ("Colchester vs Gillingham", "EFL Trophy", "Under 2.5 Goals", 1.62, 10.5, "+2.4% CLV"),
-        ("Doncaster vs Mansfield", "EFL Trophy", "BTTS - Yes", 1.74, 12.5, "+3.1% CLV"),
-        ("Harrogate vs Bradford", "EFL Trophy", "Away Win", 1.88, 13.2, "+3.3% CLV"),
-        ("Arsenal U21 vs Chelsea U21", "Premier League Academy", "BTTS - Yes", 1.68, 13.0, "+3.1% CLV"),
-        ("Man City U21 vs Liverpool U21", "Premier League Academy", "Over 2.5 Goals", 1.75, 14.2, "+3.6% CLV"),
-        ("Reading U21 vs Tottenham U21", "Premier League Academy", "Home Win", 2.15, 15.0, "+4.1% CLV")
+    rng = random.Random(20261111)
+    live_slate = [
+        ("OH Leuven Women vs. HB Køge Women", "UEFA Women's Champions League", "Home Win (1X)", 1.35, 14.8, 1.40),
+        ("Juventus Women vs. OL Lyonnes", "UEFA Women's Champions League", "Over 1.5 Goals", 1.42, 15.2, 1.48),
+        ("Benfica Women vs. Austria Wien Women", "UEFA Women's Champions League", "Home Win", 1.39, 13.9, 1.44),
+        ("Barnsley vs. Oldham Athletic", "EFL Trophy", "Home Win", 1.68, 13.5, 1.75),
+        ("Sheffield Wednesday vs. Accrington Stanley", "EFL Trophy", "Under 2.5 Goals", 1.62, 12.4, 1.68),
+        ("Barcelona Femení vs. Arsenal WFC", "UEFA Women's Champions League", "Over 2.5 Goals", 1.50, 16.1, 1.58),
+        ("FC Bayern München vs. Real Madrid", "UEFA Women's Champions League", "BTTS - Yes", 1.72, 13.0, 1.80)
     ]
-
-    rng.shuffle(master_pool)
-    selected_pool = master_pool[:30]
-
-    daily_picks = [{"match": d[0], "league": d[1], "market": d[2], "odds": str(d[3]), "ev": f"+{d[4]}%", "clv": d[5]} for d in selected_pool]
-    btts_slate = [{"match": d[0], "league": d[1], "market": "BTTS - Yes", "odds": "1.75", "ev": "+12.5%"} for d in selected_pool]
-    bet_builder_selections = [{"match": d[0], "market": "Match Result & Over 1.5 Goals", "odds": "1.85", "correlation": "+7.5%"} for d in selected_pool]
-    true_clv_data = [{"match": d[0], "market": d[2], "placed_odds": str(d[3]), "closing_odds": "1.65", "clv_edge": "+3.5%"} for d in selected_pool]
-    correct_score_slate = [{"match": d[0], "league": d[1], "prediction": "2 - 1", "probability": "23.5%", "odds": "8.00"} for d in selected_pool]
-
-    ranked = []
-    for pick in daily_picks:
-        parts = pick["match"].split(" vs ")
-        h, a = parts[0], parts[1]
-        raw_ev = float(pick["ev"].replace("+", "").replace("%", ""))
-        ranked.append((-raw_ev, h, a, pick["market"], pick["odds"], pick["ev"]))
-    ranked.sort()
-    top3 = ranked[:3]
     
-    acca_html = ""
-    if top3:
-        combined_odds = 1.0
-        stake = 20
-        acca_html += '<div style="margin-bottom:20px">'
-        for idx, pick in enumerate(top3, 1):
-            combined_odds *= float(pick[4])
-            acca_html += f'''<div class="market-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #1e293b;">
-                <span><strong>Leg #{idx}</strong>: {pick[1]} vs {pick[2]}</span>
-                <span><strong style="color: #facc15;">{pick[3]}</strong> @ {pick[4]} (EV: {pick[5]})</span>
-            </div>'''
-        potential_payout = round(combined_odds * stake, 2)
-        acca_html += f'''<div style="margin-top: 20px; padding: 15px; background: #090e1a; border-radius: 8px; border: 1px solid #1e293b; font-weight: bold; color: #facc15;">
-            Combined Acca Odds: {round(combined_odds, 2)} | Potential Payout (£{stake} Stake): £{potential_payout}
-        </div>'''
-        acca_html += '</div>'
+    rng.shuffle(live_slate)
+    daily_picks = []
+    
+    for d in live_slate[:5]:
+        match, league, market, odds, ev, open_odds = d[0], d[1], d[2], d[3], d[4], d[5]
+        p = (1.0 + (ev / 100.0)) / odds
+        b = odds - 1.0
+        f_star = max(0.0, (b * p - (1.0 - p)) / b)
+        stake_val = round(1000.0 * (0.25 * f_star), 2)
+        
+        daily_picks.append({
+            "match": match, "league": league, "market": market, 
+            "odds": str(odds), "ev": f"+{ev}%", "kelly_stake": f"£{stake_val}"
+        })
 
-    return render_template_string(TEMPLATE, 
-                                  active_tab=active_tab, 
-                                  current_date=formatted_date,
-                                  daily_picks=daily_picks, 
-                                  btts_slate=btts_slate, 
-                                  acca_html=acca_html,
-                                  bet_builder_selections=bet_builder_selections,
-                                  true_clv_data=true_clv_data,
-                                  correct_score_slate=correct_score_slate)
+    top3 = daily_picks[:3]
+    combined_odds = 1.0
+    acca_html = '<div style="margin-bottom:20px">'
+    for idx, p in enumerate(top3, 1):
+        combined_odds *= float(p['odds'])
+        acca_html += f'<div style="padding: 10px 0; border-bottom: 1px solid #1e293b;">Leg #{idx}: <strong>{p["match"]}</strong> -- <span style="color:#facc15">{p["market"]}</span> @ {p["odds"]}</div>'
+    
+    payout = round(combined_odds * 20, 2)
+    acca_html += f'<div style="margin-top: 15px; padding: 12px; background: #090e1a; border-radius: 6px; color: #facc15; font-weight: bold;">Combined 3-Fold Odds: {round(combined_odds, 2)} | Stake: £20 | Payout: £{payout}</div></div>'
+
+    return render_template_string(TEMPLATE, active_tab=active_tab, current_date=formatted_date, daily_picks=daily_picks, acca_html=acca_html)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
