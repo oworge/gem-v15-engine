@@ -326,7 +326,7 @@ def index():
             movement_tag = "Stable Line"
             badge_style = "badge"
 
-                htft_market, htft_odds = calculate_htft_probabilities(l1, l2)
+        htft_market, htft_odds = calculate_htft_probabilities(l1, l2)
         htft_picks.append({
             "match": match_name, "league": league,
             "market": f"HT/FT: {htft_market}",
