@@ -231,6 +231,25 @@ TEMPLATE = """<!DOCTYPE html>
 </body>
 </html>"""
 
+
+def calculate_asian_handicaps(score_distribution, iterations=5000):
+    lines = [-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5]
+    handicap_probs = {}
+    for line in lines:
+        home_covers = 0
+        pushes = 0
+        for (h, a), count in score_distribution.items():
+            goal_diff = h - a
+            adjusted_diff = goal_diff + line
+            if adjusted_diff > 0:
+                home_covers += count
+            elif adjusted_diff == 0:
+                pushes += count
+        effective_iterations = iterations - pushes
+        prob = (home_covers / effective_iterations) if effective_iterations > 0 else 0.50
+        handicap_probs[f"Home {line:+.1f}"] = round(max(0.01, min(0.99, prob)), 4)
+    return handicap_probs
+
 @app.route('/')
 def index():
     active_tab = request.args.get('tab', 'dailypicks')
