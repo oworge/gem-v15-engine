@@ -1,4 +1,4 @@
-﻿import sqlite3
+import sqlite3
 import random
 from datetime import datetime
 from flask import Flask, request, render_template_string
@@ -47,12 +47,12 @@ TEMPLATE = """
                 <tbody>
                     {% for item in daily_picks %}
                     <tr>
-                        <td><strong>{{ item.match }}</strong></td>
-                        <td>{{ item.league }}</td>
-                        <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
-                        <td>{{ item.odds }}</td>
-                        <td><span class="badge">{{ item.ev }}</span></td>
-                        <td><strong style="color: #38bdf8;">{{ item.kelly_stake }}</strong></td>
+                        <td><strong>{ item.match }</strong></td>
+                        <td>{ item.league }</td>
+                        <td><strong style="color: #facc15;">{ item.market }</strong></td>
+                        <td>{ item.odds }</td>
+                        <td><span class="badge">{ item.ev }</span></td>
+                        <td><strong style="color: #38bdf8;">{ item.kelly_stake }</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -61,7 +61,7 @@ TEMPLATE = """
     </div>
     <div class="card">
         <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Automated 3-Fold Acca Terminal</h2>
-        {{ acca_html | safe }}
+        { acca_html | safe }
     </div>
 </body>
 </html>
