@@ -201,6 +201,27 @@ TEMPLATE = """<!DOCTYPE html>
             </table>
         </div>
     </div>
+    {% elif active_tab == 'htft' %}
+    <div class="card">
+        <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">Half-Time / Full-Time (HT/FT) Tactical Markets</h2>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>#</th><th>Fixture</th><th>Competition</th><th>Recommended HT/FT Selection</th><th>Model Odds</th><th>Calibrated Edge</th></tr></thead>
+                <tbody>
+                    {% for item in htft_picks %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ item.match }}</strong></td>
+                        <td>{{ item.league }}</td>
+                        <td><strong style="color: #facc15;">{{ item.market }}</strong></td>
+                        <td><strong style="color: #38bdf8;">{{ item.odds }}</strong></td>
+                        <td><span class="badge">{{ item.ev }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
     {% elif active_tab == 'accagenerator' %}
     <div class="card">
         <h2 style="color: #facc15; margin-top: 0; font-size: 18px;">3-Fold Acca Generator</h2>
