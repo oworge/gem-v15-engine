@@ -232,6 +232,16 @@ TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
+
+def calculate_htft_probabilities(l1, l2):
+    import random
+    outcomes = ["Home/Home", "Draw/Home", "Away/Home", "Home/Draw", "Draw/Draw", "Away/Draw", "Home/Away", "Draw/Away", "Away/Away"]
+    r = random.Random(int((l1+l2)*100))
+    weights = [0.35, 0.15, 0.08, 0.10, 0.12, 0.08, 0.05, 0.05, 0.02] if l1 > l2 else [0.10, 0.10, 0.05, 0.12, 0.15, 0.10, 0.08, 0.15, 0.15]
+    chosen = r.choices(outcomes, weights=weights)[0]
+    odds = round(2.20 if "Home/Home" in chosen else (4.50 if "Draw" in chosen else 7.50), 2)
+    return chosen, odds
+
 def calculate_asian_handicaps(score_distribution, iterations=5000):
     lines = [-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5]
     handicap_probs = {}
@@ -259,7 +269,7 @@ def index():
     rng = random.Random(today.toordinal())
     fixtures = get_daily_fixtures()
     
-    markets_pool = ["Home Win (1X)", "Over 1.5 Goals", "Home Win", "Over 2.5 Goals", "Under 2.5 Goals", "BTTS - Yes"]
+    markets_pool = ["Home Win (1X)", "Over 1.5 Goals", "AH Home -0.5", "Over 2.5 Goals", "AH Home 0.0 (DnB)", "BTTS - Yes"]
     daily_picks, btts_picks, cs_picks, clv_picks = [], [], [], []
     active_alert = None
     
