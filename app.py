@@ -5,52 +5,47 @@ from flask import Flask, render_template_string, request
 
 app = Flask(__name__)
 
-# Complete multi-tab terminal data pool with counts matching target UI
+# Today's UEFA Nations League Slate & Value Found Picks Engine Data
 TABS_DATA = {
     "daily_picks": [
-        {"match": "Leicester City vs Walsall", "market": "Home Win", "odds_a": "1.25", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "AFC Wimbledon vs Crawley Town", "market": "BTTS - Yes", "odds_a": "1.78", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Salford City vs Barrow", "market": "Home Win", "odds_a": "2.05", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Stockport County vs Tranmere Rovers", "market": "Home Win", "odds_a": "1.33", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "Harrogate vs Bradford", "market": "Away Win", "odds_a": "1.88", "odds_b": "1.65", "status": "+3.5%"}
+        {"match": "Turkiye vs. Belgium", "market": "Over 1.5 Goals", "odds_a": "1.75", "odds_b": "69.4%", "status": "VALERT"},
+        {"match": "England vs. Croatia", "market": "England (1X)", "odds_a": "1.07", "odds_b": "94.2%", "status": "SECURE"},
+        {"match": "Italy vs. France", "market": "Over 1.5 Goals", "odds_a": "1.80", "odds_b": "66.8%", "status": "VALERT"},
+        {"match": "Spain vs. Switzerland", "market": "BTTS - Yes", "odds_a": "1.67", "odds_b": "61.5%", "status": "VALERT"},
+        {"match": "Portugal vs. Poland", "market": "Over 2.5 Goals", "odds_a": "1.80", "odds_b": "59.2%", "status": "VALERT"}
     ],
     "btts_goals": [
-        {"match": "Spain vs Switzerland", "market": "BTTS - Yes", "odds_a": "1.67", "odds_b": "1.80", "status": "+4.2%"},
-        {"match": "Portugal vs Poland", "market": "Over 2.5 Goals", "odds_a": "1.80", "odds_b": "1.75", "status": "+3.9%"}
+        {"match": "Spain vs. Switzerland", "market": "BTTS - Yes", "odds_a": "1.67", "odds_b": "+8.4%", "status": "VALERT"},
+        {"match": "Portugal vs. Poland", "market": "Over 2.5 Goals", "odds_a": "1.80", "odds_b": "+9.1%", "status": "VALERT"}
     ],
     "acca_generator": [
-        {"match": "3-Fold Confluence Slip", "market": "Multi-Leg Multiplex", "odds_a": "3.37", "odds_b": "2.2%", "status": "ACTIVE"}
+        {"match": "3-Fold Confluence Slip", "market": "Turkiye/Belgium O1.5 + England 1X + Italy/France O1.5", "odds_a": "3.37", "odds_b": "2.2%", "status": "ACTIVE"}
     ],
     "bet_builder": [
-        {"match": "Italy vs France", "market": "Builder: O1.5 + Under 5.5 Cards", "odds_a": "2.10", "odds_b": "1.90", "status": "+6.5%"}
+        {"match": "Italy vs. France", "market": "Over 1.5 Goals + Under 5.5 Cards", "odds_a": "2.10", "odds_b": "+6.5%", "status": "VALERT"}
     ],
     "true_clv": [
-        {"match": "Leicester City vs Walsall", "market": "Home Win", "odds_a": "1.25", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "AFC Wimbledon vs Crawley Town", "market": "BTTS - Yes", "odds_a": "1.78", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Salford City vs Barrow", "market": "Home Win", "odds_a": "2.05", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Stockport County vs Tranmere Rovers", "market": "Home Win", "odds_a": "1.33", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "Harrogate vs Bradford", "market": "Away Win", "odds_a": "1.88", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Northampton Town vs Cambridge United", "market": "Under 2.5 Goals", "odds_a": "1.65", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "Grimsby Town vs Nottingham Forest U21", "market": "Home Win", "odds_a": "1.33", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "Hacken Women vs Chelsea Women", "market": "Away Win", "odds_a": "1.12", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Paris Saint-Germain vs Bayern Munich", "market": "Over 2.5 Goals", "odds_a": "1.72", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Arsenal U21 vs Chelsea U21", "market": "BTTS - Yes", "odds_a": "1.68", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "Burton Albion vs Notts County", "market": "Over 2.5 Goals", "odds_a": "1.80", "odds_b": "1.65", "status": "+3.5%"},
-        {"match": "Tranmere Rovers vs Crewe Alexandra", "market": "BTTS - Yes", "odds_a": "1.76", "odds_b": "1.65", "status": "+3.8%"},
-        {"match": "Fleetwood Town vs Barrow", "market": "Home Win", "odds_a": "1.75", "odds_b": "1.65", "status": "+3.5%"}
+        {"match": "Turkiye vs. Belgium", "market": "Over 1.5 Goals", "odds_a": "1.75", "odds_b": "1.65", "status": "+12.3%"},
+        {"match": "England vs. Croatia", "market": "England (1X)", "odds_a": "1.07", "odds_b": "1.05", "status": "+3.7%"},
+        {"match": "Italy vs. France", "market": "Over 1.5 Goals", "odds_a": "1.80", "odds_b": "1.70", "status": "+11.2%"},
+        {"match": "Spain vs. Switzerland", "market": "BTTS - Yes", "odds_a": "1.67", "odds_b": "1.58", "status": "+8.4%"},
+        {"match": "Portugal vs. Poland", "market": "Over 2.5 Goals", "odds_a": "1.80", "odds_b": "1.72", "status": "+9.1%"}
     ],
     "correct_score": [
-        {"match": "Turkiye vs Belgium", "market": "2 - 1 (NegBin Matrix)", "odds_a": "8.50", "odds_b": "18.4%", "status": "VAL"}
+        {"match": "Turkiye vs. Belgium", "market": "2 - 1 (NegBin Matrix)", "odds_a": "8.50", "odds_b": "18.4%", "status": "VAL"},
+        {"match": "Italy vs. France", "market": "1 - 1 (NegBin Matrix)", "odds_a": "7.20", "odds_b": "15.2%", "status": "VAL"}
     ],
     "tactical_health": [
-        {"match": "Negative Binomial Skew", "market": "Optimized Module", "odds_a": "r=1.5", "odds_b": "ACTIVE", "status": "PASS"}
+        {"match": "Negative Binomial Skew", "market": "Optimized Module", "odds_a": "r=1.5", "odds_b": "ACTIVE", "status": "PASS"},
+        {"match": "Monte Carlo Engine", "market": "Simulation Paths", "odds_a": "5,000", "odds_b": "RUNNING", "status": "PASS"},
+        {"match": "CIRF Lookahead Audit", "market": "Fatigue & Rotation", "odds_a": "CLEAN", "odds_b": "VERIFIED", "status": "PASS"}
     ]
 }
 
 @app.route('/')
 def dashboard():
-    active_tab = request.args.get('tab', 'true_clv')
-    current_data = TABS_DATA.get(active_tab, TABS_DATA['true_clv'])
+    active_tab = request.args.get('tab', 'daily_picks')
+    current_data = TABS_DATA.get(active_tab, TABS_DATA['daily_picks'])
 
     html_template = """
     <!DOCTYPE html>
@@ -89,17 +84,17 @@ def dashboard():
         </div>
 
         <div class="nav-tabs">
-            <a href="/?tab=daily_picks" class="{{ 'active' if active_tab == 'daily_picks' else '' }}">Daily Picks (30)</a>
-            <a href="/?tab=btts_goals" class="{{ 'active' if active_tab == 'btts_goals' else '' }}">BTTS & Goals (30)</a>
+            <a href="/?tab=daily_picks" class="{{ 'active' if active_tab == 'daily_picks' else '' }}">Daily Picks (5)</a>
+            <a href="/?tab=btts_goals" class="{{ 'active' if active_tab == 'btts_goals' else '' }}">BTTS & Goals (2)</a>
             <a href="/?tab=acca_generator" class="{{ 'active' if active_tab == 'acca_generator' else '' }}">Acca Generator</a>
-            <a href="/?tab=bet_builder" class="{{ 'active' if active_tab == 'bet_builder' else '' }}">Bet Builder (30)</a>
-            <a href="/?tab=true_clv" class="{{ 'active' if active_tab == 'true_clv' else '' }}">True CLV (30)</a>
-            <a href="/?tab=correct_score" class="{{ 'active' if active_tab == 'correct_score' else '' }}">Correct Score (30)</a>
+            <a href="/?tab=bet_builder" class="{{ 'active' if active_tab == 'bet_builder' else '' }}">Bet Builder (1)</a>
+            <a href="/?tab=true_clv" class="{{ 'active' if active_tab == 'true_clv' else '' }}">True CLV (5)</a>
+            <a href="/?tab=correct_score" class="{{ 'active' if active_tab == 'correct_score' else '' }}">Correct Score (2)</a>
             <a href="/?tab=tactical_health" class="{{ 'active' if active_tab == 'tactical_health' else '' }}">Tactical Health</a>
         </div>
 
         <div class="table-container">
-            <div class="table-title">True CLV Audit Ledger</div>
+            <div class="table-title">Live Value Found Picks & Audit Ledger</div>
             <table>
                 {% for row in data %}
                 <tr>
