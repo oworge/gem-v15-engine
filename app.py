@@ -1,10 +1,10 @@
 ﻿from flask import Flask, render_template, request
-from data_generator import DAILY_PICKS, BET_BUILDERS
+from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks
 
 app = Flask(__name__)
 
 DATA = {
-    "daily_picks": DAILY_PICKS,
+    "daily_picks": get_global_daily_picks(),
     "btts_goals": [
         {"match": "Turkiye vs. Belgium", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+8.9% EV)", "odds": "1.72"},
         {"match": "Italy vs. France", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+7.6% EV)", "odds": "1.80"}
