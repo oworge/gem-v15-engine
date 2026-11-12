@@ -5,7 +5,6 @@ from flask import Flask, render_template_string, request
 
 app = Flask(__name__)
 
-# Complete multi-tab architecture data pool
 TABS_DATA = {
     "daily_picks": [
         {"match": "Turkiye vs. Belgium", "competition": "UEFA Nations League", "selection": "Over 1.5 Goals", "odds": "3/4 (1.75)", "ev": "+12.3%"},
@@ -48,22 +47,24 @@ def dashboard():
         <meta charset="utf-8">
         <title>EDGEMETRIX V300 PRO (GEM V15.0)</title>
         <style>
-            body { background-color: #0f172a; color: #f8fafc; font-family: monospace; padding: 20px; margin: 0; }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 10px; }
-            h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; margin: 0; font-size: 22px; }
-            .badge { background: #22c55e; color: black; padding: 4px 8px; font-weight: bold; font-size: 12px; }
-            .nav-tabs { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-            .nav-tabs a { background: #1e293b; color: #94a3b8; padding: 10px 15px; text-decoration: none; border: 1px solid #334155; font-weight: bold; font-size: 13px; }
-            .nav-tabs a.active { background: #0284c7; color: white; border-color: #0284c7; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1e293b; }
-            th, td { padding: 12px; border: 1px solid #334155; text-align: left; font-size: 14px; }
-            th { background: #0284c7; color: white; }
-            tr:nth-child(even) { background: #172033; }
+            body { background-color: #0B0F19; color: #E2E8F0; font-family: 'Courier New', Courier, monospace; padding: 24px; margin: 0; }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1E293B; padding-bottom: 12px; }
+            h1 { color: #38BDF8; text-transform: uppercase; letter-spacing: 2px; margin: 0; font-size: 20px; font-weight: bold; }
+            .badge { background: #10B981; color: #000; padding: 4px 10px; font-weight: bold; font-size: 11px; letter-spacing: 1px; border-radius: 2px; }
+            .nav-tabs { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+            .nav-tabs a { background: #1E293B; color: #94A3B8; padding: 10px 16px; text-decoration: none; border: 1px solid #334155; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+            .nav-tabs a:hover { color: #38BDF8; border-color: #38BDF8; }
+            .nav-tabs a.active { background: #0284C7; color: #FFFFFF; border-color: #0284C7; }
+            table { width: 100%; border-collapse: collapse; margin-top: 24px; background: #111827; border: 1px solid #1F2937; }
+            th, td { padding: 14px 16px; border: 1px solid #1F2937; text-align: left; font-size: 13px; }
+            th { background: #1E293B; color: #38BDF8; text-transform: uppercase; letter-spacing: 1px; }
+            tr:nth-child(even) { background: #0D1322; }
+            tr:hover { background: #162032; }
         </style>
     </head>
     <body>
         <div class="header">
-            <h1>EDGEMETRIX V300 PRO &mdash; GEM V15.0 ENGINE</h1>
+            <h1>EDGEMETRIX V300 PRO &mdash; GEM V15.0</h1>
             <span class="badge">SYSTEM ONLINE</span>
         </div>
 
