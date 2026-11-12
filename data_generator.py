@@ -233,7 +233,7 @@ def dispatch_push_alert(alert_item):
         pass
 
 
-try:\n    import psycopg2\nexcept ImportError:\n    psycopg2 = None
+psycopg2 = None
 
 def get_pg_conn():
     db_url = os.getenv("DATABASE_URL", "").strip()
