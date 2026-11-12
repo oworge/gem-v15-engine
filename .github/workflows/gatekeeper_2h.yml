@@ -31,16 +31,24 @@ jobs:
           for tab in ['daily_picks', 'btts_goals', 'bet_builder', 'correct_score', 'true_clv', 'tactical_health']:
               r = c.get(f'/?tab={tab}')
               assert r.status_code == 200, f'Tab {tab} failed with {r.status_code}'
-          gk = c.get('/gatekeeper')
-          print('GATEKEEPER AUDIT:', gk.get_json())
-          assert gk.status_code == 200 and gk.get_json()['gatekeeper_status'] == 'PASS'
+          gk = c.get('/gatekeeper').get_json()
+          print('GATEKEEPER AUDIT:', gk)
+          if gk['gatekeeper_status'] != 'PASS':
+              print('RECOMMENDED SOLUTIONS:', gk['recommended_solutions'])
+              raise SystemExit(1)
           "
 
-      - name: Wake & Verify Live Render Production Endpoint
+      - name: Verify Live Render Endpoint & Alert on Failure
         run: |
           RENDER_URL="${{ secrets.RENDER_APP_URL }}"
           if [ -z "$RENDER_URL" ]; then
             RENDER_URL="https://gem-v15-engine.onrender.com"
           fi
-          echo "Pinging $RENDER_URL/gatekeeper ..."
-          curl -fsS --retry 3 --retry-delay 15 "$RENDER_URL/gatekeeper" || echo "Live Render endpoint warming up or custom URL not set in RENDER_APP_URL secret"
+          RESP=$(curl -sS -w "\n%{http_code}" --retry 3 --retry-delay 15 "$RENDER_URL/gatekeeper" || echo -e "UNREACHABLE\n000")
+          CODE=$(echo "$RESP" | tail -n1)
+          BODY=$(echo "$RESP" | sed '$d')
+          echo "LIVE RENDER ($CODE): $BODY"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Render Gatekeeper failed ($CODE). Solution: Check Render Dashboard -> Logs & Environment Variables (ODDS_API_KEY, DATABASE_URL) and click Manual Deploy -> Deploy latest commit."
+            exit 1
+          fi
