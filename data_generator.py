@@ -34,6 +34,11 @@ def track_steam(match, comp, pick, current_odds):
     return open_odds, clv
 
 BASE_GLOBAL_SLATE = [
+    ("Colombia vs. Uruguay", "CONMEBOL Global Slate", "BTTS Yes", 1.98, 1.77, 2.10),
+    ("Netherlands vs. Hungary", "UEFA Nations League", "Netherlands Win & BTTS No", 2.22, 1.98, 1.90),
+    ("Portugal vs. Poland", "UEFA Nations League", "Over 2.5 Goals", 1.86, 1.67, 2.28),
+    ("Brazil vs. Venezuela", "CONMEBOL Global Slate", "Brazil -1.5 AH", 1.74, 1.57, 2.48),
+    ("Morocco vs. Gabon", "CAF Global Slate", "Morocco Win & O1.5", 1.67, 1.50, 2.68),
     ("Turkiye vs. Belgium", "UEFA Nations League", "Over 1.5 Goals", 1.75, 1.62, 2.38),
     ("England vs. Croatia", "UEFA Nations League", "Double Chance (1X)", 1.07, 1.05, 13.5),
     ("Italy vs. France", "UEFA Nations League", "Over 1.5 Goals", 1.80, 1.67, 2.28),
