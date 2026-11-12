@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 from flask import Flask, render_template_string, request
 
 app = Flask(__name__)
@@ -268,3 +268,4 @@ def dashboard():
     return render_template('index.html', active_tab=tab, data=DATA.get(tab, DATA['daily_picks']))
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+DATA["daily_picks"] = DAILY_PICKS; DATA["bet_builder"] = BET_BUILDERS
