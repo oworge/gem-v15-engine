@@ -232,4 +232,60 @@ def dispatch_push_alert(alert_item):
     except Exception:
         pass
 
+
+import psycopg2
+
+def get_pg_conn():
+    db_url = os.getenv("DATABASE_URL", "").strip()
+    if not db_url:
+        return None
+    try:
+        return psycopg2.connect(db_url)
+    except Exception:
+        return None
+
+def sync_cloud_persistence():
+    pg = get_pg_conn()
+    if not pg:
+        return "SQLite Local"
+    try:
+        cur = pg.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS odds_history (match_key TEXT PRIMARY KEY, open_odds REAL, last_odds REAL, pick TEXT, comp TEXT, updated_at TEXT)")
+        cur.execute("CREATE TABLE IF NOT EXISTS bets (id SERIAL PRIMARY KEY, match TEXT UNIQUE, pick TEXT, odds REAL, stake REAL, status TEXT, pnl REAL)")
+        pg.commit()
+        cur.close()
+        pg.close()
+        return "Cloud Postgres Active"
+    except Exception:
+        return "SQLite Fallback"
+
+def auto_grade_settled_matches(picks):
+    sync_cloud_persistence()
+    conn = sqlite3.connect(LEDGER_DB)
+    conn.execute("CREATE TABLE IF NOT EXISTS bets (id INTEGER PRIMARY KEY, match TEXT UNIQUE, pick TEXT, odds REAL, stake REAL, status TEXT, pnl REAL)")
+    for p in picks:
+        if "+12." in p["pick"] or "+11." in p["pick"]:
+            exists = conn.execute("SELECT 1 FROM bets WHERE match=?", (p["match"],)).fetchone()
+            if not exists:
+                conn.execute("INSERT OR IGNORE INTO bets (match, pick, odds, stake, status, pnl) VALUES (?,?,?,?,?,?)", (p["match"], p["pick"].split(" (")[0], float(p["odds"]), 3.0, "PENDING", 0.0))
+    key = os.getenv("ODDS_API_KEY", "").strip()
+    if key:
+        try:
+            url = f"https://api.the-odds-api.com/v4/sports/soccer/scores/?daysFrom=1&apiKey={key}"
+            scores = json.loads(urllib.request.urlopen(url, timeout=5).read().decode("utf-8"))
+            for s in scores:
+                if not s.get("completed") or not s.get("scores"):
+                    continue
+                m_name = f"{s['home_team']} vs. {s['away_team']}"
+                row = conn.execute("SELECT pick, odds, stake FROM bets WHERE match=? AND status='PENDING'", (m_name,)).fetchone()
+                if row:
+                    g_tot = sum(int(x["score"]) for x in s["scores"])
+                    won = (g_tot >= 2) if "1.5" in row[0] else (g_tot >= 3 if "2.5" in row[0] else True)
+                    pnl = round(row[2] * (row[1] - 1.0), 2) if won else round(-row[2], 2)
+                    conn.execute("UPDATE bets SET status=?, pnl=? WHERE match=?", ("WON" if won else "LOST", pnl, m_name))
+        except Exception:
+            pass
+    conn.commit()
+    conn.close()
+
 DAILY_PICKS = get_global_daily_picks()
