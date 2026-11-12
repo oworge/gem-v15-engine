@@ -1,5 +1,5 @@
 ﻿from flask import Flask, render_template, request
-from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, get_live_steam_clv, dispatch_push_alert
+from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, get_live_steam_clv, dispatch_push_alert, dispatch_push_alert
 
 app = Flask(__name__)
 
@@ -35,9 +35,9 @@ DATA = {
 @app.route('/')
 def dashboard():
     tab = request.args.get('tab', 'daily_picks')
-    picks = get_global_daily_picks, get_live_steam_clv, dispatch_push_alert()
+    picks = get_global_daily_picks, get_live_steam_clv, dispatch_push_alert, dispatch_push_alert()
     DATA['daily_picks'] = picks
-    DATA['true_clv'] = get_live_steam_clv, dispatch_push_alert()
+    DATA['true_clv'] = get_live_steam_clv, dispatch_push_alert, dispatch_push_alert()
     return render_template('index.html', active_tab=tab, data=DATA.get(tab, picks), al = get_perfect_value_alert(picks)
     dispatch_push_alert(al)
     return render_template('index.html', active_tab=tab, data=DATA.get(tab, picks), alert=al)
