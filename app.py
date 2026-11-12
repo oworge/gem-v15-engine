@@ -7,6 +7,10 @@ def get_perfect_value_alerts(picks):
     hits = [p for p in picks if any(t in p["pick"] for t in ["+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
     return hits if hits else (picks[:1] if picks else [])
 
+def get_perfect_value_alerts(picks):
+    hits = [p for p in picks if any(t in p["pick"] for t in ["+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
+    return hits if hits else (picks[:1] if picks else [])
+
 def get_perfect_value_alert(picks):
     hits = get_perfect_value_alerts(picks)
     return hits[0] if hits else None
