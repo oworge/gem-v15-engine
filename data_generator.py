@@ -1,4 +1,4 @@
-import os, time, sqlite3, urllib.request, urllib.parse, json
+﻿import os, time, sqlite3, urllib.request, urllib.parse, json
 from datetime import datetime
 
 DB_PATH = "clv_audit.db"
@@ -233,11 +233,11 @@ def dispatch_push_alert(alert_item):
         pass
 
 
-import psycopg2
+try:\n    import psycopg2\nexcept ImportError:\n    psycopg2 = None
 
 def get_pg_conn():
     db_url = os.getenv("DATABASE_URL", "").strip()
-    if not db_url:
+    if not db_url or psycopg2 is None:
         return None
     try:
         return psycopg2.connect(db_url)
