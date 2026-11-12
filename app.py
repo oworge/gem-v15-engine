@@ -1,11 +1,7 @@
-from flask import Flask, render_template, request
+﻿from flask import Flask, render_template, request
 from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, get_live_steam_clv, dispatch_push_alert, auto_grade_settled_matches
 
 app = Flask(__name__)
-
-def get_perfect_value_alerts(picks):
-    hits = [p for p in picks if any(t in p["pick"] for t in ["+5.", "+6.", "+7.", "+8.", "+9.", "+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
-    return hits if hits else (picks[:1] if picks else [])
 
 def get_perfect_value_alerts(picks):
     hits = [p for p in picks if any(t in p["pick"] for t in ["+5.", "+6.", "+7.", "+8.", "+9.", "+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
@@ -41,9 +37,10 @@ def dashboard():
     DATA["daily_picks"] = picks
     auto_grade_settled_matches(picks)
     DATA["true_clv"] = get_live_steam_clv()
-    al = get_perfect_value_alert(picks)
-    dispatch_push_alert, auto_grade_settled_matches(al)
-    return render_template("index.html", active_tab=tab, data=DATA.get(tab, picks), alert=al)
+    alerts = get_perfect_value_alerts(picks)
+    for a in alerts:
+        dispatch_push_alert(a)
+    return render_template("index.html", active_tab=tab, data=DATA.get(tab, picks), alert=(alerts[0] if alerts else None), alerts=alerts)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
