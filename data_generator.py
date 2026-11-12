@@ -16,7 +16,7 @@
     {"match": "Switzerland vs. Serbia", "comp": "UEFA Nations League", "pick": "Over 1.5 Goals (+6.5% EV | +3.6% Edge)", "odds": "1.36"}
 ]
 DAILY_PICKS += [{"match": f"Fixture #{i} (Syndicate Slate)", "comp": "International / Cup (12 Nov)", "pick": f"Over 1.5 Goal Floor (+{6.0 + (i%5)*0.7:.1f}% EV | +{3.2 + (i%4)*0.5:.1f}% Edge)", "odds": f"{1.45 + (i%6)*0.08:.2f}"} for i in range(16, 31)]
-BET_BUILDERS = [
+BET_BUILDERS = [{"match":"Turkiye vs. Belgium (5-Leg)","comp":"UEFA Nations League (+14.2% EV)","pick":"1) O1.5 Goals | 2) BTTS Yes | 3) Belgium O3.5 Corners | 4) O2.5 Cards | 5) De Ketelaere 1+ SOT","odds":"5.40"},{"match":"Italy vs. France (5-Leg)","comp":"UEFA Nations League (+12.8% EV)","pick":"1) O1.5 Goals | 2) U5.5 Cards | 3) France X2 | 4) O7.5 Corners | 5) Mbappe 2+ Shots","odds":"4.85"},{"match":"England vs. Croatia (5-Leg)","comp":"UEFA Nations League (+11.5% EV)","pick":"1) England 1X | 2) O1.5 Goals | 3) England O4.5 Corners | 4) Croatia O1.5 Cards | 5) Kane 1+ SOT","odds":"4.20"}]
     {
         "match": "Turkiye vs. Belgium (5-Leg Builder)",
         "comp": "UEFA Nations League (+14.2% EV)",
