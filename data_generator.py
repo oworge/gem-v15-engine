@@ -396,3 +396,27 @@ if "get_global_daily_picks" in globals() and "_orig_country_picks" not in global
     _orig_country_picks = get_global_daily_picks
     def get_global_daily_picks(*args, **kwargs):
         return attach_country_to_picks(_orig_country_picks(*args, **kwargs))
+
+
+# --- SHARP DE-VIG & xT EFFICIENCY QUANT MODULE ---
+def calculate_devigged_ev(decimal_odds, opposing_odds_list, xt_efficiency_boost=0.025):
+    try:
+        dec = float(decimal_odds)
+        if dec <= 1.01:
+            return 0.0, 0.0
+        raw_prob = 1.0 / dec
+        opp_probs = [1.0 / float(o) for o in opposing_odds_list if float(o) > 1.01]
+        total_implied = raw_prob + sum(opp_probs)
+        if total_implied <= 0:
+            return 0.0, 0.0
+        # Strip bookmaker overround (vig) to isolate true fair probability
+        fair_prob = (raw_prob / total_implied) + xt_efficiency_boost
+        fair_prob = min(max(fair_prob, 0.05), 0.92)
+        ev_pct = ((fair_prob * dec) - 1.0) * 100.0
+        # Fractional Quarter-Kelly stake sizing capped at 3.0%
+        b = dec - 1.0
+        q = 1.0 - fair_prob
+        kelly = max(0.0, ((b * fair_prob) - q) / b) * 0.25 * 100.0
+        return round(ev_pct, 2), round(min(kelly, 3.0), 2)
+    except Exception:
+        return 0.0, 0.0
