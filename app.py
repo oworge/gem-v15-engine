@@ -4,11 +4,11 @@ from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, ge
 app = Flask(__name__)
 
 def get_perfect_value_alerts(picks):
-    hits = [p for p in picks if any(t in p["pick"] for t in ["+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
+    hits = [p for p in picks if any(t in p["pick"] for t in ["+5.", "+6.", "+7.", "+8.", "+9.", "+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
     return hits if hits else (picks[:1] if picks else [])
 
 def get_perfect_value_alerts(picks):
-    hits = [p for p in picks if any(t in p["pick"] for t in ["+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
+    hits = [p for p in picks if any(t in p["pick"] for t in ["+5.", "+6.", "+7.", "+8.", "+9.", "+10.", "+11.", "+12.", "+13.", "+14.", "+15."])]
     return hits if hits else (picks[:1] if picks else [])
 
 def get_perfect_value_alert(picks):
