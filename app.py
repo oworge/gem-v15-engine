@@ -1,5 +1,5 @@
 ﻿from flask import Flask, render_template, request
-from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks
+from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, get_live_steam_clv
 
 app = Flask(__name__)
 
@@ -11,7 +11,7 @@ def get_perfect_value_alert(picks):
 
 
 DATA = {
-    "daily_picks": get_global_daily_picks(),
+    "daily_picks": get_global_daily_picks, get_live_steam_clv(),
     "btts_goals": [
         {"match": "Turkiye vs. Belgium", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+8.9% EV)", "odds": "1.72"},
         {"match": "Italy vs. France", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+7.6% EV)", "odds": "1.80"}
@@ -35,8 +35,9 @@ DATA = {
 @app.route('/')
 def dashboard():
     tab = request.args.get('tab', 'daily_picks')
-    picks = get_global_daily_picks()
+    picks = get_global_daily_picks, get_live_steam_clv()
     DATA['daily_picks'] = picks
+    DATA['true_clv'] = get_live_steam_clv()
     return render_template('index.html', active_tab=tab, data=DATA.get(tab, picks), alert=get_perfect_value_alert(picks))
 
 if __name__ == '__main__':
