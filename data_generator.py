@@ -9,50 +9,31 @@ CACHE_FILE = "global_odds_cache.json"
 CACHE_TTL = 900  # 15-minute live global refresh
 
 BASE_GLOBAL_SLATE = [
-    ("Turkiye vs. Belgium", "UEFA Nations League (12 Nov 2026)", "Over 1.5 Goals", 1.75, 1.55, 1.85),
-    ("Colombia vs. Uruguay", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "BTTS Yes", 1.98, 1.77, 2.10),
-    ("Netherlands vs. Hungary", "UEFA Nations League (12 Nov 2026)", "Netherlands Win & O1.5", 1.78, 1.60, 2.25),
-    ("Portugal vs. Poland", "UEFA Nations League (12 Nov 2026)", "Over 2.5 Goals", 1.86, 1.67, 2.28),
-    ("Brazil vs. Venezuela", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Brazil -1.5 AH", 1.74, 1.57, 2.48),
-    ("Morocco vs. Gabon", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Morocco Win & O1.5", 1.67, 1.50, 2.68),
-    ("Japan vs. Indonesia", "AFC World Cup Qualifiers (12 Nov 2026)", "Japan -1.5 AH", 1.72, 1.55, 2.55),
-    ("Argentina vs. Paraguay", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Argentina Win", 1.68, 1.52, 2.60),
-    ("Australia vs. Saudi Arabia", "AFC World Cup Qualifiers (12 Nov 2026)", "Under 2.5 Goals", 1.82, 1.65, 2.25),
-    ("USA vs. Jamaica", "CONCACAF Nations League (12 Nov 2026)", "USA Win & O1.5", 1.84, 1.67, 2.22),
-    ("South Korea vs. Kuwait", "AFC World Cup Qualifiers (12 Nov 2026)", "Over 2.5 Goals", 1.76, 1.60, 2.38),
-    ("Egypt vs. Cape Verde", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Egypt Win", 1.70, 1.55, 2.50),
-    ("England vs. Greece", "UEFA Nations League (12 Nov 2026)", "England Win", 1.75, 1.60, 2.40),
-    ("Spain vs. Denmark", "UEFA Nations League (12 Nov 2026)", "Spain Win & O1.5", 1.80, 1.65, 2.30),
-    ("Italy vs. France", "UEFA Nations League (12 Nov 2026)", "BTTS Yes", 1.83, 1.68, 2.20),
-    ("Mexico vs. Honduras", "CONCACAF Nations League (12 Nov 2026)", "Mexico -1.0 AH", 1.79, 1.64, 2.32),
-    ("Nigeria vs. Benin", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Nigeria Win", 1.66, 1.52, 2.58),
-    ("Ecuador vs. Bolivia", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Over 2.5 Goals", 1.85, 1.70, 2.18),
-    ("Iran vs. North Korea", "AFC World Cup Qualifiers (12 Nov 2026)", "Iran -1.5 AH", 1.77, 1.63, 2.35),
-    ("Germany vs. Bosnia", "UEFA Nations League (12 Nov 2026)", "Over 2.5 Goals", 1.65, 1.52, 2.62),
-    ("Senegal vs. Burkina Faso", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Senegal Win", 1.73, 1.60, 2.42),
-    ("Chile vs. Peru", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Under 2.5 Goals", 1.71, 1.58, 2.46),
-    ("Canada vs. Suriname", "CONCACAF Nations League (12 Nov 2026)", "Canada Win & O1.5", 1.76, 1.63, 2.36),
-    ("New Zealand vs. Vanuatu", "OFC World Cup Qualifiers (12 Nov 2026)", "Over 2.5 Goals", 1.64, 1.52, 2.65),
-    ("Norway vs. Slovenia", "UEFA Nations League (12 Nov 2026)", "BTTS Yes", 1.88, 1.74, 2.12),
-    ("Algeria vs. Equatorial Guinea", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Algeria Win", 1.69, 1.57, 2.48),
-    ("Uzbekistan vs. Qatar", "AFC World Cup Qualifiers (12 Nov 2026)", "1X Double Chance", 1.58, 1.47, 2.75),
-    ("Austria vs. Kazakhstan", "UEFA Nations League (12 Nov 2026)", "Over 2.5 Goals", 1.74, 1.62, 2.38),
-    ("Ivory Coast vs. Zambia", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Ivory Coast Win", 1.67, 1.56, 2.52),
-    ("Panama vs. Costa Rica", "CONCACAF Nations League (12 Nov 2026)", "BTTS Yes", 1.92, 1.79, 2.05),
-    ("Czechia vs. Albania", "UEFA Nations League (12 Nov 2026)", "Czechia Win", 1.81, 1.69, 2.26),
-    ("Iraq vs. Jordan", "AFC World Cup Qualifiers (12 Nov 2026)", "Under 2.5 Goals", 1.73, 1.62, 2.40),
-    ("Tunisia vs. Madagascar", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Tunisia Win", 1.62, 1.52, 2.62),
-    ("Sweden vs. Slovakia", "UEFA Nations League (12 Nov 2026)", "BTTS Yes", 1.84, 1.73, 2.15),
-    ("UAE vs. Kyrgyzstan", "AFC World Cup Qualifiers (12 Nov 2026)", "UAE Win", 1.66, 1.56, 2.54),
-    ("Cameroon vs. Namibia", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Cameroon Win", 1.65, 1.55, 2.56)
+    ("Türkiye vs. Belgium", "UEFA Nations League (12 Nov 2026 | 17:00 UTC)", "Over 1.5 Goals", 1.75, 1.55, 1.85),
+    ("Italy vs. France", "UEFA Nations League (12 Nov 2026 | 19:45 UTC)", "BTTS Yes", 1.98, 1.77, 2.10),
+    ("England vs. Croatia", "UEFA Nations League (12 Nov 2026 | 19:45 UTC)", "England Win & O1.5", 1.78, 1.60, 2.25),
+    ("Czechia vs. Spain", "UEFA Nations League (12 Nov 2026 | 19:45 UTC)", "Spain Win & O1.5", 1.86, 1.67, 2.28),
+    ("Ivory Coast vs. Gambia", "AFCON 2027 Qualifiers (12 Nov 2026 | 19:00 UTC)", "Ivory Coast Win & O1.5", 1.74, 1.57, 2.48),
+    ("Senegal vs. Sudan", "AFCON 2027 Qualifiers (12 Nov 2026 | 19:00 UTC)", "Senegal -1.5 AH", 1.67, 1.50, 2.68),
+    ("Cameroon vs. Namibia", "AFCON 2027 Qualifiers (12 Nov 2026 | 19:00 UTC)", "Cameroon Win", 1.72, 1.55, 2.55),
+    ("Ghana vs. Somalia", "AFCON 2027 Qualifiers (12 Nov 2026 | 15:00 UTC)", "Over 2.5 Goals", 1.68, 1.52, 2.60),
+    ("Albania vs. Finland", "UEFA Nations League (12 Nov 2026 | 19:45 UTC)", "Albania Win", 1.84, 1.67, 2.22),
+    ("Armenia vs. Cyprus", "UEFA Nations League (12 Nov 2026 | 17:00 UTC)", "Over 1.5 Goals", 1.76, 1.60, 2.38),
+    ("Montenegro vs. Latvia", "UEFA Nations League (12 Nov 2026 | 19:45 UTC)", "Montenegro Win", 1.70, 1.55, 2.50),
+    ("San Marino vs. Belarus", "UEFA Nations League (12 Nov 2026 | 19:45 UTC)", "Belarus -1.5 AH", 1.75, 1.60, 2.40),
+    ("Curaçao vs. Panama", "CONCACAF Nations League QF (12 Nov 2026)", "Panama Win", 1.83, 1.68, 2.20),
+    ("Benin vs. Central African Republic", "AFCON 2027 Qualifiers (12 Nov 2026 | 19:00 UTC)", "Under 2.5 Goals", 1.79, 1.64, 2.32),
+    ("Madagascar vs. Guinea-Bissau", "AFCON 2027 Qualifiers (12 Nov 2026 | 16:00 UTC)", "1X Double Chance", 1.66, 1.52, 2.58),
+    ("Uzbekistan vs. Russia", "International Friendly (12 Nov 2026 | 15:00 UTC)", "BTTS Yes", 1.88, 1.74, 2.12),
+    ("Lithuania vs. Suriname", "International Friendly (12 Nov 2026 | 17:00 UTC)", "Over 1.5 Goals", 1.74, 1.62, 2.38),
+    ("Navalcarnero vs. Real Betis", "Spanish Copa del Rey (12 Nov 2026 | 18:00 UTC)", "Real Betis -1.5 AH", 1.69, 1.57, 2.48),
+    ("Tarancón vs. Levante", "Spanish Copa del Rey (12 Nov 2026 | 18:00 UTC)", "Over 2.5 Goals", 1.67, 1.56, 2.52)
 ]
 
 BET_BUILDERS = [
-    {"match": "Global 5-Fold Value Accumulator #1", "comp": "UEFA + CONMEBOL + AFC + CAF", "pick": "Turkiye/Belgium O1.5 + Colombia/Uruguay BTTS + Brazil -1.5 + Japan -1.5 + Morocco Win", "odds": "16.42"},
-    {"match": "Global 5-Fold Value Accumulator #2", "comp": "Multi-Continent Sharp Consensus", "pick": "Netherlands Win + Portugal O2.5 + Argentina Win + USA Win + Egypt Win", "odds": "14.85"},
-    {"match": "Global 5-Fold Goals & BTTS Builder", "comp": "Devigged Poisson Outliers", "pick": "Italy/France BTTS + Norway/Slovenia BTTS + Panama/Costa Rica BTTS + Ecuador O2.5 + Germany O2.5", "odds": "18.90"},
-    {"match": "Global 5-Fold Asian Handicap Edge", "comp": "Soft-vs-Sharp Line Gaps", "pick": "Mexico -1.0 + Iran -1.5 + England Win + Spain Win + Senegal Win", "odds": "13.60"},
-    {"match": "Global 5-Fold Defensive Under/1X", "comp": "Low-Tempo Tactical Edges", "pick": "Australia U2.5 + Chile U2.5 + Iraq U2.5 + Uzbekistan 1X + Tunisia Win", "odds": "12.75"}
+    {"match": "Today 5-Fold Elite Value Acca #1 (12 Nov 2026)", "comp": "UEFA + AFCON Verified Today Slate", "pick": "Türkiye/Belgium O1.5 + Italy/France BTTS + England Win + Spain Win + Senegal -1.5", "odds": "15.80"},
+    {"match": "Today 5-Fold Global Multi-Confed #2 (12 Nov 2026)", "comp": "UEFA + CAF + CONCACAF + Copa del Rey", "pick": "Ivory Coast Win + Cameroon Win + Panama Win + Real Betis -1.5 + Ghana O2.5", "odds": "14.20"},
+    {"match": "Today 4-Fold Evening Kick-Off Builder (19:45 UTC)", "comp": "UEFA Nations League Night Slate", "pick": "Albania Win + Montenegro Win + Belarus -1.5 + Czechia/Spain O1.5", "odds": "10.65"}
 ]
 
 def calc_devigged_ev(soft_odds, sharp_win_odds, sharp_opp_odds):
