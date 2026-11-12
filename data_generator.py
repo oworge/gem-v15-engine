@@ -114,7 +114,7 @@ def get_live_steam_clv():
         get_global_daily_picks()
     return [get_ledger_summary()] + CACHE["steam"][:11]
 
-DAILY_PICKS = get_global_daily_picks()
+
 
 BET_BUILDERS = [
     {"match":"Turkiye vs. Belgium (5-Leg Builder)","comp":"UEFA Nations League (+14.2% Devigged EV)","pick":"1) O1.5 Goals | 2) BTTS Yes | 3) Belgium O3.5 Corners | 4) O2.5 Cards | 5) De Ketelaere 1+ SOT","odds":"5.40"},
@@ -231,3 +231,5 @@ def dispatch_push_alert(alert_item):
             urllib.request.urlopen(req, timeout=4)
     except Exception:
         pass
+
+DAILY_PICKS = get_global_daily_picks()
