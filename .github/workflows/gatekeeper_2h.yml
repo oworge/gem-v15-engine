@@ -42,7 +42,7 @@ jobs:
         run: |
           RENDER_URL="${{ secrets.RENDER_APP_URL }}"
           if [ -z "$RENDER_URL" ]; then
-            RENDER_URL="https://gem-v15-engine.onrender.com"
+            RENDER_URL="https://edgemetrix-pro-2026.onrender.com"
           fi
           RESP=$(curl -sS -w "\n%{http_code}" --retry 3 --retry-delay 15 "$RENDER_URL/gatekeeper" || echo -e "UNREACHABLE\n000")
           CODE=$(echo "$RESP" | tail -n1)

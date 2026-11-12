@@ -1,3 +1,11 @@
+import os
+for _p in (".env", "/etc/secrets/.env"):
+    if os.path.exists(_p):
+        for _line in open(_p, encoding="utf-8"):
+            if "=" in _line and not _line.strip().startswith("#"):
+                _k, _v = _line.strip().split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+
 ﻿import os, json, time, sqlite3, urllib.request, importlib.util
 from datetime import datetime, timezone, timedelta
 
