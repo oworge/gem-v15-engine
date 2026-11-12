@@ -1,4 +1,5 @@
 ﻿import os, json, time, sqlite3, urllib.request, importlib.util
+from datetime import datetime, timezone
 
 psycopg2 = __import__("psycopg2") if importlib.util.find_spec("psycopg2") else None
 
@@ -8,42 +9,42 @@ CACHE_FILE = "global_odds_cache.json"
 CACHE_TTL = 900  # 15-minute live global refresh
 
 BASE_GLOBAL_SLATE = [
-    ("Turkiye vs. Belgium", "UEFA Nations League", "Over 1.5 Goals", 1.75, 1.55, 1.85),
-    ("Colombia vs. Uruguay", "CONMEBOL World Cup Qualifiers", "BTTS Yes", 1.98, 1.77, 2.10),
-    ("Netherlands vs. Hungary", "UEFA Nations League", "Netherlands Win & O1.5", 1.78, 1.60, 2.25),
-    ("Portugal vs. Poland", "UEFA Nations League", "Over 2.5 Goals", 1.86, 1.67, 2.28),
-    ("Brazil vs. Venezuela", "CONMEBOL World Cup Qualifiers", "Brazil -1.5 AH", 1.74, 1.57, 2.48),
-    ("Morocco vs. Gabon", "AFCON Qualifiers (CAF)", "Morocco Win & O1.5", 1.67, 1.50, 2.68),
-    ("Japan vs. Indonesia", "AFC World Cup Qualifiers", "Japan -1.5 AH", 1.72, 1.55, 2.55),
-    ("Argentina vs. Paraguay", "CONMEBOL World Cup Qualifiers", "Argentina Win", 1.68, 1.52, 2.60),
-    ("Australia vs. Saudi Arabia", "AFC World Cup Qualifiers", "Under 2.5 Goals", 1.82, 1.65, 2.25),
-    ("USA vs. Jamaica", "CONCACAF Nations League", "USA Win & O1.5", 1.84, 1.67, 2.22),
-    ("South Korea vs. Kuwait", "AFC World Cup Qualifiers", "Over 2.5 Goals", 1.76, 1.60, 2.38),
-    ("Egypt vs. Cape Verde", "AFCON Qualifiers (CAF)", "Egypt Win", 1.70, 1.55, 2.50),
-    ("England vs. Greece", "UEFA Nations League", "England Win", 1.75, 1.60, 2.40),
-    ("Spain vs. Denmark", "UEFA Nations League", "Spain Win & O1.5", 1.80, 1.65, 2.30),
-    ("Italy vs. France", "UEFA Nations League", "BTTS Yes", 1.83, 1.68, 2.20),
-    ("Mexico vs. Honduras", "CONCACAF Nations League", "Mexico -1.0 AH", 1.79, 1.64, 2.32),
-    ("Nigeria vs. Benin", "AFCON Qualifiers (CAF)", "Nigeria Win", 1.66, 1.52, 2.58),
-    ("Ecuador vs. Bolivia", "CONMEBOL World Cup Qualifiers", "Over 2.5 Goals", 1.85, 1.70, 2.18),
-    ("Iran vs. North Korea", "AFC World Cup Qualifiers", "Iran -1.5 AH", 1.77, 1.63, 2.35),
-    ("Germany vs. Bosnia", "UEFA Nations League", "Over 2.5 Goals", 1.65, 1.52, 2.62),
-    ("Senegal vs. Burkina Faso", "AFCON Qualifiers (CAF)", "Senegal Win", 1.73, 1.60, 2.42),
-    ("Chile vs. Peru", "CONMEBOL World Cup Qualifiers", "Under 2.5 Goals", 1.71, 1.58, 2.46),
-    ("Canada vs. Suriname", "CONCACAF Nations League", "Canada Win & O1.5", 1.76, 1.63, 2.36),
-    ("New Zealand vs. Vanuatu", "OFC World Cup Qualifiers", "Over 2.5 Goals", 1.64, 1.52, 2.65),
-    ("Norway vs. Slovenia", "UEFA Nations League", "BTTS Yes", 1.88, 1.74, 2.12),
-    ("Algeria vs. Equatorial Guinea", "AFCON Qualifiers (CAF)", "Algeria Win", 1.69, 1.57, 2.48),
-    ("Uzbekistan vs. Qatar", "AFC World Cup Qualifiers", "1X Double Chance", 1.58, 1.47, 2.75),
-    ("Austria vs. Kazakhstan", "UEFA Nations League", "Over 2.5 Goals", 1.74, 1.62, 2.38),
-    ("Ivory Coast vs. Zambia", "AFCON Qualifiers (CAF)", "Ivory Coast Win", 1.67, 1.56, 2.52),
-    ("Panama vs. Costa Rica", "CONCACAF Nations League", "BTTS Yes", 1.92, 1.79, 2.05),
-    ("Czechia vs. Albania", "UEFA Nations League", "Czechia Win", 1.81, 1.69, 2.26),
-    ("Iraq vs. Jordan", "AFC World Cup Qualifiers", "Under 2.5 Goals", 1.73, 1.62, 2.40),
-    ("Tunisia vs. Madagascar", "AFCON Qualifiers (CAF)", "Tunisia Win", 1.62, 1.52, 2.62),
-    ("Sweden vs. Slovakia", "UEFA Nations League", "BTTS Yes", 1.84, 1.73, 2.15),
-    ("UAE vs. Kyrgyzstan", "AFC World Cup Qualifiers", "UAE Win", 1.66, 1.56, 2.54),
-    ("Cameroon vs. Namibia", "AFCON Qualifiers (CAF)", "Cameroon Win", 1.65, 1.55, 2.56)
+    ("Turkiye vs. Belgium", "UEFA Nations League (12 Nov 2026)", "Over 1.5 Goals", 1.75, 1.55, 1.85),
+    ("Colombia vs. Uruguay", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "BTTS Yes", 1.98, 1.77, 2.10),
+    ("Netherlands vs. Hungary", "UEFA Nations League (12 Nov 2026)", "Netherlands Win & O1.5", 1.78, 1.60, 2.25),
+    ("Portugal vs. Poland", "UEFA Nations League (12 Nov 2026)", "Over 2.5 Goals", 1.86, 1.67, 2.28),
+    ("Brazil vs. Venezuela", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Brazil -1.5 AH", 1.74, 1.57, 2.48),
+    ("Morocco vs. Gabon", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Morocco Win & O1.5", 1.67, 1.50, 2.68),
+    ("Japan vs. Indonesia", "AFC World Cup Qualifiers (12 Nov 2026)", "Japan -1.5 AH", 1.72, 1.55, 2.55),
+    ("Argentina vs. Paraguay", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Argentina Win", 1.68, 1.52, 2.60),
+    ("Australia vs. Saudi Arabia", "AFC World Cup Qualifiers (12 Nov 2026)", "Under 2.5 Goals", 1.82, 1.65, 2.25),
+    ("USA vs. Jamaica", "CONCACAF Nations League (12 Nov 2026)", "USA Win & O1.5", 1.84, 1.67, 2.22),
+    ("South Korea vs. Kuwait", "AFC World Cup Qualifiers (12 Nov 2026)", "Over 2.5 Goals", 1.76, 1.60, 2.38),
+    ("Egypt vs. Cape Verde", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Egypt Win", 1.70, 1.55, 2.50),
+    ("England vs. Greece", "UEFA Nations League (12 Nov 2026)", "England Win", 1.75, 1.60, 2.40),
+    ("Spain vs. Denmark", "UEFA Nations League (12 Nov 2026)", "Spain Win & O1.5", 1.80, 1.65, 2.30),
+    ("Italy vs. France", "UEFA Nations League (12 Nov 2026)", "BTTS Yes", 1.83, 1.68, 2.20),
+    ("Mexico vs. Honduras", "CONCACAF Nations League (12 Nov 2026)", "Mexico -1.0 AH", 1.79, 1.64, 2.32),
+    ("Nigeria vs. Benin", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Nigeria Win", 1.66, 1.52, 2.58),
+    ("Ecuador vs. Bolivia", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Over 2.5 Goals", 1.85, 1.70, 2.18),
+    ("Iran vs. North Korea", "AFC World Cup Qualifiers (12 Nov 2026)", "Iran -1.5 AH", 1.77, 1.63, 2.35),
+    ("Germany vs. Bosnia", "UEFA Nations League (12 Nov 2026)", "Over 2.5 Goals", 1.65, 1.52, 2.62),
+    ("Senegal vs. Burkina Faso", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Senegal Win", 1.73, 1.60, 2.42),
+    ("Chile vs. Peru", "CONMEBOL World Cup Qualifiers (12 Nov 2026)", "Under 2.5 Goals", 1.71, 1.58, 2.46),
+    ("Canada vs. Suriname", "CONCACAF Nations League (12 Nov 2026)", "Canada Win & O1.5", 1.76, 1.63, 2.36),
+    ("New Zealand vs. Vanuatu", "OFC World Cup Qualifiers (12 Nov 2026)", "Over 2.5 Goals", 1.64, 1.52, 2.65),
+    ("Norway vs. Slovenia", "UEFA Nations League (12 Nov 2026)", "BTTS Yes", 1.88, 1.74, 2.12),
+    ("Algeria vs. Equatorial Guinea", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Algeria Win", 1.69, 1.57, 2.48),
+    ("Uzbekistan vs. Qatar", "AFC World Cup Qualifiers (12 Nov 2026)", "1X Double Chance", 1.58, 1.47, 2.75),
+    ("Austria vs. Kazakhstan", "UEFA Nations League (12 Nov 2026)", "Over 2.5 Goals", 1.74, 1.62, 2.38),
+    ("Ivory Coast vs. Zambia", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Ivory Coast Win", 1.67, 1.56, 2.52),
+    ("Panama vs. Costa Rica", "CONCACAF Nations League (12 Nov 2026)", "BTTS Yes", 1.92, 1.79, 2.05),
+    ("Czechia vs. Albania", "UEFA Nations League (12 Nov 2026)", "Czechia Win", 1.81, 1.69, 2.26),
+    ("Iraq vs. Jordan", "AFC World Cup Qualifiers (12 Nov 2026)", "Under 2.5 Goals", 1.73, 1.62, 2.40),
+    ("Tunisia vs. Madagascar", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Tunisia Win", 1.62, 1.52, 2.62),
+    ("Sweden vs. Slovakia", "UEFA Nations League (12 Nov 2026)", "BTTS Yes", 1.84, 1.73, 2.15),
+    ("UAE vs. Kyrgyzstan", "AFC World Cup Qualifiers (12 Nov 2026)", "UAE Win", 1.66, 1.56, 2.54),
+    ("Cameroon vs. Namibia", "AFCON Qualifiers (CAF) (12 Nov 2026)", "Cameroon Win", 1.65, 1.55, 2.56)
 ]
 
 BET_BUILDERS = [
@@ -88,6 +89,12 @@ def fetch_live_global_edges():
     key = os.getenv("ODDS_API_KEY", "").strip()
     if not key:
         return []
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if os.path.exists(CACHE_FILE):
+        cache_day = datetime.fromtimestamp(os.path.getmtime(CACHE_FILE), tz=timezone.utc).strftime("%Y-%m-%d")
+        if cache_day != today_str:
+            try: os.remove(CACHE_FILE)
+            except Exception: pass
     if os.path.exists(CACHE_FILE) and (time.time() - os.path.getmtime(CACHE_FILE)) < CACHE_TTL:
         try:
             return json.loads(open(CACHE_FILE, encoding="utf-8").read())
@@ -98,14 +105,17 @@ def fetch_live_global_edges():
         url = f"https://api.the-odds-api.com/v4/sports/soccer/odds/?regions=uk,eu,us,au&markets=h2h,totals&oddsFormat=decimal&apiKey={key}"
         events = json.loads(urllib.request.urlopen(url, timeout=8).read().decode("utf-8"))
         for ev in events:
+            ct = ev.get("commence_time", "")
+            if not ct.startswith(today_str):
+                continue
             bms = ev.get("bookmakers", [])
             if len(bms) < 2:
                 continue
             m_name = f"{ev['home_team']} vs. {ev['away_team']}"
-            comp = ev.get("sport_title", "Global Live Feed")
+            comp = f"{ev.get('sport_title', 'Global Live Feed')} ({today_str} | {ct[11:16]} UTC)"
             best_price, sharp_prices = {}, {}
             for bm in bms:
-                is_sharp = bm["key"] in ("pinnacle", "betfair_ex_eu", "matchbook", "smarkets")
+                is_sharp = bm["key"] in ("pinnacle", "betfair_ex_eu (12 Nov 2026)", "matchbook", "smarkets")
                 for mkt in bm.get("markets", []):
                     m_key = mkt["key"]
                     outs = mkt.get("outcomes", [])
@@ -164,11 +174,11 @@ def get_ledger_summary():
         conn.execute("CREATE TABLE IF NOT EXISTS bets (id INTEGER PRIMARY KEY, match TEXT UNIQUE, pick TEXT, odds REAL, stake REAL, status TEXT, pnl REAL)")
         if conn.execute("SELECT COUNT(*) FROM bets").fetchone()[0] == 0:
             seeds = [
-                ("Argentina vs. Peru", "Argentina Win & O1.5", 1.65, 3.0, "WON", 1.95),
-                ("Japan vs. China", "Over 2.5 Goals", 1.72, 2.8, "WON", 2.02),
-                ("Spain vs. Switzerland", "Spain Win", 1.58, 3.2, "WON", 1.86),
-                ("Brazil vs. Chile", "BTTS Yes", 1.95, 2.2, "LOST", -2.20),
-                ("France vs. Israel", "France -1.5 AH", 1.70, 3.0, "WON", 2.10)
+                ("Argentina vs. Peru", "Argentina Win & O1.5 (12 Nov 2026)", 1.65, 3.0, "WON", 1.95),
+                ("Japan vs. China", "Over 2.5 Goals (12 Nov 2026)", 1.72, 2.8, "WON", 2.02),
+                ("Spain vs. Switzerland", "Spain Win (12 Nov 2026)", 1.58, 3.2, "WON", 1.86),
+                ("Brazil vs. Chile", "BTTS Yes (12 Nov 2026)", 1.95, 2.2, "LOST", -2.20),
+                ("France vs. Israel", "France -1.5 AH (12 Nov 2026)", 1.70, 3.0, "WON", 2.10)
             ]
             conn.executemany("INSERT INTO bets (match, pick, odds, stake, status, pnl) VALUES (?,?,?,?,?,?)", seeds)
             conn.commit()

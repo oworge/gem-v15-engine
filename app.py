@@ -14,8 +14,8 @@ def get_perfect_value_alert(picks):
 DATA = {
     "daily_picks": get_global_daily_picks(),
     "btts_goals": [
-        {"match": "Turkiye vs. Belgium", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+8.9% EV | Stake: 2.65%)", "odds": "1.72"},
-        {"match": "Italy vs. France", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+7.6% EV | Stake: 2.38%)", "odds": "1.80"}
+        {"match": "Turkiye vs. Belgium", "comp": "UEFA Nations League (12 Nov 2026)", "pick": "Both Teams to Score (Yes) (+8.9% EV | Stake: 2.65%)", "odds": "1.72"},
+        {"match": "Italy vs. France", "comp": "UEFA Nations League (12 Nov 2026)", "pick": "Both Teams to Score (Yes) (+7.6% EV | Stake: 2.38%)", "odds": "1.80"}
     ],
     "bet_builder": BET_BUILDERS,
     "correct_score": [
