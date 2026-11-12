@@ -11,7 +11,7 @@ def get_perfect_value_alert(picks):
 
 
 DATA = {
-    "daily_picks": get_global_daily_picks, get_live_steam_clv(),
+    "daily_picks": get_global_daily_picks(),
     "btts_goals": [
         {"match": "Turkiye vs. Belgium", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+8.9% EV)", "odds": "1.72"},
         {"match": "Italy vs. France", "comp": "UEFA Nations League (12 Nov)", "pick": "Both Teams to Score (Yes) (+7.6% EV)", "odds": "1.80"}
