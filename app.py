@@ -59,13 +59,14 @@ def gatekeeper():
     checks = {
         "ui_lock_files_present": os.path.exists("lock_check.py") and os.path.exists("templates/index.html"),
         "today_fixtures_loaded": len(picks) > 0,
+        "all_fixtures_match_today_utc": all(datetime.now(timezone.utc).strftime("%Y-%m-%d") in x.get("comp", "") for x in picks),
         "red_light_alerts_active": len(alerts) > 0,
         "bet_builders_ready": len(BET_BUILDERS) > 0,
         "clv_ledger_active": len(clv_rows) > 0,
         "live_odds_api_configured": bool(os.getenv("ODDS_API_KEY", "").strip()),
         "persistence_layer": db_mode
     }
-    healthy = all([checks["ui_lock_files_present"], checks["today_fixtures_loaded"], checks["red_light_alerts_active"], checks["clv_ledger_active"]])
+    healthy = all([checks["ui_lock_files_present"], checks["today_fixtures_loaded"], checks["all_fixtures_match_today_utc"], checks["red_light_alerts_active"], checks["clv_ledger_active"]])
     if not healthy:
         dispatch_push_alert({"match": "GATEKEEPER AUDIT FAILURE", "pick": str(checks), "odds": "ALERT"})
     return jsonify({
