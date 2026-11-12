@@ -6,7 +6,7 @@ for _p in (".env", "/etc/secrets/.env"):
                 _k, _v = _line.strip().split("=", 1)
                 os.environ.setdefault(_k.strip(), _v.strip())
 
-﻿import os, json, time, sqlite3, urllib.request, importlib.util
+import os, json, time, sqlite3, urllib.request, importlib.util
 from datetime import datetime, timezone, timedelta
 
 psycopg2 = __import__("psycopg2") if importlib.util.find_spec("psycopg2") else None

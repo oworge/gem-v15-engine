@@ -1,4 +1,4 @@
-﻿name: Gatekeeper 2-Hourly Engine Health Audit
+name: Gatekeeper 2-Hourly Engine Health Audit
 
 on:
   schedule:
