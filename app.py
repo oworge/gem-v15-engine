@@ -3,6 +3,13 @@ from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks
 
 app = Flask(__name__)
 
+def get_perfect_value_alert(picks):
+    for p in picks:
+        if any(tag in p["pick"] for tag in ["+12.", "+11.", "+10.", "+13.", "+14."]):
+            return p
+    return picks[0] if picks else None
+
+
 DATA = {
     "daily_picks": get_global_daily_picks(),
     "btts_goals": [
@@ -28,7 +35,9 @@ DATA = {
 @app.route('/')
 def dashboard():
     tab = request.args.get('tab', 'daily_picks')
-    return render_template('index.html', active_tab=tab, data=DATA.get(tab, DATA['daily_picks']))
+    picks = get_global_daily_picks()
+    DATA['daily_picks'] = picks
+    return render_template('index.html', active_tab=tab, data=DATA.get(tab, picks), alert=get_perfect_value_alert(picks))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
