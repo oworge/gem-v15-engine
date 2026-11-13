@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+﻿from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timezone
 import os, traceback
 from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, get_live_steam_clv, dispatch_push_alert, auto_grade_settled_matches, sync_cloud_persistence
@@ -101,3 +101,4 @@ def gatekeeper():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
