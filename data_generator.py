@@ -331,92 +331,106 @@ def auto_grade_settled_matches(picks):
 DAILY_PICKS = get_global_daily_picks()
 
 _orig_get_global_daily_picks = get_global_daily_picks
-_ALL_MARKET_EDGES = [{"match": "Côte d'Ivoire vs. Gambia", "pick": "Côte d'Ivoire Win & Over 1.5 Match Goals (1X2+Ov1.5 | +7.2% EV | Stake: 2.40%)", "odds": "1.68", "comp": "AFCON Qualifiers (2026-11-12 | 19:00 UTC)", "market": "Team Win + Total Goals", "ev": "+7.2%"}, {"match": "Millonarios vs. Alianza FC", "pick": "Millonarios Win & Over 1.5 Match Goals (1X2+Ov1.5 | +7.5% EV | Stake: 2.50%)", "odds": "1.75", "comp": "Colombian Primera A (2026-11-12 | 21:00 UTC)", "market": "Team Win + Total Goals", "ev": "+7.5%"}, {"match": "Czech Republic vs. Spain", "pick": "Spain Asian Handicap -1.0 (-1.0 AH | +6.9% EV | Stake: 2.30%)", "odds": "1.95", "comp": "UEFA Nations League (2026-11-12 | 19:45 UTC)", "market": "Asian Handicap", "ev": "+6.9%"}, {"match": "San Marino vs. Belarus", "pick": "Belarus Win & Over 2.5 Match Goals (1X2+Ov2.5 | +6.8% EV | Stake: 2.25%)", "odds": "1.85", "comp": "UEFA Nations League (2026-11-12 | 19:45 UTC)", "market": "Team Win + Total Goals", "ev": "+6.8%"}, {"match": "Atlético Nacional vs. Once Caldas", "pick": "Both Teams To Score - Yes (BTTS Yes | +6.1% EV | Stake: 2.05%)", "odds": "1.90", "comp": "Colombian Primera A (2026-11-12 | 21:00 UTC)", "market": "BTTS", "ev": "+6.1%"}, {"match": "CD Águila vs. Municipal Limeño", "pick": "CD Águila Match Winner (1X2 Home Win | +5.8% EV | Stake: 1.95%)", "odds": "1.72", "comp": "Salvadoran Primera División (2026-11-12 | 21:30 UTC)", "market": "1X2 Match Winner", "ev": "+5.8%"}]
+
+
+# --- TRUE LIVE AUTOMATED GLOBAL ODDS SCANNER (NO OLD GAMES) ---
+import os, urllib.request, json as _json
+from datetime import datetime, timezone, timedelta
+
+def _is_upcoming_fixture(commence_iso):
+    try:
+        dt = datetime.fromisoformat(str(commence_iso).replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        return (now - timedelta(minutes=15)) <= dt <= (now + timedelta(hours=36))
+    except Exception:
+        return True
+
+def fetch_live_devigged_global_picks():
+    api_key = os.environ.get("ODDS_API_KEY", "").strip()
+    if not api_key:
+        return [{"match": "API Key Missing", "pick": "Set ODDS_API_KEY in Render Environment", "odds": "1.00", "comp": "System Alert"}]
+
+    active_keys = [
+        "soccer_uefa_nations_league",
+        "soccer_concacaf_nations_league",
+        "soccer_fifa_world_cup_qualifiers_europe",
+        "soccer_efl_champ",
+        "soccer_england_league1",
+        "soccer_england_league2"
+    ]
+    try:
+        sports_url = f"https://api.the-odds-api.com/v4/sports/?apiKey={api_key}"
+        s_data = _json.loads(urllib.request.urlopen(sports_url, timeout=10).read().decode("utf-8"))
+        soccer_keys = [s["key"] for s in s_data if str(s.get("key", "")).startswith("soccer_") and s.get("active") and not s.get("has_outrights")]
+        if soccer_keys:
+            active_keys = soccer_keys[:12]
+    except Exception:
+        pass
+
+    live_picks = []
+    for skey in active_keys:
+        url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk,eu&markets=h2h,totals,spreads&oddsFormat=decimal"
+        try:
+            events = _json.loads(urllib.request.urlopen(url, timeout=10).read().decode("utf-8"))
+        except Exception:
+            continue
+
+        for ev in events:
+            commence_raw = ev.get("commence_time", "")
+            if not _is_upcoming_fixture(commence_raw):
+                continue
+
+            home = ev.get("home_team", "")
+            away = ev.get("away_team", "")
+            comp = ev.get("sport_title", skey)
+            commence_fmt = str(commence_raw)[:16].replace("T", " ")
+            bookmakers = ev.get("bookmakers", [])
+            if len(bookmakers) < 2:
+                continue
+
+            market_prices = {}
+            for bm in bookmakers:
+                bm_title = bm.get("title", "Bookmaker")
+                for mkt in bm.get("markets", []):
+                    mkey = mkt.get("key", "")
+                    outcomes = mkt.get("outcomes", [])
+                    if len(outcomes) < 2:
+                        continue
+                    for idx, out in enumerate(outcomes):
+                        label = f"{mkey}:{out.get('name','')}:{out.get('point','')}"
+                        price = float(out.get("price", 0))
+                        opp = [float(o.get("price", 0)) for j, o in enumerate(outcomes) if j != idx and float(o.get("price", 0)) > 1.01]
+                        if price > 1.01 and opp:
+                            entry = market_prices.setdefault(label, {"best_price": 0.0, "best_bm": "", "all_prices": [], "opp": opp, "mkey": mkey, "name": out.get("name", ""), "point": out.get("point", "")})
+                            entry["all_prices"].append(price)
+                            if price > entry["best_price"]:
+                                entry["best_price"] = price
+                                entry["best_bm"] = bm_title
+
+            for label, info in market_prices.items():
+                if len(info["all_prices"]) < 2:
+                    continue
+                avg_price = sum(info["all_prices"]) / len(info["all_prices"])
+                ev_pct, kelly = calculate_devigged_ev(info["best_price"], info["opp"], xt_efficiency_boost=0.0) if "calculate_devigged_ev" in globals() else (round(((info["best_price"] / avg_price) - 1.0) * 100, 2), 1.5)
+                if ev_pct >= 0.5 and info["best_price"] > avg_price:
+                    pt = f" ({info['point']})" if info["point"] != "" and info["point"] is not None else ""
+                    m_label = {"h2h": "1X2 Match Winner", "totals": "Over/Under Goals", "spreads": "Asian Handicap"}.get(info["mkey"], info["mkey"])
+                    live_picks.append({
+                        "match": f"{home} vs. {away}",
+                        "pick": f"{info['name']}{pt} — {m_label} (+{ev_pct}% EV | Stake: {kelly}% | {info['best_bm']})",
+                        "odds": f"{info['best_price']:.2f}",
+                        "comp": f"{comp} ({commence_fmt} UTC)",
+                        "sport_key": skey,
+                        "ev": f"+{ev_pct}%",
+                        "_ev_num": ev_pct
+                    })
+
+    live_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
+    if not live_picks:
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        return [{"match": "Live Global Scan Active", "pick": f"No +EV edges above threshold right now (Last checked: {now_str})", "odds": "1.00", "comp": "Automated Live Feed"}]
+
+    return attach_country_to_picks(live_picks[:12]) if "attach_country_to_picks" in globals() else live_picks[:12]
 
 def get_global_daily_picks(*args, **kwargs):
-    try:
-        res = _orig_get_global_daily_picks(*args, **kwargs)
-    except Exception:
-        res = []
-    if res and not any('Verified Live Feed' in str(p.get('pick', '')) for p in res):
-        return res
-    return _ALL_MARKET_EDGES
-
-
-LEAGUE_COUNTRY_MAP = {
-    "soccer_epl": "England",
-    "soccer_efl_champ": "England",
-    "soccer_england_efl_cup": "England",
-    "soccer_spain_la_liga": "Spain",
-    "soccer_germany_bundesliga": "Germany",
-    "soccer_italy_serie_a": "Italy",
-    "soccer_france_ligue_one": "France",
-    "soccer_brazil_campeonato": "Brazil",
-    "soccer_argentina_primera_division": "Argentina",
-    "soccer_colombia_primera_a": "Colombia",
-    "soccer_usa_mls": "United States",
-    "soccer_mexico_ligamx": "Mexico",
-}
-
-def attach_country_to_picks(picks):
-    for p in picks:
-        sport_key = str(p.get("sport_key", "")).lower()
-        comp = str(p.get("comp", ""))
-        match_name = str(p.get("match", ""))
-        country = p.get("country") or LEAGUE_COUNTRY_MAP.get(sport_key)
-
-        if not country:
-            if "Colombia" in comp or "Millonarios" in match_name or "Nacional" in match_name:
-                country = "Colombia"
-            elif "Salvador" in comp or "Águila" in match_name:
-                country = "El Salvador"
-            elif "Czech" in match_name:
-                country = "Czech Republic"
-            elif "San Marino" in match_name:
-                country = "San Marino"
-            elif "Côte d'Ivoire" in match_name or "Ivory Coast" in match_name:
-                country = "Côte d'Ivoire"
-            elif "Barbados" in match_name:
-                country = "Barbados"
-            elif "Cayman" in match_name:
-                country = "Cayman Islands"
-            elif "Bonaire" in match_name:
-                country = "Bonaire"
-            elif " vs. " in match_name:
-                country = match_name.split(" vs. ")[0].strip()
-            else:
-                country = "Global / International"
-
-        p["country"] = country
-        if country not in comp:
-            p["comp"] = f"{comp} | Venue: {country}" if comp else f"Venue: {country}"
-    return picks
-
-if "get_global_daily_picks" in globals() and "_orig_country_picks" not in globals():
-    _orig_country_picks = get_global_daily_picks
-    def get_global_daily_picks(*args, **kwargs):
-        return attach_country_to_picks(_orig_country_picks(*args, **kwargs))
-
-
-# --- SHARP DE-VIG & xT EFFICIENCY QUANT MODULE ---
-def calculate_devigged_ev(decimal_odds, opposing_odds_list, xt_efficiency_boost=0.025):
-    try:
-        dec = float(decimal_odds)
-        if dec <= 1.01:
-            return 0.0, 0.0
-        raw_prob = 1.0 / dec
-        opp_probs = [1.0 / float(o) for o in opposing_odds_list if float(o) > 1.01]
-        total_implied = raw_prob + sum(opp_probs)
-        if total_implied <= 0:
-            return 0.0, 0.0
-        # Strip bookmaker overround (vig) to isolate true fair probability
-        fair_prob = (raw_prob / total_implied) + xt_efficiency_boost
-        fair_prob = min(max(fair_prob, 0.05), 0.92)
-        ev_pct = ((fair_prob * dec) - 1.0) * 100.0
-        # Fractional Quarter-Kelly stake sizing capped at 3.0%
-        b = dec - 1.0
-        q = 1.0 - fair_prob
-        kelly = max(0.0, ((b * fair_prob) - q) / b) * 0.25 * 100.0
-        return round(ev_pct, 2), round(min(kelly, 3.0), 2)
-    except Exception:
-        return 0.0, 0.0
+    return fetch_live_devigged_global_picks()
