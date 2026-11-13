@@ -1,0 +1,7 @@
+﻿import pathlib
+app_txt = pathlib.Path("app.py").read_text(encoding="utf-8")
+app_txt = app_txt.replace("[\"+10.\", \"+11.\", \"+12.\", \"+13.\", \"+14.\", \"+15.\"]", "[\"+5.\", \"+6.\", \"+7.\", \"+8.\", \"+9.\", \"+10.\", \"+11.\", \"+12.\", \"+13.\", \"+14.\", \"+15.\"]")
+pathlib.Path("app.py").write_text(app_txt, encoding="utf-8")
+old_b = """{% if alert %}<div class="alert-bar"><div class="alert-left"><span class="red-dot"></span><div><div style="font-size:11px;font-weight:800;color:#fca5a5;letter-spacing:.6px">PERFECT VALUE DETECTED &bull; PLACE BET SIGNAL</div><div style="font-size:14px;font-weight:700;color:#fff">{{ alert.match }} &mdash; <span style="color:#facc15">{{ alert.pick }}</span></div></div></div><div class="alert-tag">PLACE BET @ {{ alert.odds }}</div></div>{% endif %}"""
+new_b = """{% if alerts %}<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">{% for a in alerts %}<div class="alert-bar" style="margin-bottom:0"><div class="alert-left"><span class="red-dot"></span><div><div style="font-size:11px;font-weight:800;color:#fca5a5;letter-spacing:.6px">PERFECT VALUE #{{ loop.index }} &bull; PLACE BET SIGNAL</div><div style="font-size:14px;font-weight:700;color:#fff">{{ a.match }} &mdash; <span style="color:#facc15">{{ a.pick }}</span></div></div></div><div class="alert-tag">PLACE BET @ {{ a.odds }}</div></div>{% endfor %}</div>{% endif %}"""
+for fn in ["templates/index.html", "index.html"]: h = pathlib.Path(fn).read_text(encoding="utf-8"); pathlib.Path(fn).write_text(h.replace(old_b, new_b), encoding="utf-8")
