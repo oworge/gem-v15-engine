@@ -350,28 +350,48 @@ def fetch_live_devigged_global_picks():
     if not api_key:
         return [{"match": "API Key Missing", "pick": "Set ODDS_API_KEY in Render Environment", "odds": "1.00", "comp": "System Alert"}]
 
-    active_keys = [
+    cache_path = "live_devig_cache.json"
+    if os.path.exists(cache_path):
+        try:
+            if (time.time() - os.path.getmtime(cache_path)) < 3600:
+                cached = json.loads(open(cache_path, "r", encoding="utf-8").read())
+                if cached and cached[0].get("odds") != "1.00":
+                    return cached
+        except Exception:
+            pass
+
+    priority_keys = [
         "soccer_uefa_nations_league",
-        "soccer_concacaf_nations_league",
         "soccer_fifa_world_cup_qualifiers_europe",
+        "soccer_fifa_world_cup_qualifiers_south_america",
+        "soccer_africa_cup_of_nations",
+        "soccer_concacaf_nations_league",
         "soccer_efl_champ",
         "soccer_england_league1",
-        "soccer_england_league2"
+        "soccer_england_league2",
+        "soccer_spain_segunda_division",
+        "soccer_italy_serie_b",
+        "soccer_argentina_primera_division",
+        "soccer_brazil_campeonato",
+        "soccer_usa_mls"
     ]
+    active_keys = priority_keys[:8]
     try:
         sports_url = f"https://api.the-odds-api.com/v4/sports/?apiKey={api_key}"
-        s_data = _json.loads(urllib.request.urlopen(sports_url, timeout=10).read().decode("utf-8"))
-        soccer_keys = [s["key"] for s in s_data if str(s.get("key", "")).startswith("soccer_") and s.get("active") and not s.get("has_outrights")]
-        if soccer_keys:
-            active_keys = soccer_keys[:12]
+        s_data = json.loads(urllib.request.urlopen(sports_url, timeout=10).read().decode("utf-8"))
+        active_set = {s["key"] for s in s_data if str(s.get("key", "")).startswith("soccer_") and s.get("active") and not s.get("has_outrights")}
+        matched = [k for k in priority_keys if k in active_set]
+        others = [k for k in sorted(active_set) if k not in matched]
+        active_keys = (matched + others)[:8]
     except Exception:
         pass
 
     live_picks = []
+    consensus_picks = []
     for skey in active_keys:
-        url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk,eu&markets=h2h,totals,spreads&oddsFormat=decimal"
+        url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk,eu&markets=h2h,totals&oddsFormat=decimal"
         try:
-            events = _json.loads(urllib.request.urlopen(url, timeout=10).read().decode("utf-8"))
+            events = json.loads(urllib.request.urlopen(url, timeout=10).read().decode("utf-8"))
         except Exception:
             continue
 
@@ -412,25 +432,37 @@ def fetch_live_devigged_global_picks():
                     continue
                 avg_price = sum(info["all_prices"]) / len(info["all_prices"])
                 ev_pct, kelly = calculate_devigged_ev(info["best_price"], info["opp"], xt_efficiency_boost=0.0) if "calculate_devigged_ev" in globals() else (round(((info["best_price"] / avg_price) - 1.0) * 100, 2), 1.5)
-                if ev_pct >= 0.5 and info["best_price"] > avg_price:
-                    pt = f" ({info['point']})" if info["point"] != "" and info["point"] is not None else ""
-                    m_label = {"h2h": "1X2 Match Winner", "totals": "Over/Under Goals", "spreads": "Asian Handicap"}.get(info["mkey"], info["mkey"])
-                    live_picks.append({
-                        "match": f"{home} vs. {away}",
-                        "pick": f"{info['name']}{pt} — {m_label} (+{ev_pct}% EV | Stake: {kelly}% | {info['best_bm']})",
-                        "odds": f"{info['best_price']:.2f}",
-                        "comp": f"{comp} ({commence_fmt} UTC)",
-                        "sport_key": skey,
-                        "ev": f"+{ev_pct}%",
-                        "_ev_num": ev_pct
-                    })
+                pt = f" ({info['point']})" if info["point"] != "" and info["point"] is not None else ""
+                m_label = {"h2h": "1X2 Match Winner", "totals": "Over/Under Goals"}.get(info["mkey"], info["mkey"])
+                sign = "+" if ev_pct >= 0 else ""
+                item = {
+                    "match": f"{home} vs. {away}",
+                    "pick": f"{info['name']}{pt} - {m_label} ({sign}{ev_pct}% EV | Stake: {kelly}% | {info['best_bm']})",
+                    "odds": f"{info['best_price']:.2f}",
+                    "comp": f"{comp} ({commence_fmt} UTC)",
+                    "sport_key": skey,
+                    "ev": f"{sign}{ev_pct}%",
+                    "_ev_num": ev_pct
+                }
+                if ev_pct >= 0.15 and info["best_price"] >= avg_price:
+                    live_picks.append(item)
+                elif 1.35 <= info["best_price"] <= 2.40:
+                    consensus_picks.append(item)
 
     live_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
-    if not live_picks:
+    consensus_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
+    combined = (live_picks + consensus_picks)[:12]
+    if not combined:
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        return [{"match": "Live Global Scan Active", "pick": f"No +EV edges above threshold right now (Last checked: {now_str})", "odds": "1.00", "comp": "Automated Live Feed"}]
+        return [{"match": "Live Global Scan Active", "pick": f"No upcoming fixtures in active leagues (Last checked: {now_str})", "odds": "1.00", "comp": "Automated Live Feed"}]
 
-    return attach_country_to_picks(live_picks[:12]) if "attach_country_to_picks" in globals() else live_picks[:12]
+    final_picks = attach_country_to_picks(combined) if "attach_country_to_picks" in globals() else combined
+    try:
+        with open(cache_path, "w", encoding="utf-8") as cf:
+            json.dump(final_picks, cf)
+    except Exception:
+        pass
+    return final_picks
 
 def get_global_daily_picks(*args, **kwargs):
     return fetch_live_devigged_global_picks()
