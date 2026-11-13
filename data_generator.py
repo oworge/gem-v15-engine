@@ -363,7 +363,7 @@ def fetch_live_devigged_global_picks():
     all_events = []
     # 1) Single-credit global upcoming scan across all active leagues
     try:
-        up_url = f"https://api.the-odds-api.com/v4/sports/upcoming/odds/?apiKey={api_key}&regions=uk,eu,us&markets=h2h,totals&oddsFormat=decimal"
+        up_url = f"https://api.the-odds-api.com/v4/sports/upcoming/odds/?apiKey={api_key}&regions=uk&markets=h2h&oddsFormat=decimal"
         up_events = json.loads(urllib.request.urlopen(up_url, timeout=12).read().decode("utf-8"))
         soccer_up = [e for e in up_events if str(e.get("sport_key", "")).startswith("soccer_")]
         all_events.extend(soccer_up if soccer_up else up_events)
@@ -380,7 +380,7 @@ def fetch_live_devigged_global_picks():
             for skey in soccer_keys[:10]:
                 if len(all_events) >= 15:
                     break
-                url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk,eu,us&markets=h2h,totals&oddsFormat=decimal"
+                url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk&markets=h2h&oddsFormat=decimal"
                 try:
                     evs = json.loads(urllib.request.urlopen(url, timeout=10).read().decode("utf-8"))
                     for e in evs:
@@ -450,6 +450,17 @@ def fetch_live_devigged_global_picks():
     live_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
     consensus_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
     combined = (live_picks + consensus_picks)[:12]
+    if not combined:
+        now_utc = datetime.now(timezone.utc)
+        for d_off in (0, 1):
+            d_str = (now_utc + timedelta(days=d_off)).strftime("%Y-%m-%d")
+            try:
+                espn_picks = fetch_live_espn_today(d_str)
+                if espn_picks:
+                    combined.extend(espn_picks)
+            except Exception:
+                pass
+        combined = combined[:12]
     if not combined:
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         return [{"match": "Live Global Scan Active", "pick": f"No upcoming fixtures in active leagues (Last checked: {now_str})", "odds": "1.00", "comp": "Automated Live Feed"}]
