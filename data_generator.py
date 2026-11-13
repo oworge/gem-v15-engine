@@ -360,94 +360,92 @@ def fetch_live_devigged_global_picks():
         except Exception:
             pass
 
-    priority_keys = [
-        "soccer_uefa_nations_league",
-        "soccer_fifa_world_cup_qualifiers_europe",
-        "soccer_fifa_world_cup_qualifiers_south_america",
-        "soccer_africa_cup_of_nations",
-        "soccer_concacaf_nations_league",
-        "soccer_efl_champ",
-        "soccer_england_league1",
-        "soccer_england_league2",
-        "soccer_spain_segunda_division",
-        "soccer_italy_serie_b",
-        "soccer_argentina_primera_division",
-        "soccer_brazil_campeonato",
-        "soccer_usa_mls"
-    ]
-    active_keys = priority_keys[:8]
+    all_events = []
+    # 1) Single-credit global upcoming scan across all active leagues
     try:
-        sports_url = f"https://api.the-odds-api.com/v4/sports/?apiKey={api_key}"
-        s_data = json.loads(urllib.request.urlopen(sports_url, timeout=10).read().decode("utf-8"))
-        active_set = {s["key"] for s in s_data if str(s.get("key", "")).startswith("soccer_") and s.get("active") and not s.get("has_outrights")}
-        matched = [k for k in priority_keys if k in active_set]
-        others = [k for k in sorted(active_set) if k not in matched]
-        active_keys = (matched + others)[:8]
+        up_url = f"https://api.the-odds-api.com/v4/sports/upcoming/odds/?apiKey={api_key}&regions=uk,eu,us&markets=h2h,totals&oddsFormat=decimal"
+        up_events = json.loads(urllib.request.urlopen(up_url, timeout=12).read().decode("utf-8"))
+        soccer_up = [e for e in up_events if str(e.get("sport_key", "")).startswith("soccer_")]
+        all_events.extend(soccer_up if soccer_up else up_events)
     except Exception:
         pass
 
+    # 2) If upcoming returned fewer than 6 soccer matches, query active soccer leagues directly
+    if len(all_events) < 6:
+        try:
+            sports_url = f"https://api.the-odds-api.com/v4/sports/?apiKey={api_key}"
+            s_data = json.loads(urllib.request.urlopen(sports_url, timeout=10).read().decode("utf-8"))
+            soccer_keys = [s["key"] for s in s_data if str(s.get("key", "")).startswith("soccer_") and s.get("active") and not s.get("has_outrights")]
+            seen_ids = {e.get("id") for e in all_events}
+            for skey in soccer_keys[:10]:
+                if len(all_events) >= 15:
+                    break
+                url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk,eu,us&markets=h2h,totals&oddsFormat=decimal"
+                try:
+                    evs = json.loads(urllib.request.urlopen(url, timeout=10).read().decode("utf-8"))
+                    for e in evs:
+                        if e.get("id") not in seen_ids:
+                            all_events.append(e)
+                            seen_ids.add(e.get("id"))
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
     live_picks = []
     consensus_picks = []
-    for skey in active_keys:
-        url = f"https://api.the-odds-api.com/v4/sports/{skey}/odds/?apiKey={api_key}&regions=uk,eu&markets=h2h,totals&oddsFormat=decimal"
-        try:
-            events = json.loads(urllib.request.urlopen(url, timeout=10).read().decode("utf-8"))
-        except Exception:
+    for ev in all_events:
+        commence_raw = ev.get("commence_time", "")
+        if not _is_upcoming_fixture(commence_raw):
             continue
 
-        for ev in events:
-            commence_raw = ev.get("commence_time", "")
-            if not _is_upcoming_fixture(commence_raw):
-                continue
+        home = ev.get("home_team", "")
+        away = ev.get("away_team", "")
+        skey = ev.get("sport_key", "soccer")
+        comp = ev.get("sport_title", skey)
+        commence_fmt = str(commence_raw)[:16].replace("T", " ")
+        bookmakers = ev.get("bookmakers", [])
+        if not bookmakers:
+            continue
 
-            home = ev.get("home_team", "")
-            away = ev.get("away_team", "")
-            comp = ev.get("sport_title", skey)
-            commence_fmt = str(commence_raw)[:16].replace("T", " ")
-            bookmakers = ev.get("bookmakers", [])
-            if len(bookmakers) < 2:
-                continue
-
-            market_prices = {}
-            for bm in bookmakers:
-                bm_title = bm.get("title", "Bookmaker")
-                for mkt in bm.get("markets", []):
-                    mkey = mkt.get("key", "")
-                    outcomes = mkt.get("outcomes", [])
-                    if len(outcomes) < 2:
-                        continue
-                    for idx, out in enumerate(outcomes):
-                        label = f"{mkey}:{out.get('name','')}:{out.get('point','')}"
-                        price = float(out.get("price", 0))
-                        opp = [float(o.get("price", 0)) for j, o in enumerate(outcomes) if j != idx and float(o.get("price", 0)) > 1.01]
-                        if price > 1.01 and opp:
-                            entry = market_prices.setdefault(label, {"best_price": 0.0, "best_bm": "", "all_prices": [], "opp": opp, "mkey": mkey, "name": out.get("name", ""), "point": out.get("point", "")})
-                            entry["all_prices"].append(price)
-                            if price > entry["best_price"]:
-                                entry["best_price"] = price
-                                entry["best_bm"] = bm_title
-
-            for label, info in market_prices.items():
-                if len(info["all_prices"]) < 2:
+        market_prices = {}
+        for bm in bookmakers:
+            bm_title = bm.get("title", "Bookmaker")
+            for mkt in bm.get("markets", []):
+                mkey = mkt.get("key", "")
+                outcomes = mkt.get("outcomes", [])
+                if len(outcomes) < 2:
                     continue
-                avg_price = sum(info["all_prices"]) / len(info["all_prices"])
-                ev_pct, kelly = calculate_devigged_ev(info["best_price"], info["opp"], xt_efficiency_boost=0.0) if "calculate_devigged_ev" in globals() else (round(((info["best_price"] / avg_price) - 1.0) * 100, 2), 1.5)
-                pt = f" ({info['point']})" if info["point"] != "" and info["point"] is not None else ""
-                m_label = {"h2h": "1X2 Match Winner", "totals": "Over/Under Goals"}.get(info["mkey"], info["mkey"])
-                sign = "+" if ev_pct >= 0 else ""
-                item = {
-                    "match": f"{home} vs. {away}",
-                    "pick": f"{info['name']}{pt} - {m_label} ({sign}{ev_pct}% EV | Stake: {kelly}% | {info['best_bm']})",
-                    "odds": f"{info['best_price']:.2f}",
-                    "comp": f"{comp} ({commence_fmt} UTC)",
-                    "sport_key": skey,
-                    "ev": f"{sign}{ev_pct}%",
-                    "_ev_num": ev_pct
-                }
-                if ev_pct >= 0.15 and info["best_price"] >= avg_price:
-                    live_picks.append(item)
-                elif 1.35 <= info["best_price"] <= 2.40:
-                    consensus_picks.append(item)
+                for idx, out in enumerate(outcomes):
+                    label = f"{mkey}:{out.get('name','')}:{out.get('point','')}"
+                    price = float(out.get("price", 0))
+                    opp = [float(o.get("price", 0)) for j, o in enumerate(outcomes) if j != idx and float(o.get("price", 0)) > 1.01]
+                    if price > 1.01 and opp:
+                        entry = market_prices.setdefault(label, {"best_price": 0.0, "best_bm": "", "all_prices": [], "opp": opp, "mkey": mkey, "name": out.get("name", ""), "point": out.get("point", "")})
+                        entry["all_prices"].append(price)
+                        if price > entry["best_price"]:
+                            entry["best_price"] = price
+                            entry["best_bm"] = bm_title
+
+        for label, info in market_prices.items():
+            avg_price = sum(info["all_prices"]) / len(info["all_prices"])
+            ev_pct, kelly = calculate_devigged_ev(info["best_price"], info["opp"], xt_efficiency_boost=0.0) if "calculate_devigged_ev" in globals() else (round(((info["best_price"] / avg_price) - 1.0) * 100, 2), 1.5)
+            pt = f" ({info['point']})" if info["point"] != "" and info["point"] is not None else ""
+            m_label = {"h2h": "1X2 Match Winner", "totals": "Over/Under Goals"}.get(info["mkey"], info["mkey"])
+            sign = "+" if ev_pct >= 0 else ""
+            item = {
+                "match": f"{home} vs. {away}",
+                "pick": f"{info['name']}{pt} - {m_label} ({sign}{ev_pct}% EV | Stake: {kelly}% | {info['best_bm']})",
+                "odds": f"{info['best_price']:.2f}",
+                "comp": f"{comp} ({commence_fmt} UTC)",
+                "sport_key": skey,
+                "ev": f"{sign}{ev_pct}%",
+                "_ev_num": ev_pct
+            }
+            if ev_pct >= 0.1 and info["best_price"] >= avg_price:
+                live_picks.append(item)
+            elif 1.25 <= info["best_price"] <= 3.50:
+                consensus_picks.append(item)
 
     live_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
     consensus_picks.sort(key=lambda x: x.get("_ev_num", 0), reverse=True)
