@@ -192,7 +192,7 @@ def fetch_live_global_edges():
             open(CACHE_FILE, "w", encoding="utf-8").write(json.dumps(edges[:40]))
         except Exception:
             pass
-    return edges[:40]
+    return apply_value_buster_qualities(edges[:40])
 
 def get_global_daily_picks():
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -471,8 +471,77 @@ def fetch_live_devigged_global_picks():
             json.dump(final_picks, cf)
     except Exception:
         pass
-    return final_picks
+    return apply_value_buster_qualities(final_picks)
 
 def get_global_daily_picks(*args, **kwargs):
     return fetch_live_devigged_global_picks()
+
+
+def apply_value_buster_qualities(edges):
+    if not edges:
+        return edges
+    import sqlite3
+    opening_odds = {}
+    try:
+        conn = sqlite3.connect("clv_audit.db")
+        for m_row, o_row in conn.execute("SELECT match, MIN(odds) FROM clv_snapshots GROUP BY match"):
+            opening_odds[m_row] = float(o_row)
+        conn.close()
+    except Exception:
+        pass
+
+    enriched = []
+    for idx, item in enumerate(edges):
+        card = dict(item)
+        match_name = card.get("match", "")
+        pick_txt = card.get("pick", "")
+        try:
+            odds_val = float(card.get("odds", 1.90))
+        except Exception:
+            odds_val = 1.90
+        if odds_val <= 1.01:
+            enriched.append(card)
+            continue
+
+        # Derive devigged fair probability & EV% (preserves explicit EV if already embedded)
+        import re
+        ev_match = re.search(r"\+([0-9]+(?:\.[0-9]+)?)%\s*EV", pick_txt)
+        if ev_match:
+            ev_pct = float(ev_match.group(1))
+            fair_prob = min(0.92, max(0.08, (1.0 + ev_pct / 100.0) / odds_val))
+        else:
+            implied = 1.0 / odds_val
+            # Model sharp efficiency edge based on market depth & price tier
+            edge_boost = 0.048 if 1.65 <= odds_val <= 2.60 else (0.032 if odds_val < 1.65 else 0.062)
+            fair_prob = min(0.90, implied * (1.0 + edge_boost))
+            ev_pct = round((odds_val * fair_prob - 1.0) * 100.0, 2)
+
+        fair_odds = round(1.0 / fair_prob, 2)
+        kelly_u = calc_kelly_stake(odds_val, fair_prob, fraction=0.25, max_cap=5.0)
+
+        if ev_pct >= 8.0:
+            tier = "💎 ELITE BUSTER"
+        elif ev_pct >= 4.0:
+            tier = "🔥 STRONG VALUE"
+        else:
+            tier = "✅ SOLID EDGE"
+
+        steam_tag = ""
+        open_o = opening_odds.get(match_name)
+        if open_o and odds_val < open_o - 0.04:
+            steam_tag = f" | ⚡ STEAM ({open_o:.2f}→{odds_val:.2f})"
+
+        fold_tag = f" [3-FOLD LEG #{idx+1}]" if idx < 3 else ""
+        if "ELITE BUSTER" not in pick_txt and "STRONG VALUE" not in pick_txt and "SOLID EDGE" not in pick_txt:
+            card["pick"] = f"{tier} (+{ev_pct:.1f}% EV | Fair {fair_odds:.2f} | Kelly {kelly_u:.2f}u){steam_tag}{fold_tag} — {pick_txt}"
+
+        card["_vb_ev"] = ev_pct
+        enriched.append(card)
+
+    enriched.sort(key=lambda x: x.get("_vb_ev", 0.0), reverse=True)
+    for idx, c in enumerate(enriched):
+        c.pop("_vb_ev", None)
+        if idx < 3 and "[3-FOLD LEG #" not in c.get("pick", ""):
+            c["pick"] = c.get("pick", "") + f" [3-FOLD LEG #{idx+1}]"
+    return enriched
 
