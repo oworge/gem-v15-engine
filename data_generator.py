@@ -114,6 +114,105 @@ def fetch_live_espn_today(today_str):
         pass
     return edges[:30]
 
+import re as _vb_re
+import sqlite3 as _vb_sq
+
+def _vb_parse_card(item):
+    card = dict(item)
+    match_name = card.get("match", "")
+    pick_txt = card.get("pick", "")
+    # Strip any prior Value Buster prefix so re-runs stay clean
+    if " — " in pick_txt and ("ELITE BUSTER" in pick_txt or "STRONG VALUE" in pick_txt or "SOLID EDGE" in pick_txt):
+        pick_txt = pick_txt.split(" — ", 1)[1]
+    try:
+        odds_val = float(card.get("odds", 1.90))
+    except Exception:
+        odds_val = 1.90
+    ev_match = _vb_re.search(r"\+([0-9]+(?:\.[0-9]+)?)%\s*EV", pick_txt)
+    if ev_match:
+        ev_pct = float(ev_match.group(1))
+        fair_prob = min(0.92, max(0.08, (1.0 + ev_pct / 100.0) / max(odds_val, 1.02)))
+    else:
+        implied = 1.0 / max(odds_val, 1.02)
+        edge_boost = 0.052 if 1.65 <= odds_val <= 2.60 else (0.035 if odds_val < 1.65 else 0.068)
+        fair_prob = min(0.90, implied * (1.0 + edge_boost))
+        ev_pct = round((odds_val * fair_prob - 1.0) * 100.0, 2)
+    fair_odds = round(1.0 / fair_prob, 2)
+    kelly_u = calc_kelly_stake(odds_val, fair_prob, fraction=0.25, max_cap=5.0)
+    return card, match_name, pick_txt, odds_val, fair_prob, fair_odds, ev_pct, kelly_u
+
+def apply_value_buster_qualities(edges):
+    if not edges:
+        return edges
+
+    opening_odds = {}
+    try:
+        conn = _vb_sq.connect("clv_audit.db")
+        for m_row, o_row in conn.execute("SELECT match, MIN(odds) FROM clv_snapshots GROUP BY match"):
+            opening_odds[m_row] = float(o_row)
+        conn.close()
+    except Exception:
+        pass
+
+    parsed = []
+    for item in edges:
+        card, m_name, p_txt, o_val, f_prob, f_odds, ev_pct, k_u = _vb_parse_card(item)
+        if o_val <= 1.01:
+            continue
+        parsed.append({
+            "card": card, "match": m_name, "pick": p_txt, "odds": o_val,
+            "fair_prob": f_prob, "fair_odds": f_odds, "ev": ev_pct, "kelly": k_u
+        })
+
+    if not parsed:
+        return edges
+
+    # Sort all valid picks by highest +EV% first
+    parsed.sort(key=lambda x: x["ev"], reverse=True)
+
+    # Partition into 3-Fold, 4-Fold, 5-Fold, and Long Shot (odds >= 2.50 or highest upside)
+    longshots = [x for x in parsed if x["odds"] >= 2.50][:4]
+    ls_matches = {x["match"] for x in longshots}
+    core_pool = [x for x in parsed if x["match"] not in ls_matches]
+    if len(core_pool) < 12:
+        core_pool = list(parsed)
+
+    groups = [
+        ("🎯 3-FOLD CORE ACCA", core_pool[:3]),
+        ("🔥 4-FOLD VALUE ACCA", core_pool[3:7] if len(core_pool) >= 7 else core_pool[:4]),
+        ("⚡ 5-FOLD SYNDICATE ACCA", core_pool[7:12] if len(core_pool) >= 12 else core_pool[:5]),
+        ("🚀 LONG SHOT BUSTER", longshots if longshots else parsed[-4:]),
+    ]
+
+    grouped_cards = []
+    for group_title, legs in groups:
+        if not legs:
+            continue
+        combo_odds = 1.0
+        combo_prob = 1.0
+        for leg in legs:
+            combo_odds *= leg["odds"]
+            combo_prob *= leg["fair_prob"]
+        combo_odds = round(combo_odds, 2)
+        acca_kelly = calc_kelly_stake(combo_odds, combo_prob, fraction=0.15, max_cap=3.0)
+
+        for i, leg in enumerate(legs, start=1):
+            c = dict(leg["card"])
+            ev_pct = leg["ev"]
+            tier = "💎 ELITE BUSTER" if ev_pct >= 8.0 else ("🔥 STRONG VALUE" if ev_pct >= 4.0 else "✅ SOLID EDGE")
+            steam_tag = ""
+            open_o = opening_odds.get(leg["match"])
+            if open_o and leg["odds"] < open_o - 0.04:
+                steam_tag = f" | ⚡ STEAM ({open_o:.2f}→{leg['odds']:.2f})"
+
+            orig_comp = c.get("comp", "Global Market")
+            c["comp"] = f"{group_title} • LEG {i}/{len(legs)} (ACCA @{combo_odds:.2f} | Stake {acca_kelly:.2f}u) — {orig_comp}"
+            c["pick"] = f"{tier} (+{ev_pct:.1f}% EV | Fair {leg['fair_odds']:.2f} | Single {leg['kelly']:.2f}u){steam_tag} — {leg['pick']}"
+            grouped_cards.append(c)
+
+    return grouped_cards if grouped_cards else edges
+
+
 def fetch_live_global_edges():
     now_utc = datetime.now(timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
@@ -545,100 +644,3 @@ def apply_value_buster_qualities(edges):
             c["pick"] = c.get("pick", "") + f" [3-FOLD LEG #{idx+1}]"
     return enriched
 
-import re as _vb_re
-import sqlite3 as _vb_sq
-
-def _vb_parse_card(item):
-    card = dict(item)
-    match_name = card.get("match", "")
-    pick_txt = card.get("pick", "")
-    # Strip any prior Value Buster prefix so re-runs stay clean
-    if " — " in pick_txt and ("ELITE BUSTER" in pick_txt or "STRONG VALUE" in pick_txt or "SOLID EDGE" in pick_txt):
-        pick_txt = pick_txt.split(" — ", 1)[1]
-    try:
-        odds_val = float(card.get("odds", 1.90))
-    except Exception:
-        odds_val = 1.90
-    ev_match = _vb_re.search(r"\+([0-9]+(?:\.[0-9]+)?)%\s*EV", pick_txt)
-    if ev_match:
-        ev_pct = float(ev_match.group(1))
-        fair_prob = min(0.92, max(0.08, (1.0 + ev_pct / 100.0) / max(odds_val, 1.02)))
-    else:
-        implied = 1.0 / max(odds_val, 1.02)
-        edge_boost = 0.052 if 1.65 <= odds_val <= 2.60 else (0.035 if odds_val < 1.65 else 0.068)
-        fair_prob = min(0.90, implied * (1.0 + edge_boost))
-        ev_pct = round((odds_val * fair_prob - 1.0) * 100.0, 2)
-    fair_odds = round(1.0 / fair_prob, 2)
-    kelly_u = calc_kelly_stake(odds_val, fair_prob, fraction=0.25, max_cap=5.0)
-    return card, match_name, pick_txt, odds_val, fair_prob, fair_odds, ev_pct, kelly_u
-
-def apply_value_buster_qualities(edges):
-    if not edges:
-        return edges
-
-    opening_odds = {}
-    try:
-        conn = _vb_sq.connect("clv_audit.db")
-        for m_row, o_row in conn.execute("SELECT match, MIN(odds) FROM clv_snapshots GROUP BY match"):
-            opening_odds[m_row] = float(o_row)
-        conn.close()
-    except Exception:
-        pass
-
-    parsed = []
-    for item in edges:
-        card, m_name, p_txt, o_val, f_prob, f_odds, ev_pct, k_u = _vb_parse_card(item)
-        if o_val <= 1.01:
-            continue
-        parsed.append({
-            "card": card, "match": m_name, "pick": p_txt, "odds": o_val,
-            "fair_prob": f_prob, "fair_odds": f_odds, "ev": ev_pct, "kelly": k_u
-        })
-
-    if not parsed:
-        return edges
-
-    # Sort all valid picks by highest +EV% first
-    parsed.sort(key=lambda x: x["ev"], reverse=True)
-
-    # Partition into 3-Fold, 4-Fold, 5-Fold, and Long Shot (odds >= 2.50 or highest upside)
-    longshots = [x for x in parsed if x["odds"] >= 2.50][:4]
-    ls_matches = {x["match"] for x in longshots}
-    core_pool = [x for x in parsed if x["match"] not in ls_matches]
-    if len(core_pool) < 12:
-        core_pool = list(parsed)
-
-    groups = [
-        ("🎯 3-FOLD CORE ACCA", core_pool[:3]),
-        ("🔥 4-FOLD VALUE ACCA", core_pool[3:7] if len(core_pool) >= 7 else core_pool[:4]),
-        ("⚡ 5-FOLD SYNDICATE ACCA", core_pool[7:12] if len(core_pool) >= 12 else core_pool[:5]),
-        ("🚀 LONG SHOT BUSTER", longshots if longshots else parsed[-4:]),
-    ]
-
-    grouped_cards = []
-    for group_title, legs in groups:
-        if not legs:
-            continue
-        combo_odds = 1.0
-        combo_prob = 1.0
-        for leg in legs:
-            combo_odds *= leg["odds"]
-            combo_prob *= leg["fair_prob"]
-        combo_odds = round(combo_odds, 2)
-        acca_kelly = calc_kelly_stake(combo_odds, combo_prob, fraction=0.15, max_cap=3.0)
-
-        for i, leg in enumerate(legs, start=1):
-            c = dict(leg["card"])
-            ev_pct = leg["ev"]
-            tier = "💎 ELITE BUSTER" if ev_pct >= 8.0 else ("🔥 STRONG VALUE" if ev_pct >= 4.0 else "✅ SOLID EDGE")
-            steam_tag = ""
-            open_o = opening_odds.get(leg["match"])
-            if open_o and leg["odds"] < open_o - 0.04:
-                steam_tag = f" | ⚡ STEAM ({open_o:.2f}→{leg['odds']:.2f})"
-
-            orig_comp = c.get("comp", "Global Market")
-            c["comp"] = f"{group_title} • LEG {i}/{len(legs)} (ACCA @{combo_odds:.2f} | Stake {acca_kelly:.2f}u) — {orig_comp}"
-            c["pick"] = f"{tier} (+{ev_pct:.1f}% EV | Fair {leg['fair_odds']:.2f} | Single {leg['kelly']:.2f}u){steam_tag} — {leg['pick']}"
-            grouped_cards.append(c)
-
-    return grouped_cards if grouped_cards else edges
