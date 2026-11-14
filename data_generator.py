@@ -1,3 +1,5 @@
+import re as _vb_re
+import sqlite3 as _vb_sq
 ﻿import os
 for _p in (".env", "/etc/secrets/.env"):
     if os.path.exists(_p):
