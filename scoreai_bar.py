@@ -14,7 +14,59 @@ SCOREAI_BAR_HTML = r"""
   .sai-add-btn.added { background: #10b981; color: #022c22; border-color: #34d399; }
   #sai-coupon-drawer { position: fixed; bottom: 14px; right: 14px; width: min(375px, calc(100vw - 28px)); background: rgba(9, 14, 28, 0.98); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.75); color: #f8fafc; font-family: system-ui, sans-serif; z-index: 100000; padding: 13px 15px; display: none; max-height: 75vh; overflow-y: auto; }
   #sai-coupon-drawer.open { display: block; }
+
+  /* === EDGEMETRIX PRO TERMINAL THEME (CSS-ONLY) === */
+  body {
+    background: radial-gradient(circle at 15% 0%, #0f1c36 0%, #060b16 55%, #03060d 100%) !important;
+    color: #f1f5f9 !important;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: 0.01em;
+  }
+  body, button, input, select {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Richer Card Depth & Tiered Edge Accents */
+  [data-sai-done] {
+    background: linear-gradient(145deg, rgba(17, 27, 48, 0.94), rgba(10, 16, 30, 0.98)) !important;
+    border: 1px solid rgba(56, 189, 248, 0.22) !important;
+    border-left: 4px solid #10b981 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease !important;
+  }
+  [data-sai-done]:hover {
+    transform: translateY(-2px);
+    border-color: rgba(52, 211, 153, 0.55) !important;
+    box-shadow: 0 12px 28px rgba(16, 185, 129, 0.16) !important;
+  }
+  /* Crisp Headings & Glowing Text Contrast */
+  h1, h2, h3, strong, b {
+    letter-spacing: 0.015em;
+  }
+  .sai-badge {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(6, 182, 212, 0.18)) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.5) !important;
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
+    letter-spacing: 0.06em;
+  }
+  .sai-tab.active {
+    background: linear-gradient(135deg, #10b981, #06b6d4) !important;
+    color: #021814 !important;
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+  }
+  .sai-auto-btn {
+    background: linear-gradient(135deg, #10b981, #2563eb) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    letter-spacing: 0.02em;
+  }
+  #sai-coupon-drawer {
+    background: linear-gradient(165deg, rgba(11, 19, 36, 0.98), rgba(5, 10, 20, 0.99)) !important;
+    border: 1px solid rgba(52, 211, 153, 0.55) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.88), 0 0 24px rgba(16, 185, 129, 0.15) !important;
+  }
 </style>
+
 <script>
 (function() {
   const MAX_LEGS = 7;
