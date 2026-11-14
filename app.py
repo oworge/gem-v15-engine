@@ -148,5 +148,110 @@ def health_check():
     return {"status": "ok", "active_picks": len(getattr(_dg, "DAILY_PICKS", []))}, 200
 
 
+
+# --- Non-Destructive Pro Terminal UI Polish Layer ---
+@app.after_request
+def _inject_pro_terminal_polish(response):
+    if response.content_type and "text/html" in response.content_type:
+        try:
+            html = response.get_data(as_text=True)
+            if "</body>" in html and "edgemetrix-pro-polish" not in html:
+                polish_block = """
+<style id="edgemetrix-pro-polish">
+  /* 1. Institutional tabular numerals & crisp typography */
+  body, table, .card, .pick-card, [class*="pick"], [class*="card"], [class*="row"] {
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* 2. Glassmorphic sticky top bar for tablet scrolling */
+  header, nav, .navbar, .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* 3. Tiered edge accent borders without changing layout */
+  .emx-strong-tier {
+    border-left: 4px solid #ff5722 !important;
+    box-shadow: inset 4px 0 18px -10px rgba(255, 87, 34, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .emx-solid-tier {
+    border-left: 4px solid #10b981 !important;
+    box-shadow: inset 4px 0 18px -10px rgba(16, 185, 129, 0.40);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .emx-strong-tier:hover, .emx-solid-tier:hover {
+    transform: translateY(-1px);
+  }
+  /* 4. Tablet-friendly 1-tap Copy Slip pill */
+  .emx-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: all 0.15s ease;
+  }
+  .emx-copy-btn:hover, .emx-copy-btn:active {
+    background: #0ea5e9;
+    color: #ffffff;
+    border-color: #38bdf8;
+  }
+</style>
+<script>
+(function() {
+  function enhanceCards() {
+    const blocks = document.querySelectorAll("div, li, tr, article, section");
+    blocks.forEach(el => {
+      if (el.dataset.emxStyled) return;
+      const txt = el.textContent || "";
+      if (txt.length > 40 && txt.length < 650 && (txt.includes("STRONG VALUE") || txt.includes("SOLID EDGE"))) {
+        el.dataset.emxStyled = "1";
+        if (txt.includes("STRONG VALUE")) el.classList.add("emx-strong-tier");
+        else if (txt.includes("SOLID EDGE")) el.classList.add("emx-solid-tier");
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "emx-copy-btn";
+        btn.textContent = "?? Copy Pick";
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          const clean = txt.replace("?? Copy Pick", "").replace(/\s+/g, " ").trim();
+          navigator.clipboard.writeText(clean).then(() => {
+            btn.textContent = "? Copied";
+            setTimeout(() => { btn.textContent = "?? Copy Pick"; }, 1400);
+          });
+        };
+        el.appendChild(btn);
+      }
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", enhanceCards);
+  } else {
+    enhanceCards();
+  }
+  setTimeout(enhanceCards, 800);
+})();
+</script>
+</body>"""
+                html = html.replace("</body>", polish_block, 1)
+                response.set_data(html)
+        except Exception:
+            pass
+    return response
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
