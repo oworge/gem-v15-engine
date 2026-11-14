@@ -1124,3 +1124,34 @@ def get_live_steam_clv():
             "odds": f"{live_o:.2f}",
         })
     return cards
+
+
+def _load_or_refresh_cache(force=False):
+    import os, json
+    from datetime import datetime, timezone
+    cache_file = "global_odds_cache.json"
+    today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    now_ts = datetime.now(timezone.utc).timestamp()
+
+    if not force and os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                blob = json.load(f)
+            if (
+                isinstance(blob, dict)
+                and blob.get("date_utc") == today_utc
+                and (now_ts - float(blob.get("ts", 0))) < 3600
+                and blob.get("picks")
+            ):
+                return blob["picks"]
+        except Exception:
+            pass
+
+    picks = get_global_daily_picks()
+    try:
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump({"date_utc": today_utc, "ts": now_ts, "picks": picks}, f)
+    except Exception:
+        pass
+    return picks
+

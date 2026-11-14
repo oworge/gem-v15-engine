@@ -77,5 +77,32 @@ def dashboard():
             pass
     return render_template("index.html", active_tab=tab, data=tabs_data.get(tab, picks), alerts=alerts)
 
+
+# --- Autonomous Hands-Free Daily Refresh Daemon ---
+import threading as _bg_threading
+import time as _bg_time
+
+def _autonomous_daily_loop():
+    _bg_time.sleep(15)
+    while True:
+        try:
+            import data_generator as _dg
+            fresh = _dg._load_or_refresh_cache(force=True)
+            _dg.DAILY_PICKS = fresh
+        except Exception:
+            pass
+        _bg_time.sleep(3600)
+
+if not getattr(app, "_autonomous_started", False):
+    app._autonomous_started = True
+    _t = _bg_threading.Thread(target=_autonomous_daily_loop, daemon=True)
+    _t.start()
+
+@app.route("/health")
+def health_check():
+    import data_generator as _dg
+    return {"status": "ok", "active_picks": len(getattr(_dg, "DAILY_PICKS", []))}, 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
