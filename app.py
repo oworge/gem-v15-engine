@@ -151,26 +151,29 @@ def health_check():
 
 
 
+
+
+
 # --- Non-Destructive ScoreAI-Inspired App Experience Layer ---
 @app.after_request
 def _inject_pro_terminal_polish(response):
-    if response.content_type and "text/html" in response.content_type:
-        try:
+    try:
+        ctype = response.headers.get("Content-Type", "")
+        if "text/html" in ctype:
             html = response.get_data(as_text=True)
-            if "</body>" in html and "edgemetrix-scoreai-ui" not in html:
+            if "edgemetrix-scoreai-ui" not in html:
                 scoreai_block = """
 <style id="edgemetrix-scoreai-ui">
   body, table, .card, .pick-card, [class*="pick"], [class*="card"], [class*="row"] {
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
   }
-  /* ScoreAI Top App Navigation & Live Search Bar */
   #sai-topbar {
     position: sticky;
     top: 0;
-    z-index: 999;
-    background: linear-gradient(180deg, rgba(9, 14, 28, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%);
-    border-bottom: 1px solid rgba(16, 185, 129, 0.28);
+    z-index: 99999;
+    background: linear-gradient(180deg, rgba(9, 14, 28, 0.98) 0%, rgba(15, 23, 42, 0.96) 100%);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.35);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     padding: 10px 14px;
@@ -192,8 +195,8 @@ def _inject_pro_terminal_polish(response):
     font-weight: 800;
     letter-spacing: 0.04em;
     color: #10b981;
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.14);
+    border: 1px solid rgba(16, 185, 129, 0.38);
     padding: 4px 10px;
     border-radius: 999px;
   }
@@ -203,13 +206,12 @@ def _inject_pro_terminal_polish(response):
     max-width: 280px;
     padding: 6px 12px;
     border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.3);
-    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(30, 41, 59, 0.9);
     color: #f8fafc;
     font-size: 12px;
     outline: none;
   }
-  #sai-search:focus { border-color: #10b981; }
   .sai-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -221,11 +223,10 @@ def _inject_pro_terminal_polish(response):
     font-size: 12px;
     font-weight: 700;
     color: #cbd5e1;
-    background: rgba(30, 41, 59, 0.85);
-    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.25);
     border-radius: 999px;
     cursor: pointer;
-    transition: all 0.15s ease;
   }
   .sai-tab.active, .sai-tab:hover {
     background: #10b981;
@@ -242,21 +243,9 @@ def _inject_pro_terminal_polish(response):
     border: none;
     border-radius: 999px;
     cursor: pointer;
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
   }
-  /* ScoreAI Card Enhancements */
-  .sai-card-enhanced {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .sai-strong-border {
-    border-left: 4px solid #f97316 !important;
-    box-shadow: inset 4px 0 18px -10px rgba(249, 115, 22, 0.45);
-  }
-  .sai-solid-border {
-    border-left: 4px solid #10b981 !important;
-    box-shadow: inset 4px 0 18px -10px rgba(16, 185, 129, 0.40);
-  }
+  .sai-strong-border { border-left: 4px solid #f97316 !important; }
+  .sai-solid-border { border-left: 4px solid #10b981 !important; }
   .sai-prob-strip {
     display: flex;
     align-items: center;
@@ -278,7 +267,7 @@ def _inject_pro_terminal_polish(response):
   }
   .sai-bar-wrap {
     flex: 1;
-    min-width: 90px;
+    min-width: 80px;
     height: 6px;
     background: rgba(30, 41, 59, 0.95);
     border-radius: 999px;
@@ -297,9 +286,7 @@ def _inject_pro_terminal_polish(response):
     border-radius: 999px;
     cursor: pointer;
   }
-  .sai-action-pill:hover { border-color: #10b981; color: #fff; }
   .sai-action-pill.added { background: #10b981; color: #022c22; border-color: #34d399; }
-  /* ScoreAI Coupon Drawer */
   #sai-coupon-drawer {
     position: fixed;
     bottom: 14px;
@@ -311,18 +298,17 @@ def _inject_pro_terminal_polish(response):
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
     color: #f8fafc;
     font-family: system-ui, -apple-system, sans-serif;
-    z-index: 1000;
+    z-index: 100000;
     padding: 13px 15px;
     display: none;
   }
   #sai-coupon-drawer.open { display: block; }
-  /* ScoreAI Match Centre Modal */
   #sai-modal-bg {
     position: fixed;
     inset: 0;
     background: rgba(2, 6, 23, 0.78);
     backdrop-filter: blur(6px);
-    z-index: 1001;
+    z-index: 100001;
     display: none;
     align-items: center;
     justify-content: center;
@@ -337,7 +323,6 @@ def _inject_pro_terminal_polish(response):
     padding: 18px;
     color: #f8fafc;
     font-family: system-ui, -apple-system, sans-serif;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
   }
 </style>
 <script>
@@ -346,7 +331,7 @@ def _inject_pro_terminal_polish(response):
   const allCards = [];
 
   function initTopBar() {
-    if (document.getElementById("sai-topbar")) return;
+    if (document.getElementById("sai-topbar") || !document.body) return;
     const top = document.createElement("div");
     top.id = "sai-topbar";
     top.innerHTML = `
@@ -499,7 +484,7 @@ def _inject_pro_terminal_polish(response):
       if (txt.length > 40 && txt.length < 680 && (txt.includes("STRONG VALUE") || txt.includes("SOLID EDGE"))) {
         el.dataset.saiStyled = "1";
         const isStrong = txt.includes("STRONG VALUE");
-        el.classList.add("sai-card-enhanced", isStrong ? "sai-strong-border" : "sai-solid-border");
+        el.classList.add(isStrong ? "sai-strong-border" : "sai-solid-border");
 
         const evMatch = txt.match(/\+([0-9.]+)%\s*EV/i);
         const fairMatch = txt.match(/Fair\s*([0-9.]+)/i);
@@ -520,7 +505,7 @@ def _inject_pro_terminal_polish(response):
         strip.className = "sai-prob-strip";
         strip.innerHTML = `
           <span class="sai-conf-pill">AI Prob ${winProb.toFixed(0)}%</span>
-          <div class="sai-bar-wrap" title="True Win Probability ${winProb.toFixed(1)}%">
+          <div class="sai-bar-wrap">
             <div class="sai-bar-win" style="width:${winProb.toFixed(0)}%"></div>
             <div class="sai-bar-rest" style="width:${(100 - winProb).toFixed(0)}%"></div>
           </div>
@@ -567,14 +552,20 @@ def _inject_pro_terminal_polish(response):
   } else {
     enhanceCards();
   }
-  setTimeout(enhanceCards, 800);
+  setTimeout(enhanceCards, 600);
+  setTimeout(enhanceCards, 1800);
 })();
 </script>
-</body>"""
-                html = html.replace("</body>", scoreai_block, 1)
+"""
+                if "</body>" in html:
+                    html = html.replace("</body>", scoreai_block + "
+</body>", 1)
+                else:
+                    html = html + "
+" + scoreai_block
                 response.set_data(html)
-        except Exception:
-            pass
+    except Exception:
+        pass
     return response
 
 
