@@ -10,7 +10,7 @@ def get_perfect_value_alerts(picks):
         p for p in picks
         if any(t in str(p.get("pick", "")) for t in ["ELITE BUSTER", "STRONG VALUE", "+5.", "+6.", "+7.", "+8.", "+9.", "+10.", "+11.", "+12.", "+13.", "+14.", "+15."])
     ]
-    return hits[:2] if hits else picks[:1]
+    return hits[:6] if hits else picks[:5]
 
 def _build_dynamic_tabs(picks):
     btts = [
