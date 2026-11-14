@@ -184,21 +184,39 @@ def fetch_live_espn_today(today_str=None):
         ("eng.4", "UK - EFL League Two"),
         ("eng.5", "UK - National League"),
         ("eng.fa", "UK - FA Cup"),
+        ("eng.league_cup", "UK - EFL Cup"),
         ("sco.1", "UK - Scottish Premiership"),
         ("sco.2", "UK - Scottish Championship"),
+        ("sco.3", "UK - Scottish League One"),
+        ("sco.4", "UK - Scottish League Two"),
         ("uefa.nations", "UEFA Nations League"),
-        ("fifa.worldq.uefa", "FIFA World Cup Qualifiers"),
-        ("esp.1", "La Liga"),
-        ("ger.1", "Bundesliga"),
-        ("ita.1", "Serie A"),
-        ("fra.1", "Ligue 1"),
-        ("ned.1", "Eredivisie"),
-        ("por.1", "Primeira Liga"),
-        ("usa.1", "MLS"),
-        ("usa.nwsl", "NWSL"),
-        ("mex.1", "Liga MX"),
-        ("bra.1", "Brasileirao"),
-        ("arg.1", "Liga Profesional"),
+        ("uefa.champions", "UEFA Champions League"),
+        ("uefa.europa", "UEFA Europa League"),
+        ("fifa.worldq.uefa", "UEFA World Cup Qualifiers"),
+        ("fifa.worldq.conmebol", "CONMEBOL Qualifiers"),
+        ("fifa.worldq.concacaf", "CONCACAF Qualifiers"),
+        ("fifa.worldq.caf", "CAF World Cup Qualifiers"),
+        ("fifa.worldq.afc", "AFC World Cup Qualifiers"),
+        ("fifa.friendly", "International Friendlies"),
+        ("esp.1", "Spain - La Liga"),
+        ("esp.2", "Spain - Segunda Division"),
+        ("ger.1", "Germany - Bundesliga"),
+        ("ger.2", "Germany - 2. Bundesliga"),
+        ("ita.1", "Italy - Serie A"),
+        ("ita.2", "Italy - Serie B"),
+        ("fra.1", "France - Ligue 1"),
+        ("fra.2", "France - Ligue 2"),
+        ("ned.1", "Netherlands - Eredivisie"),
+        ("por.1", "Portugal - Primeira Liga"),
+        ("bel.1", "Belgium - Pro League"),
+        ("tur.1", "Turkey - Super Lig"),
+        ("usa.1", "USA - MLS"),
+        ("usa.nwsl", "USA - NWSL"),
+        ("mex.1", "Mexico - Liga MX"),
+        ("bra.1", "Brazil - Brasileirao"),
+        ("arg.1", "Argentina - Liga Profesional"),
+        ("jpn.1", "Japan - J1 League"),
+        ("aus.1", "Australia - A-League"),
     ]
     now_utc = _espn_dt.now(_espn_tz.utc)
     dates = [now_utc.strftime("%Y%m%d"), (now_utc + _espn_td(days=1)).strftime("%Y%m%d")]
@@ -247,8 +265,6 @@ def fetch_live_espn_today(today_str=None):
                         "pick": market_pick,
                         "odds": f"{ml_home:.2f}",
                     })
-                    if len(fixtures) >= 32:
-                        return fixtures
             except Exception:
                 continue
 
@@ -340,7 +356,7 @@ def fetch_live_global_edges():
             open(CACHE_FILE, "w", encoding="utf-8").write(json.dumps(edges[:40]))
         except Exception:
             pass
-    return apply_value_buster_qualities(edges[:40])
+    return apply_value_buster_qualities(edges)
 
 def get_global_daily_picks():
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
