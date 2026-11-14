@@ -221,6 +221,7 @@ def fetch_live_espn_today(today_str=None):
     ]
     now_utc = _espn_dt.now(_espn_tz.utc)
     dates = [now_utc.strftime("%Y%m%d"), (now_utc + _espn_td(days=1)).strftime("%Y%m%d")]
+    team_stats = _fetch_league_team_stats([slug for slug, _ in leagues])
     tasks = [(slug, label, d_str) for slug, label in leagues for d_str in dates]
 
     def _fetch_one(task):
