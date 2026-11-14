@@ -31,10 +31,10 @@ SCOREAI_BAR_HTML = r"""
       </div>
       <div class="sai-tabs">
         <button class="sai-tab active" data-tab="all">All Slate</button>
-        <button class="sai-tab" data-tab="strong">?? Strong Value</button>
+        <button class="sai-tab" data-tab="strong"> Strong Value</button>
         <button class="sai-tab" data-tab="solid">? Solid Edge</button>
-        <button class="sai-tab" data-tab="3fold">?? 3-Fold Core</button>
-        <button class="sai-tab" data-tab="uk">???? UK Slate</button>
+        <button class="sai-tab" data-tab="3fold"> 3-Fold Core</button>
+        <button class="sai-tab" data-tab="uk"> UK Slate</button>
         <div class="sai-builder-box">
           <select id="sai-fold-select" title="Max Coupon Folds">
             <option value="2">2-Fold</option>
@@ -93,16 +93,16 @@ SCOREAI_BAR_HTML = r"""
     const title = coupon.length === 1 ? "Single" : `${coupon.length}-Fold Coupon`;
     drawer.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <strong style="color:#10b981;font-size:13px;">?? ${title} (${coupon.length}/${MAX_LEGS} Max)</strong>
+        <strong style="color:#10b981;font-size:13px;"> ${title} (${coupon.length}/${MAX_LEGS} Max)</strong>
         <span id="sai-clear" style="font-size:11px;color:#94a3b8;cursor:pointer;">Clear</span>
       </div>
-      ${coupon.map((c, i) => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.14);gap:8px;"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i+1}.${c.label}</span><strong style="color:#34d399;">@${c.oddsVal.toFixed(2)}</strong></div>`).join("")}
+      ${coupon.map((c, i) => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.14);gap:8px;"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.35;">${i+1}.${c.label}</span><strong style="color:#34d399;">@${c.oddsVal.toFixed(2)}</strong></div>`).join("")}
       <div style="display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-top:9px;padding-top:8px;border-top:1px solid rgba(16,185,129,0.25);font-size:11px;">
         <div>Total Odds<b style="display:block;font-size:14px;color:#34d399;">${combOdds.toFixed(2)}</b></div>
         <div>Fair Line<b style="display:block;font-size:14px;color:#e2e8f0;">${combFair.toFixed(2)}</b></div>
         <div>Coupon EV<b style="display:block;font-size:14px;color:#38bdf8;">+${combEv}%</b></div>
       </div>
-      <button id="sai-copy" style="width:100%;margin-top:10px;padding:8px;border-radius:10px;border:none;background:#10b981;color:#022c22;font-weight:800;font-size:12px;cursor:pointer;">?? Copy ${title}</button>
+      <button id="sai-copy" style="width:100%;margin-top:10px;padding:8px;border-radius:10px;border:none;background:#10b981;color:#022c22;font-weight:800;font-size:12px;cursor:pointer;"> Copy ${title}</button>
     `;
     document.getElementById("sai-clear").onclick = () => {
       coupon.length = 0;
@@ -133,7 +133,7 @@ SCOREAI_BAR_HTML = r"""
         btn.type = "button";
         btn.className = "sai-add-btn";
         btn.textContent = "+ Coupon";
-        const item = { el, label: txt.replace(/\s+/g, " ").trim().slice(0, 64), evVal, fairVal, oddsVal, btn };
+        const item = { el, label: (() => { let c = txt.replace(/\s+/g, " ").trim(); let fx = c.includes(" vs") ? c.split(" vs")[0].split(")").pop().trim() + " vs" + c.split(" vs")[1].split("STRONG")[0].split("SOLID")[0].split("[")[0].split("xG")[0].trim() : "Match"; let p = c.includes("—") ? c.split("—").slice(1).join("—") : (c.includes(" - ") ? c.split(" - ").slice(1).join(" - ") : c); let pk = p.split("[")[0].split("xG")[0].split("ODDS")[0].split("PLACE")[0].split("+")[0].trim(); return fx + " -> " + (pk || c.slice(0, 50)); })(), evVal, fairVal, oddsVal, btn };
         allCards.push(item);
         btn.onclick = (e) => {
           e.stopPropagation();

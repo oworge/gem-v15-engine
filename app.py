@@ -22,15 +22,34 @@ def _build_dynamic_tabs(picks):
         }
         for p in picks[:6]
     ]
-    builders = getattr(dg, "BET_BUILDERS", None) or [
-        {
-            "match": p.get("match", ""),
-            "comp": f"3-Leg Same-Game Builder • {p.get('comp', '')}",
-            "pick": f"Match Result + Over 1.5 Goals + 3+ Corners ({p.get('pick', '')})",
-            "odds": f"{round(float(p.get('odds', 1.80)) * 1.65, 2):.2f}" if str(p.get("odds", "")).replace(".", "", 1).isdigit() else "3.10",
+    def _build_5leg_sgm(p):
+        m = p.get("match", "")
+        teams = [t.strip() for t in m.split(" vs. ")] if " vs. " in m else ([t.strip() for t in m.split(" vs ")] if " vs " in m else ["Home Team", "Away Team"])
+        home, away = teams[0], (teams[1] if len(teams) > 1 else "Away Team")
+        base_pick = str(p.get("pick", "")).split("?")[-1].split("[")[0].strip()
+        try:
+            base_odds = float(str(p.get("odds", "1.80")).replace("@", "").strip())
+        except Exception:
+            base_odds = 1.80
+        low = base_pick.lower()
+        if "under" in low:
+            legs = [base_pick, "Under 3.5 Match Goals", "1st Half Under 1.5 Goals", f"{home} Double Chance (1X)", "Match Corners Over 7.5"]
+        elif "btts" in low or "both teams" in low:
+            legs = [base_pick, "Over 2.5 Match Goals", f"{home} Over 0.5 Team Goals", f"{away} Over 0.5 Team Goals", "Match Corners Over 8.5"]
+        elif away.lower() in low and "win" in low:
+            legs = [base_pick, f"{away} Over 1.5 Team Goals", "Over 1.5 Match Goals", f"{away} Over 3.5 Corners", "2nd Half Over 0.5 Goals"]
+        else:
+            leg1 = base_pick if base_pick else f"{home} Win"
+            legs = [leg1, "Over 1.5 Match Goals", f"{home} Over 0.5 Team Goals", f"{home} Over 3.5 Corners", "Both Teams 1+ Card"]
+        sgm_odds = f"{round(base_odds * 3.15, 2):.2f}"
+        return {
+            "match": m,
+            "comp": f"1-FIXTURE 5-LEG BET BUILDER ? {p.get('comp', '')}",
+            "pick": " | ".join(f"{idx+1}) {lg}" for idx, lg in enumerate(legs)),
+            "odds": sgm_odds,
         }
-        for p in picks[:6]
-    ]
+
+    builders = [_build_5leg_sgm(p) for p in picks[:6]]
     correct_scores = [
         {
             "match": p.get("match", ""),
