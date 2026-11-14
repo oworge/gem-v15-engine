@@ -41,10 +41,11 @@ def dashboard():
     DATA["daily_picks"] = picks
     auto_grade_settled_matches(picks)
     DATA["true_clv"] = get_live_steam_clv()
-    al = get_perfect_value_alert(picks)
-    dispatch_push_alert(al)
-    return render_template("index.html", active_tab=tab, data=DATA.get(tab, picks), alert=al)
+    alerts = get_perfect_value_alerts(picks)
+    if alerts: dispatch_push_alert(alerts[0])
+    return render_template("index.html", active_tab=tab, data=DATA.get(tab, picks), alerts=alerts)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
