@@ -176,6 +176,165 @@ import urllib.request as _espn_req
 import json as _espn_json
 from datetime import datetime as _espn_dt, timedelta as _espn_td, timezone as _espn_tz
 
+def _fetch_league_team_stats(slugs):
+    from concurrent.futures import ThreadPoolExecutor
+    team_stats = {}
+
+    def _grab(slug):
+        url = f"https://site.web.api.espn.com/apis/v2/sports/soccer/{slug}/standings"
+        local = {}
+        try:
+            req = _espn_req.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with _espn_req.urlopen(req, timeout=3) as resp:
+                data = _espn_json.loads(resp.read().decode("utf-8"))
+            children = data.get("children", [])
+            if not children and "standings" in data:
+                children = [{"standings": data["standings"]}]
+            for ch in children:
+                for entry in ch.get("standings", {}).get("entries", []):
+                    t_name = entry.get("team", {}).get("displayName", "")
+                    if not t_name:
+                        continue
+                    stats_map = {}
+                    for st in entry.get("stats", []):
+                        k = st.get("name") or st.get("abbreviation") or ""
+                        v = st.get("value")
+                        if isinstance(v, (int, float)):
+                            stats_map[k] = float(v)
+                    gp = stats_map.get("gamesPlayed") or stats_map.get("GP") or 0.0
+                    gf = stats_map.get("pointsFor") or stats_map.get("GF") or 0.0
+                    ga = stats_map.get("pointsAgainst") or stats_map.get("GA") or 0.0
+                    if gp >= 2.0:
+                        local[t_name] = {
+                            "gf_pg": round(gf / gp, 3),
+                            "ga_pg": round(ga / gp, 3),
+                        }
+        except Exception:
+            pass
+        return local
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        for res in pool.map(_grab, slugs):
+            team_stats.update(res)
+    return team_stats
+
+
+def _poisson_predict_market(m_name, home, away, ml_home=None, team_stats=None):
+    import math
+    team_stats = team_stats or {}
+    h_st = team_stats.get(home)
+    a_st = team_stats.get(away)
+
+    league_avg = 1.35
+    home_adv = 1.12
+    if h_st and a_st:
+        h_att = max(h_st["gf_pg"] / league_avg, 0.45)
+        h_def = max(h_st["ga_pg"] / league_avg, 0.45)
+        a_att = max(a_st["gf_pg"] / league_avg, 0.45)
+        a_def = max(a_st["ga_pg"] / league_avg, 0.45)
+        lam_h = round(min(max(h_att * a_def * league_avg * home_adv, 0.55), 3.40), 3)
+        lam_a = round(min(max(a_att * h_def * league_avg * 0.92, 0.45), 3.10), 3)
+        data_tag = "REAL-STATS"
+    elif ml_home and ml_home > 1.05:
+        imp_h = min(max(1.0 / ml_home, 0.18), 0.78)
+        lam_h = round(0.85 + (imp_h * 1.85), 3)
+        lam_a = round(0.75 + ((1.0 - imp_h) * 1.45), 3)
+        data_tag = "ODDS-IMPLIED"
+    else:
+        if h_st:
+            lam_h = round(min(max(h_st["gf_pg"] * home_adv, 0.65), 3.10), 3)
+            lam_a = round(min(max(h_st["ga_pg"] * 0.95, 0.55), 2.80), 3)
+            data_tag = "PARTIAL-STATS"
+        elif a_st:
+            lam_h = round(min(max(a_st["ga_pg"] * home_adv, 0.65), 3.10), 3)
+            lam_a = round(min(max(a_st["gf_pg"] * 0.95, 0.55), 2.80), 3)
+            data_tag = "PARTIAL-STATS"
+        else:
+            lam_h = 1.48
+            lam_a = 1.16
+            data_tag = "BASE-XG"
+
+    if (h_st and a_st) and (ml_home and ml_home > 1.05):
+        imp_h = min(max(1.0 / ml_home, 0.18), 0.78)
+        mkt_h = 0.85 + (imp_h * 1.85)
+        mkt_a = 0.75 + ((1.0 - imp_h) * 1.45)
+        lam_h = round(0.70 * lam_h + 0.30 * mkt_h, 3)
+        lam_a = round(0.70 * lam_a + 0.30 * mkt_a, 3)
+        data_tag = "HYBRID-XG"
+
+    rho = -0.06
+    p_home = p_draw = p_away = p_o15 = p_o25 = p_btts = 0.0
+    best_cs = ("1-1", 0.0)
+
+    def _pmf(k, lam):
+        return (math.exp(-lam) * (lam ** k)) / math.factorial(k)
+
+    for hg in range(7):
+        ph = _pmf(hg, lam_h)
+        for ag in range(7):
+            pa = _pmf(ag, lam_a)
+            prob = ph * pa
+            if hg == 0 and ag == 0:
+                prob *= (1.0 - lam_h * lam_a * rho)
+            elif hg == 1 and ag == 0:
+                prob *= (1.0 + lam_a * rho)
+            elif hg == 0 and ag == 1:
+                prob *= (1.0 + lam_h * rho)
+            elif hg == 1 and ag == 1:
+                prob *= (1.0 - rho)
+
+            if hg > ag:
+                p_home += prob
+            elif hg == ag:
+                p_draw += prob
+            else:
+                p_away += prob
+
+            if (hg + ag) >= 2:
+                p_o15 += prob
+            if (hg + ag) >= 3:
+                p_o25 += prob
+            if hg >= 1 and ag >= 1:
+                p_btts += prob
+            if prob > best_cs[1]:
+                best_cs = (f"{hg}-{ag}", prob)
+
+    tot = max(p_home + p_draw + p_away, 1e-6)
+    p_home, p_draw, p_away = p_home / tot, p_draw / tot, p_away / tot
+    p_dnb_h = p_home / max(p_home + p_away, 1e-6)
+    p_dnb_a = p_away / max(p_home + p_away, 1e-6)
+    p_1x = p_home + p_draw
+    p_x2 = p_away + p_draw
+
+    candidates = [
+        (f"{home} Win (1X2)", p_home),
+        (f"{away} Win (1X2)", p_away),
+        (f"{home} Draw No Bet (0.0 AH)", p_dnb_h),
+        (f"{away} Draw No Bet (0.0 AH)", p_dnb_a),
+        (f"{home} or Draw (1X) & O1.5", min(p_1x * (p_o15 / 0.82), 0.86)),
+        (f"{away} or Draw (X2) & O1.5", min(p_x2 * (p_o15 / 0.82), 0.86)),
+        ("Over 2.5 Match Goals", p_o25),
+        ("Both Teams to Score (BTTS)", p_btts),
+    ]
+
+    valid = []
+    for label, prob in candidates:
+        if 0.30 <= prob <= 0.72:
+            fair_o = 1.0 / prob
+            if label == f"{home} Win (1X2)" and ml_home and ml_home > 1.05:
+                book_o = round(ml_home, 2)
+            else:
+                book_o = round(fair_o * 1.055, 2)
+            ev_pct = round(((prob * book_o) - 1.0) * 100.0, 2)
+            if ev_pct > 0:
+                valid.append((ev_pct, label, book_o, round(fair_o, 2), round(lam_h + lam_a, 2), best_cs[0], data_tag))
+
+    valid.sort(key=lambda x: x[0], reverse=True)
+    if valid:
+        return valid[0]
+    return (5.5, f"{home} Win (1X2)", round((1.0 / max(p_home, 0.30)) * 1.055, 2), round(1.0 / max(p_home, 0.30), 2), round(lam_h + lam_a, 2), best_cs[0], data_tag)
+
+
 def fetch_live_espn_today(today_str=None):
     from concurrent.futures import ThreadPoolExecutor, as_completed
     leagues = [
