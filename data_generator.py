@@ -530,6 +530,100 @@ def _poisson_predict_market(
     return (4.5, f"{home} Win (1X2)", fallback_o, round(1.0 / max(p_home, 0.32), 2), round(lam_h + lam_a, 2), best_cs[0], data_tag)
 
 
+def _fetch_sharp_soft_odds():
+    import os, json
+    from datetime import datetime, timezone
+    api_key = os.environ.get("ODDS_API_KEY", "").strip()
+    if not api_key:
+        return {}
+
+    cache_file = "sharp_odds_cache.json"
+    now_ts = datetime.now(timezone.utc).timestamp()
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                blob = json.load(f)
+            # 6-hour TTL protects free 500/month quota (~120 req/month)
+            if (now_ts - float(blob.get("ts", 0))) < 21600 and isinstance(blob.get("odds"), dict):
+                return blob["odds"]
+        except Exception:
+            pass
+
+    sport_keys = [
+        "soccer_epl",
+        "soccer_efl_champ",
+        "soccer_england_league1",
+        "soccer_england_league2",
+        "soccer_uefa_nations_league",
+        "soccer_uefa_champs_league",
+    ]
+    matched = {}
+    for sk in sport_keys:
+        url = (
+            f"https://api.the-odds-api.com/v4/sports/{sk}/odds/"
+            f"?apiKey={api_key}&regions=uk,eu&markets=h2h,totals&oddsFormat=decimal"
+        )
+        try:
+            req = _espn_req.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with _espn_req.urlopen(req, timeout=4) as resp:
+                events = _espn_json.loads(resp.read().decode("utf-8"))
+            for ev in events:
+                h_team = ev.get("home_team", "").strip()
+                a_team = ev.get("away_team", "").strip()
+                if not h_team or not a_team:
+                    continue
+                best_soft = {}   # market_label -> (best_price, book_name)
+                sharp_probs = {} # market_label -> fair_prob
+
+                for bm in ev.get("bookmakers", []):
+                    b_key = bm.get("key", "")
+                    b_title = bm.get("title", b_key)
+                    is_sharp = b_key in ("pinnacle", "betfair_ex_uk", "betfair_ex_eu", "matchbook")
+                    for mkt in bm.get("markets", []):
+                        m_key = mkt.get("key")
+                        outcomes = mkt.get("outcomes", [])
+                        if m_key == "h2h" and len(outcomes) >= 2:
+                            prices = {o.get("name"): float(o.get("price", 0)) for o in outcomes if float(o.get("price", 0)) > 1.01}
+                            if is_sharp and len(prices) >= 3:
+                                inv_sum = sum(1.0 / v for v in prices.values())
+                                for k_name, v in prices.items():
+                                    lbl = f"{h_team} Win (1X2)" if k_name == h_team else (f"{a_team} Win (1X2)" if k_name == a_team else "Draw")
+                                    sharp_probs[lbl] = (1.0 / v) / inv_sum
+                            elif not is_sharp:
+                                for k_name, v in prices.items():
+                                    if k_name in (h_team, a_team):
+                                        lbl = f"{k_name} Win (1X2)"
+                                        if v > best_soft.get(lbl, (0, ""))[0]:
+                                            best_soft[lbl] = (v, b_title)
+                        elif m_key == "totals":
+                            for o in outcomes:
+                                if o.get("name") == "Over" and float(o.get("point", 0)) == 2.5:
+                                    v = float(o.get("price", 0))
+                                    if v > 1.01 and not is_sharp:
+                                        if v > best_soft.get("Over 2.5 Match Goals", (0, ""))[0]:
+                                            best_soft["Over 2.5 Match Goals"] = (v, b_title)
+
+                # Find best positive EV edge comparing soft UK book vs sharp benchmark
+                best_edge = None
+                for lbl, (soft_o, b_title) in best_soft.items():
+                    s_prob = sharp_probs.get(lbl)
+                    if s_prob and 0.28 <= s_prob <= 0.74:
+                        ev = round(((s_prob * soft_o) - 1.0) * 100.0, 2)
+                        if ev >= 1.5 and (best_edge is None or ev > best_edge[0]):
+                            best_edge = (ev, lbl, round(soft_o, 2), round(1.0 / s_prob, 2), b_title)
+                if best_edge:
+                    matched[f"{h_team.lower()}|{a_team.lower()}"] = best_edge
+        except Exception:
+            pass
+
+    try:
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump({"ts": now_ts, "odds": matched}, f)
+    except Exception:
+        pass
+    return matched
+
+
 def fetch_live_espn_today(today_str=None):
     from datetime import datetime, timedelta, timezone
     from concurrent.futures import ThreadPoolExecutor
@@ -582,6 +676,7 @@ def fetch_live_espn_today(today_str=None):
     ]
 
     team_stats, league_avgs = _fetch_league_team_stats([slug for slug, _ in leagues])
+    sharp_soft_map = _fetch_sharp_soft_odds()
     tasks = [(slug, label, d_str) for slug, label in leagues for d_str in dates]
 
     def _us_to_dec(val):
@@ -639,6 +734,10 @@ def fetch_live_espn_today(today_str=None):
                     m_name, home, away, ml_home, team_stats, league_avgs,
                     slug, h_id, a_id, h_form, a_form, ml_draw, ml_away
                 )
+                bm_hit = sharp_soft_map.get(f"{home.lower()}|{away.lower()}")
+                if bm_hit:
+                    ev_pct, market_pick, book_o, fair_o, b_title = bm_hit
+                    d_tag = f"SHARP-10.0:{b_title}"
                 out.append({
                     "match": m_name,
                     "comp": f"{label} ({ko_raw} UTC)",

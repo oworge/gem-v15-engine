@@ -82,6 +82,49 @@ def dashboard():
 import threading as _bg_threading
 import time as _bg_time
 
+
+# --- Free Cloud PostgreSQL Persistence (Neon / Render DATABASE_URL) ---
+import os as _pg_os
+
+def _sync_sqlite_to_postgres(direction="restore"):
+    db_url = _pg_os.environ.get("DATABASE_URL", "").strip()
+    if not db_url:
+        return
+    try:
+        import psycopg2
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS gem_sqlite_snapshots (
+                db_name TEXT PRIMARY KEY,
+                payload BYTEA NOT NULL,
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        for fname in ("clv_audit.db", "syndicate_ledger.db"):
+            if direction == "restore":
+                cur.execute("SELECT payload FROM gem_sqlite_snapshots WHERE db_name = %s", (fname,))
+                row = cur.fetchone()
+                if row and row[0]:
+                    with open(fname, "wb") as f:
+                        f.write(bytes(row[0]))
+            elif direction == "backup" and _pg_os.path.exists(fname):
+                with open(fname, "rb") as f:
+                    blob = f.read()
+                cur.execute("""
+                    INSERT INTO gem_sqlite_snapshots (db_name, payload, updated_at)
+                    VALUES (%s, %s, NOW())
+                    ON CONFLICT (db_name) DO UPDATE
+                    SET payload = EXCLUDED.payload, updated_at = NOW()
+                """, (fname, psycopg2.Binary(blob)))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception:
+        pass
+
+_sync_sqlite_to_postgres("restore")
+
 def _autonomous_daily_loop():
     _bg_time.sleep(15)
     while True:
@@ -89,6 +132,7 @@ def _autonomous_daily_loop():
             import data_generator as _dg
             fresh = _dg._load_or_refresh_cache(force=True)
             _dg.DAILY_PICKS = fresh
+            _sync_sqlite_to_postgres("backup")
         except Exception:
             pass
         _bg_time.sleep(3600)
