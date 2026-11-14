@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+﻿from flask import Flask, render_template, request
 from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks, get_live_steam_clv, dispatch_push_alert, auto_grade_settled_matches
 
 app = Flask(__name__)
@@ -42,8 +42,9 @@ def dashboard():
     auto_grade_settled_matches(picks)
     DATA["true_clv"] = get_live_steam_clv()
     al = get_perfect_value_alert(picks)
-    dispatch_push_alert, auto_grade_settled_matches(al)
+    dispatch_push_alert(al)
     return render_template("index.html", active_tab=tab, data=DATA.get(tab, picks), alert=al)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
