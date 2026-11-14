@@ -1,4 +1,4 @@
-import os
+﻿import os
 for _p in (".env", "/etc/secrets/.env"):
     if os.path.exists(_p):
         for _line in open(_p, encoding="utf-8"):
@@ -18,7 +18,7 @@ CACHE_TTL = 900  # 15-minute live global refresh
 
 VERIFIED_SLATE_DATE = "2026-11-12"
 BASE_GLOBAL_SLATE = [
-    ("Türkiye vs. Belgium", "UEFA Nations League (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.75, 1.55, 1.85),
+    ("TÃ¼rkiye vs. Belgium", "UEFA Nations League (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.75, 1.55, 1.85),
     ("Italy vs. France", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "BTTS Yes", 1.98, 1.77, 2.10),
     ("England vs. Croatia", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "England Win & O1.5", 1.78, 1.60, 2.25),
     ("Czechia vs. Spain", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Spain Win & O1.5", 1.86, 1.67, 2.28),
@@ -30,13 +30,13 @@ BASE_GLOBAL_SLATE = [
     ("Armenia vs. Cyprus", "UEFA Nations League (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.76, 1.60, 2.38),
     ("Montenegro vs. Latvia", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Montenegro Win", 1.70, 1.55, 2.50),
     ("San Marino vs. Belarus", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Belarus -1.5 AH", 1.75, 1.60, 2.40),
-    ("Curaçao vs. Panama", "CONCACAF Nations League QF (2026-11-12)", "Panama Win", 1.83, 1.68, 2.20),
+    ("CuraÃ§ao vs. Panama", "CONCACAF Nations League QF (2026-11-12)", "Panama Win", 1.83, 1.68, 2.20),
     ("Benin vs. Central African Republic", "AFCON 2027 Qualifiers (2026-11-12 | 19:00 UTC)", "Under 2.5 Goals", 1.79, 1.64, 2.32),
     ("Madagascar vs. Guinea-Bissau", "AFCON 2027 Qualifiers (2026-11-12 | 16:00 UTC)", "1X Double Chance", 1.66, 1.52, 2.58),
     ("Uzbekistan vs. Russia", "International Friendly (2026-11-12 | 15:00 UTC)", "BTTS Yes", 1.88, 1.74, 2.12),
     ("Lithuania vs. Suriname", "International Friendly (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.74, 1.62, 2.38),
     ("Navalcarnero vs. Real Betis", "Spanish Copa del Rey (2026-11-12 | 18:00 UTC)", "Real Betis -1.5 AH", 1.69, 1.57, 2.48),
-    ("Tarancón vs. Levante", "Spanish Copa del Rey (2026-11-12 | 18:00 UTC)", "Over 2.5 Goals", 1.67, 1.56, 2.52)
+    ("TarancÃ³n vs. Levante", "Spanish Copa del Rey (2026-11-12 | 18:00 UTC)", "Over 2.5 Goals", 1.67, 1.56, 2.52)
 ]
 
 BET_BUILDERS = [
@@ -257,7 +257,7 @@ def get_live_steam_clv():
 def dispatch_push_alert(alert):
     if not alert:
         return
-    msg = f"🚨 EdgeMETRIX PRO 26 VALUE SIGNAL\n{alert['match']}\n{alert['pick']} @ {alert['odds']}"
+    msg = f"ðŸš¨ EdgeMETRIX PRO 26 VALUE SIGNAL\n{alert['match']}\n{alert['pick']} @ {alert['odds']}"
     tg_tok, tg_chat = os.getenv("TELEGRAM_BOT_TOKEN", "").strip(), os.getenv("TELEGRAM_CHAT_ID", "").strip()
     if tg_tok and tg_chat:
         try:
@@ -348,7 +348,7 @@ def _is_upcoming_fixture(commence_iso):
 def fetch_live_devigged_global_picks():
     api_key = os.environ.get("ODDS_API_KEY", "").strip()
     if not api_key:
-        return [{"match": "API Key Missing", "pick": "Set ODDS_API_KEY in Render Environment", "odds": "1.00", "comp": "System Alert"}]
+        return fetch_live_global_edges()
 
     cache_path = "live_devig_cache.json"
     if os.path.exists(cache_path):
@@ -475,3 +475,4 @@ def fetch_live_devigged_global_picks():
 
 def get_global_daily_picks(*args, **kwargs):
     return fetch_live_devigged_global_picks()
+
