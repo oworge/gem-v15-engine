@@ -1,4 +1,4 @@
-SCOREAI_BAR_HTML = """
+SCOREAI_BAR_HTML = r"""
 <style id="edgemetrix-scoreai-ui">
   #sai-topbar { position: sticky; top: 0; z-index: 99999; background: rgba(9, 14, 28, 0.98); border-bottom: 1px solid rgba(16, 185, 129, 0.35); backdrop-filter: blur(12px); padding: 10px 14px; font-family: system-ui, -apple-system, sans-serif; }
   .sai-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
