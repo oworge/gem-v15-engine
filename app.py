@@ -226,5 +226,39 @@ def gem_inject_blue_desk(resp):
         pass
     return resp
 
+
+# === GEM_DESK_FEED_API ===
+@app.route("/api/desk")
+def gem_api_desk():
+    import sqlite3, json
+    from flask import jsonify
+    items = []
+    for db, src in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "CLV")):
+        if not os.path.exists(db):
+            continue
+        c = sqlite3.connect(db)
+        c.row_factory = sqlite3.Row
+        for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+            try:
+                for r in c.execute(f"SELECT * FROM {t} ORDER BY rowid DESC LIMIT 80").fetchall():
+                    d = dict(r)
+                    d["_src"] = src
+                    d["_tbl"] = t
+                    items.append(d)
+            except Exception:
+                pass
+        c.close()
+    if os.path.exists("global_odds_cache.json"):
+        try:
+            raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
+            rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
+            for m in (rows or [])[:60]:
+                if isinstance(m, dict):
+                    m["_src"] = "ODDS"
+                    items.append(m)
+        except Exception:
+            pass
+    return jsonify({"items": items})
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
