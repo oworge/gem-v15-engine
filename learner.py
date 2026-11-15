@@ -3,164 +3,63 @@ import json
 import os
 from datetime import datetime
 
-DB_FILE = 'edgemetrix_history.db'
 WEIGHTS_FILE = 'engine_weights.json'
-
-# Default feature weights if none are optimized yet
 DEFAULT_WEIGHTS = {
-    "form_weight": 0.40,
-    "xg_weight": 0.30,
-    "h2h_weight": 0.15,
-    "home_advantage": 0.15
+    "market_weight": 0.60,
+    "dc_weight": 0.40,
+    "dc_rho": -0.13,
+    "min_ev_pct": 3.0,
+    "max_vig_pct": 7.5,
+    "min_win_prob": 0.54,
+    "kelly_fraction": 0.25,
+    "max_stake_pct": 3.0,
+    "brier_shrinkage": 0.08
 }
 
-def init_engine_db():
-    """Initializes the SQLite database for tracking predictions and outcomes."""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS predictions (
-            match_id TEXT PRIMARY KEY,
-            fixture_date TEXT,
-            home_team TEXT,
-            away_team TEXT,
-            predicted_outcome TEXT,
-            confidence REAL,
-            weights_snapshot TEXT,
-            actual_result TEXT DEFAULT NULL,
-            is_correct INTEGER DEFAULT NULL,
-            audited_at TEXT DEFAULT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-    
-    # Initialize weights file if it doesn't exist
-    if not os.path.exists(WEIGHTS_FILE):
-        save_weights(DEFAULT_WEIGHTS)
-
 def load_weights():
-    """Loads the current active feature weights for the prediction model."""
     if os.path.exists(WEIGHTS_FILE):
-        with open(WEIGHTS_FILE, 'r') as f:
-            return json.load(f)
-    return DEFAULT_WEIGHTS
+        try:
+            data = json.load(open(WEIGHTS_FILE, 'r', encoding='utf-8'))
+            merged = dict(DEFAULT_WEIGHTS)
+            merged.update(data)
+            return merged
+        except Exception:
+            pass
+    save_weights(DEFAULT_WEIGHTS)
+    return dict(DEFAULT_WEIGHTS)
 
 def save_weights(weights):
-    """Saves updated weights to disk."""
-    with open(WEIGHTS_FILE, 'w') as f:
-        json.dump(weights, f, indent=4)
+    with open(WEIGHTS_FILE, 'w', encoding='utf-8', newline='\n') as f:
+        json.dump(weights, f, indent=2)
 
-def log_prediction(match_id, home, away, predicted_outcome, confidence):
-    """Logs a new prediction to memory with the weights active at that moment."""
-    init_engine_db()
-    current_weights = load_weights()
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-        INSERT OR IGNORE INTO predictions 
-        (match_id, fixture_date, home_team, away_team, predicted_outcome, confidence, weights_snapshot)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        str(match_id), 
-        datetime.utcnow().strftime('%Y-%m-%d'), 
-        home, 
-        away, 
-        predicted_outcome, 
-        confidence, 
-        json.dumps(current_weights)
-    ))
-    conn.commit()
-    conn.close()
+def audit_and_calibrate():
+    w = load_weights()
+    outcomes = []
+    for db in ('syndicate_ledger.db', 'clv_audit.db'):
+        if not os.path.exists(db):
+            continue
+        c = sqlite3.connect(db)
+        for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+            cols = [r[1] for r in c.execute(f"PRAGMA table_info({t})").fetchall()]
+            if 'status' in cols:
+                for row in c.execute(f"SELECT * FROM {t} WHERE UPPER(status) IN ('WON','LOST') ORDER BY rowid DESC LIMIT 60").fetchall():
+                    d = dict(zip(cols, row))
+                    y = 1.0 if str(d.get('status','')).upper() == 'WON' else 0.0
+                    p_raw = d.get('true_prob') or d.get('win_prob') or d.get('model_prob') or d.get('prob') or 0.65
+                    p = float(str(p_raw).replace('%',''))
+                    if p > 1.0:
+                        p /= 100.0
+                    outcomes.append((min(0.95, max(0.05, p)), y))
+        c.close()
 
-def audit_and_evolve(fetch_result_func):
-    """
-    Audits past pending predictions against real results and adjusts weights 
-    based on historical accuracy trends.
-    """
-    init_engine_db()
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT match_id, predicted_outcome FROM predictions WHERE actual_result IS NULL")
-    pending = cursor.fetchall()
-    
-    audited_count = 0
-    for match_id, predicted in pending:
-        # fetch_result_func should query your external API for the match status & winner ('HOME', 'AWAY', 'DRAW')
-        result_data = fetch_result_func(match_id)
-        
-        if result_data and result_data.get('status') in ['FT', 'AET', 'PEN']:
-            actual = result_data.get('winner')
-            is_correct = 1 if predicted == actual else 0
-            
-            cursor.execute('''
-                UPDATE predictions 
-                SET actual_result = ?, is_correct = ?, audited_at = ?
-                WHERE match_id = ?
-            ''', (actual, is_correct, datetime.utcnow().isoformat(), match_id))
-            audited_count += 1
-            
-    conn.commit()
-    conn.close()
-    
-    if audited_count > 0:
-        optimize_weights_from_history()
-
-def optimize_weights_from_history():
-    """
-    Analyzes historical performance and performs a micro-adjustment 
-    to weights to favor metrics that are performing better.
-    """
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    
-    # Get last 50 audited predictions
-    cursor.execute("SELECT is_correct, weights_snapshot FROM predictions WHERE is_correct IS NOT NULL ORDER BY audited_at DESC LIMIT 50")
-    history = cursor.fetchall()
-    conn.close()
-    
-    if len(history) < 10:
-        return # Need a small sample size before shifting weights
-        
-    weights = load_weights()
-    
-    # Calculate rolling accuracy
-    correct_count = sum([row[0] for row in history])
-    accuracy = correct_count / len(history)
-    
-    # Adaptive tuning mechanism: 
-    # If accuracy drops below 60%, introduce a slight variance/rebalance toward xG and recent form
-    if accuracy < 0.60:
-        weights["xg_weight"] = min(0.50, weights["xg_weight"] + 0.02)
-        weights["form_weight"] = max(0.20, weights["form_weight"] - 0.02)
-        save_weights(weights)
-from learner import log_prediction, audit_and_evolve, load_weights
-
-# Inside your route where predictions/slips are generated:
-@app.route('/generate-slip', methods=['POST'])
-def generate_slip():
-    # ... your prediction logic using active weights ...
-    active_weights = load_weights()
-    
-    # Example logging loop for each match included in the slip
-    for match in selected_matches:
-        log_prediction(
-            match_id=match['id'],
-            home=match['home_team'],
-            away=match['away_team'],
-            predicted_outcome=match['prediction'],
-            confidence=match['confidence']
-        )
-    
-    return render_template('slip.html', matches=selected_matches)
-
-# Optional: Trigger an audit check whenever the dashboard loads or via background cron
-@app.before_first_request
-def run_background_audit():
-    try:
-        # Pass your existing API fetching function here
-        audit_and_evolve(fetch_match_result_from_api)
-    except Exception as e:
-        print(f"Audit routine skipped: {e}")
+    if len(outcomes) >= 8:
+        brier = sum((p - y) ** 2 for p, y in outcomes) / len(outcomes)
+        avg_pred = sum(p for p, _ in outcomes) / len(outcomes)
+        avg_hit = sum(y for _, y in outcomes) / len(outcomes)
+        # If overconfident (predicted > actual hit rate), lean harder into sharp market consensus
+        if (avg_pred - avg_hit) > 0.05 or brier > 0.23:
+            w['market_weight'] = round(min(0.75, w['market_weight'] + 0.03), 3)
+            w['dc_weight'] = round(1.0 - w['market_weight'], 3)
+            w['min_ev_pct'] = round(min(5.0, w['min_ev_pct'] + 0.25), 2)
+            save_weights(w)
+    return w

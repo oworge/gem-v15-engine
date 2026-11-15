@@ -1,0 +1,11 @@
+{
+  "market_weight": 0.6,
+  "dc_weight": 0.4,
+  "dc_rho": -0.13,
+  "min_ev_pct": 3.0,
+  "max_vig_pct": 7.5,
+  "min_win_prob": 0.54,
+  "kelly_fraction": 0.25,
+  "max_stake_pct": 3.0,
+  "brier_shrinkage": 0.08
+}

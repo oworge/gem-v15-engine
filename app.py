@@ -232,6 +232,9 @@ def gem_inject_blue_desk(resp):
 def gem_api_desk():
     import sqlite3, json
     from flask import jsonify
+    from engines import ENGINES
+    from learner import audit_and_calibrate
+    w = audit_and_calibrate()
     items = []
     for db, src in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "CLV")):
         if not os.path.exists(db):
@@ -254,11 +257,22 @@ def gem_api_desk():
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
             for m in (rows or [])[:60]:
                 if isinstance(m, dict):
-                    m["_src"] = "ODDS"
-                    items.append(m)
+                    home = m.get("home_team") or m.get("home") or "Home"
+                    away = m.get("away_team") or m.get("away") or "Away"
+                    odds = float(m.get("odds") or m.get("home_odds") or m.get("best_odds") or 1.90)
+                    o_draw = float(m.get("draw_odds") or 3.50)
+                    o_away = float(m.get("away_odds") or 4.00)
+                    xg_h = float(m.get("xg_home") or 1.60)
+                    xg_a = float(m.get("xg_away") or 1.10)
+                    res = ENGINES.run_all_engines(m.get("id", home), home, away, "GLOBAL", xg_h, xg_a, odds, o_draw, o_away)
+                    if res["is_approved"]:
+                        m["_src"] = "QUANT_EV"
+                        m["prob"] = res["consensus_score"]
+                        m["ev"] = f"+{res['ev_pct']}%"
+                        m["kelly"] = f"{res['kelly_pct']}%"
+                        m["strategy"] = f"Dixon-Coles + No-Vig ({int(w['market_weight']*100)}/{int(w['dc_weight']*100)}) | Fair {res['fair_odds']} vs {odds}"
+                        items.append(m)
         except Exception:
             pass
-    return jsonify({"items": items})
+    return jsonify({"items": items, "weights": w})
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
