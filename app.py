@@ -177,5 +177,54 @@ def health_check():
 from scoreai_bar import attach_scoreai_bar
 attach_scoreai_bar(app)
 
+
+# === GEM_BLUE_DESK_HOOK ===
+@app.route("/api/history", methods=["GET", "POST"])
+def gem_api_history():
+    import sqlite3
+    from flask import request, jsonify
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        rid, st = data.get("id"), data.get("status")
+        if rid and st in ("WON", "LOST", "OPEN"):
+            for db in ("syndicate_ledger.db", "clv_audit.db"):
+                if os.path.exists(db):
+                    c = sqlite3.connect(db)
+                    for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+                        cols = [r[1] for r in c.execute(f"PRAGMA table_info({t})").fetchall()]
+                        if "status" in cols and "id" in cols:
+                            c.execute(f"UPDATE {t} SET status=? WHERE id=?", (st, rid))
+                    c.commit()
+                    c.close()
+        return jsonify({"ok": True})
+    items = []
+    for db, tag in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "LEG")):
+        if not os.path.exists(db): continue
+        c = sqlite3.connect(db)
+        c.row_factory = sqlite3.Row
+        for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+            try:
+                for r in c.execute(f"SELECT * FROM {t} ORDER BY rowid DESC LIMIT 50").fetchall():
+                    d = dict(r); d["_source"] = tag; items.append(d)
+            except Exception:
+                pass
+        c.close()
+    return jsonify({"items": items})
+
+@app.after_request
+def gem_inject_blue_desk(resp):
+    try:
+        if resp.content_type and "text/html" in resp.content_type:
+            html = resp.get_data(as_text=True)
+            css = open("static/gem_blue_desk.css", encoding="utf-8").read() if os.path.exists("static/gem_blue_desk.css") else ""
+            js = open("static/gem_blue_desk.js", encoding="utf-8").read() if os.path.exists("static/gem_blue_desk.js") else ""
+            if css and js and "gem-bar" not in html:
+                bundle = f"<style>{css}</style><script>{js}</script>"
+                html = html.replace("</body>", bundle + "</body>") if "</body>" in html else html + bundle
+                resp.set_data(html)
+    except Exception:
+        pass
+    return resp
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
