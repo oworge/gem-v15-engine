@@ -1,0 +1,15 @@
+body{background:radial-gradient(circle at 50% 0%,#0e2247 0%,#050b18 80%)!important;color:#f1f5f9!important}
+#gem-bar{position:sticky;top:0;z-index:9999;display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px 12px;background:linear-gradient(90deg,#091733,#12316b,#091733);border-bottom:1px solid rgba(56,189,248,.4);-webkit-overflow-scrolling:touch}
+#gem-bar::-webkit-scrollbar{display:none}
+.gem-c{flex:0 0 auto;white-space:nowrap;padding:6px 12px;border-radius:6px;background:rgba(15,31,61,.9);border:1px solid rgba(56,189,248,.3);color:#e2e8f0;font-size:12px;font-weight:700;cursor:pointer}
+.gem-c.on{background:#2563eb;border-color:#60a5fa;color:#fff;box-shadow:0 0 12px rgba(37,99,235,.5)}
+#gem-spot{max-width:1100px;margin:12px auto 6px;padding:0 20px}
+.gem-days{display:flex;gap:8px;overflow-x:auto;padding:6px 0 10px}
+.gem-d{flex:0 0 auto;padding:5px 14px;border-radius:999px;background:#0d1b36;border:1px solid rgba(56,189,248,.28);color:#cbd5e1;font-size:12px;font-weight:700;cursor:pointer}
+.gem-d.on{background:#1d4ed8;border-color:#60a5fa;color:#fff}
+.gem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.gem-box{background:linear-gradient(180deg,#0f2142,#081224);border:1px solid rgba(56,189,248,.38);border-left:4px solid #2563eb;border-radius:10px;padding:13px 15px}
+#gem-hd{display:none;max-width:1100px;margin:10px auto;padding:14px 20px;background:#081224;border:1px solid rgba(56,189,248,.45);border-top:2px solid #2563eb;border-radius:8px}
+#gem-hd.open{display:block}
+.gem-hr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:9px 11px;margin-bottom:7px;background:#0d1b36;border-left:3px solid #38bdf8;border-radius:5px}
+.gem-hr.WON{border-left-color:#10b981}.gem-hr.LOST{border-left-color:#ef4444;opacity:.8}
