@@ -1,97 +1,51 @@
-﻿# engines.py - SEALED CORE ENGINE WITH ADJUSTED CONSENSUS GATE
+from poisson_engine import calculate_from_xg
 
-class GamblingProEngine:
-    def analyze(self, home, away):
-        return {'source': 'Gambling PRO', 'confidence_score': 0.95, 'sharp_bias': f'{home} Heavy Action'}
-
-class SocerAIProEngine:
-    def analyze(self, xg_h, xg_a):
-        prob = 0.94 if xg_h > xg_a else 0.88
-        return {'source': 'SocerAI PRO', 'confidence_score': prob, 'sim_score': f'{round(xg_h + 0.2, 1)} - {round(xg_a + 0.1, 1)}'}
-
-class ValueKingEngine:
-    def analyze(self, odds, opta_win_prob=0.72):
-        ev_calc = round((opta_win_prob * odds) - 1.0, 3)
-        ev_pct = round(ev_calc * 100, 1)
-        conf = 0.96 if ev_pct >= 5.0 else 0.90
-        return {
-            'source': 'Value King',
-            'confidence_score': conf,
-            'ev_percentage': f"{'+' if ev_pct > 0 else ''}{ev_pct}%",
-            'rating': "High Value" if ev_pct >= 5.0 else "Solid Edge"
-        }
-
-class BettingHubEngine:
-    def analyze(self):
-        return {'source': 'Betting Hub', 'confidence_score': 0.92, 'liability': 'Managed'}
-
-class GAVEngine:
-    def analyze(self, region):
-        return {'source': 'GAV', 'confidence_score': 0.93, 'pacing_index': '92.4 / 100'}
-
-class PreddigoalEngine:
-    def analyze(self, xg_total):
-        conf = 0.94 if xg_total >= 2.0 else 0.89
-        return {'source': 'Preddigoal', 'confidence_score': conf, 'btts_rating': 'Strong'}
-
-class KalshiIntegrationEngine:
-    def analyze(self, match_id):
-        return {'source': 'Kalshi', 'confidence_score': 0.91, 'contract_ticker': f'WIN-{match_id}'}
-
-class OptaAITacticalEngine:
-    def analyze(self, xg_h, xg_a):
-        xg_diff = round(xg_h - xg_a, 2)
-        conf = 0.95 if xg_diff > 0.50 else 0.88
-        return {'source': 'Opta AI', 'confidence_score': conf, 'xg_differential': f"{'+' if xg_diff > 0 else ''}{xg_diff}"}
+def devig_1x2(odds_h, odds_d=3.40, odds_a=4.20):
+    inv_h = 1.0 / max(1.02, float(odds_h))
+    inv_d = 1.0 / max(1.02, float(odds_d))
+    inv_a = 1.0 / max(1.02, float(odds_a))
+    overround = inv_h + inv_d + inv_a
+    return inv_h / overround, inv_d / overround, inv_a / overround, round((overround - 1.0) * 100, 2)
 
 class EngineSuite:
-    def __init__(self):
-        self.gambling_pro = GamblingProEngine()
-        self.socerai_pro = SocerAIProEngine()
-        self.value_king = ValueKingEngine()
-        self.betting_hub = BettingHubEngine()
-        self.gav = GAVEngine()
-        self.preddigoal = PreddigoalEngine()
-        self.kalshi = KalshiIntegrationEngine()
-        self.opta = OptaAITacticalEngine()
+    def run_all_engines(self, match_id, home, away, region, xg_home=1.65, xg_away=1.05, odds=1.85, odds_draw=3.50, odds_away=4.10):
+        dc = calculate_from_xg(xg_home, xg_away)
+        model_h = dc["home_win_pct"] / 100.0
+        model_1x = dc["dc_1x_pct"] / 100.0
 
-    def run_all_engines(self, match_id, home, away, region, xg_home=2.10, xg_away=0.85, odds=1.55):
-        opta_res = self.opta.analyze(xg_home, xg_away)
-        vk_res = self.value_king.analyze(odds, opta_win_prob=0.72)
-        gp_res = self.gambling_pro.analyze(home, away)
-        sai_res = self.socerai_pro.analyze(xg_home, xg_away)
-        bh_res = self.betting_hub.analyze()
-        gav_res = self.gav.analyze(region)
-        pdg_res = self.preddigoal.analyze(xg_home + xg_away)
-        kal_res = self.kalshi.analyze(match_id)
+        mkt_h, mkt_d, mkt_a, vig_pct = devig_1x2(odds, odds_draw, odds_away)
 
-        scores = [
-            opta_res['confidence_score'],
-            vk_res['confidence_score'],
-            gp_res['confidence_score'],
-            sai_res['confidence_score'],
-            bh_res['confidence_score'],
-            gav_res['confidence_score'],
-            pdg_res['confidence_score'],
-            kal_res['confidence_score']
-        ]
+        # Blend 60% sharp devigged market prior + 40% Dixon-Coles xG posterior
+        true_prob = (0.60 * mkt_h) + (0.40 * model_h)
+        fair_odds = round(1.0 / max(0.05, true_prob), 2)
+        ev_dec = (true_prob * float(odds)) - 1.0
+        ev_pct = round(ev_dec * 100, 2)
 
-        consensus = sum(scores) / len(scores)
-        consensus_pct = round(consensus * 100, 2)
-        is_approved = consensus >= 0.900  # Adjusted threshold to 90.0%
+        # Quarter-Kelly sizing capped at 3.0% bankroll
+        b = max(0.01, float(odds) - 1.0)
+        full_kelly = max(0.0, ((b * true_prob) - (1.0 - true_prob)) / b)
+        q_kelly_pct = round(min(3.0, full_kelly * 0.25 * 100), 2)
+
+        # Strict institutional gate: low vig (<=7.5%), positive EV (>=3.0%), realistic win prob (>=54%)
+        is_approved = (vig_pct <= 7.5) and (ev_pct >= 3.0) and (true_prob >= 0.54)
+        conf_pct = round(true_prob * 100, 1)
 
         return {
-            'consensus_score': f"{consensus_pct}%",
-            'is_approved': is_approved,
-            'consensus_status': 'VERIFIED 90%+ CONSENSUS' if is_approved else 'REJECTED (Low Consensus)',
-            'opta_ai': opta_res,
-            'value_king': vk_res,
-            'gambling_pro': gp_res,
-            'socerai_pro': sai_res,
-            'betting_hub': bh_res,
-            'gav': gav_res,
-            'preddigoal': pdg_res,
-            'kalshi': kal_res
+            "consensus_score": f"{conf_pct}%",
+            "true_prob": round(true_prob, 4),
+            "fair_odds": fair_odds,
+            "ev_pct": ev_pct,
+            "kelly_pct": q_kelly_pct,
+            "overround_pct": vig_pct,
+            "is_approved": is_approved,
+            "consensus_status": f"VERIFIED +EV ({ev_pct:+.1f}%)" if is_approved else f"REJECTED (EV {ev_pct:+.1f}% | Vig {vig_pct}%)",
+            "dixon_coles": dc,
+            "value_king": {
+                "source": "Dixon-Coles + No-Vig Blend",
+                "confidence_score": round(true_prob, 4),
+                "ev_percentage": f"{ev_pct:+.1f}%",
+                "rating": "Perfect Value" if is_approved else "No Edge"
+            }
         }
 
 ENGINES = EngineSuite()
