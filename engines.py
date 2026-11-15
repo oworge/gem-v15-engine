@@ -2,6 +2,14 @@ import math
 from poisson_engine import calculate_from_xg, estimate_decayed_xg, apply_context_multipliers
 from ratings_engine import get_elo_xg_prior
 
+def logit_pool(mkt_p, mod_p, mod_weight=0.40):
+    mp = max(0.02, min(0.98, float(mkt_p)))
+    dp = max(0.02, min(0.98, float(mod_p)))
+    lm = math.log(mp / (1.0 - mp))
+    ld = math.log(dp / (1.0 - dp))
+    pooled = ((1.0 - mod_weight) * lm) + (mod_weight * ld)
+    return 1.0 / (1.0 + math.exp(-pooled))
+
 def power_devig(odds_list):
     clean = [max(1.02, float(o)) for o in odds_list if o and float(o) > 1.01]
     if len(clean) < 2: return [1.0 / clean[0]], 0.0
@@ -27,6 +35,9 @@ class EngineSuite:
 
     def run_all_engines(self, match_id, home, away, region, xg_home=None, xg_away=None, odds=1.90, odds_draw=3.50, odds_away=4.00, open_odds=None, recent_matches=None, league_key="DEFAULT", rest_diff=0, home_shock=1.0, away_shock=1.0, over_25_odds=None, under_25_odds=None, btts_yes_odds=None):
         _, _, sigma = get_elo_xg_prior(home, away)
+        # Dynamic model weight: higher certainty (lower sigma) earns more weight (20% to 45%)
+        dyn_mod_w = round(max(0.20, min(0.45, 0.52 - (sigma * 1.8))), 3)
+
         if xg_home is None or xg_away is None:
             xg_home, xg_away = estimate_decayed_xg(recent_matches, league_key=league_key, home=home, away=away)
         xg_home, xg_away = apply_context_multipliers(xg_home, xg_away, rest_diff=rest_diff, home_shock=home_shock, away_shock=away_shock)
@@ -38,7 +49,6 @@ class EngineSuite:
         steam_drift = ((float(odds) - float(open_odds)) / float(open_odds) * 100.0) if open_odds and float(open_odds) > 1.01 else 0.0
         steam_ok = steam_drift <= 3.5
 
-        # Full multi-market evaluation ranked by Sharpe-adjusted EV
         markets = [
             ("Home Win", dc["home_win_pct"] / 100.0, mkt_h, float(odds)),
             ("Away Win", dc["away_win_pct"] / 100.0, mkt_a, float(odds_away)),
@@ -54,7 +64,7 @@ class EngineSuite:
 
         best = None
         for label, mod_p, mkt_p, m_odds in markets:
-            tp = (0.60 * mkt_p) + (0.40 * mod_p)
+            tp = logit_pool(mkt_p, mod_p, mod_weight=dyn_mod_w)
             ev_dec = (tp * m_odds) - 1.0
             ev_pct = round(ev_dec * 100, 2)
             std = math.sqrt(max(0.01, tp * (1.0 - tp))) * m_odds
@@ -67,7 +77,6 @@ class EngineSuite:
         b = max(0.01, m_odds - 1.0)
         q_kelly = round(min(2.5, max(0.0, ((b * tp) - (1.0 - tp)) / b) * 0.25 * 100), 2)
 
-        # Higher uncertainty (sigma) tightens required EV slightly
         req_ev = round(4.5 + max(0.0, (sigma - 0.14) * 10.0), 2)
         is_approved = steam_ok and (vig_pct <= 7.5) and (ev_pct >= req_ev) and (tp >= 0.54)
         return {
@@ -77,6 +86,7 @@ class EngineSuite:
             "fair_odds": fair_odds,
             "ev_pct": ev_pct,
             "required_ev_pct": req_ev,
+            "model_weight": dyn_mod_w,
             "kelly_pct": q_kelly,
             "overround_pct": vig_pct,
             "is_approved": is_approved,

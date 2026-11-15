@@ -2,15 +2,15 @@ import math
 from ratings_engine import get_elo_xg_prior
 
 LEAGUE_PRIORS = {
-    "NATIONS_LEAGUE": (2.25, -0.16, 0.08),
-    "INTERNATIONAL": (2.25, -0.16, 0.08),
-    "SEGUNDA": (2.22, -0.16, 0.09),
-    "SERIE_A": (2.55, -0.14, 0.07),
-    "LA_LIGA": (2.52, -0.14, 0.07),
-    "PREMIER_LEAGUE": (2.82, -0.12, 0.06),
-    "BUNDESLIGA": (3.12, -0.09, 0.05),
-    "EREDIVISIE": (3.08, -0.09, 0.05),
-    "DEFAULT": (2.60, -0.13, 0.07)
+    "NATIONS_LEAGUE": (2.25, -0.16, 0.08, 1.08),
+    "INTERNATIONAL": (2.25, -0.16, 0.08, 1.08),
+    "SEGUNDA": (2.22, -0.16, 0.09, 1.16),
+    "SERIE_A": (2.55, -0.14, 0.07, 1.12),
+    "LA_LIGA": (2.52, -0.14, 0.07, 1.13),
+    "PREMIER_LEAGUE": (2.82, -0.12, 0.06, 1.11),
+    "BUNDESLIGA": (3.12, -0.09, 0.05, 1.12),
+    "EREDIVISIE": (3.08, -0.09, 0.05, 1.13),
+    "DEFAULT": (2.60, -0.13, 0.07, 1.12)
 }
 
 def get_league_prior(league_key):
@@ -26,8 +26,8 @@ def apply_context_multipliers(lh, la, rest_diff=0, home_shock=1.0, away_shock=1.
     rest_adj = max(-0.09, min(0.09, float(rest_diff) * 0.03))
     return cap_npxg(lh * (1.0 + rest_adj) * float(home_shock)), cap_npxg(la * (1.0 - rest_adj) * float(away_shock))
 
-def estimate_decayed_xg(recent_matches, league_key="DEFAULT", home="Home", away="Away", home_adv=1.12, xi=0.0065):
-    avg_g, _, _ = get_league_prior(league_key)
+def estimate_decayed_xg(recent_matches, league_key="DEFAULT", home="Home", away="Away", xi=0.0065):
+    avg_g, _, _, home_adv = get_league_prior(league_key)
     base_avg = avg_g / 2.0
     elo_h, elo_a, _ = get_elo_xg_prior(home, away, base_avg=base_avg, home_adv=home_adv)
     if not recent_matches:
@@ -42,15 +42,18 @@ def estimate_decayed_xg(recent_matches, league_key="DEFAULT", home="Home", away=
         w_sum += w
     if w_sum <= 0:
         return elo_h, elo_a
+    # Bayesian shrinkage: small samples shrink smoothly toward Elo + league prior
+    cred = w_sum / (w_sum + 3.0)
     form_h = cap_npxg(((h_gf / w_sum) * (a_ga / w_sum) / base_avg) * home_adv)
     form_a = cap_npxg(((a_gf / w_sum) * (h_ga / w_sum) / base_avg))
-    return round(0.55 * form_h + 0.45 * elo_h, 3), round(0.55 * form_a + 0.45 * elo_a, 3)
+    return round(cred * form_h + (1.0 - cred) * elo_h, 3), round(cred * form_a + (1.0 - cred) * elo_a, 3)
 
 def dixon_coles_tau(h, a, lh, la, rho=-0.13):
     if h == 0 and a == 0: return max(0.01, 1.0 - (lh * la * rho))
     if h == 0 and a == 1: return max(0.01, 1.0 + (lh * rho))
     if h == 1 and a == 0: return max(0.01, 1.0 + (la * rho))
     if h == 1 and a == 1: return max(0.01, 1.0 - rho)
+    if h == 2 and a == 2: return max(0.01, 1.0 - (0.35 * rho))
     return 1.0
 
 def nb_pmf(mu, k, alpha=0.07):
@@ -64,7 +67,7 @@ def nb_pmf(mu, k, alpha=0.07):
 def calculate_from_xg(home_exp, away_exp, rho=-0.13, league_key=None):
     alpha = 0.07
     if league_key:
-        _, rho, alpha = get_league_prior(league_key)
+        _, rho, alpha, _ = get_league_prior(league_key)
     lh, la = cap_npxg(home_exp), cap_npxg(away_exp)
     grid, tot = {}, 0.0
     for h in range(9):
