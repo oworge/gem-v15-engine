@@ -230,49 +230,36 @@ def gem_inject_blue_desk(resp):
 # === GEM_DESK_FEED_API ===
 @app.route("/api/desk")
 def gem_api_desk():
-    import sqlite3, json
+    import os, sqlite3, json, re
     from flask import jsonify
     from engines import ENGINES
     from learner import audit_and_calibrate
     w = audit_and_calibrate()
+    mev = float(w.get("min_ev_pct", 4.5))
     items = []
+    pev = lambda v: float(m.group(0)) if (m := re.search(r"[-+]?\d+(?:\.\d+)?", str(v or ""))) else 0.0
     for db, src in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "CLV")):
-        if not os.path.exists(db):
-            continue
-        c = sqlite3.connect(db)
-        c.row_factory = sqlite3.Row
-        for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+        if not os.path.exists(db): continue
+        c = sqlite3.connect(db); c.row_factory = sqlite3.Row
+        for (tb,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
             try:
-                for r in c.execute(f"SELECT * FROM {t} ORDER BY rowid DESC LIMIT 80").fetchall():
-                    d = dict(r)
-                    d["_src"] = src
-                    d["_tbl"] = t
-                    items.append(d)
-            except Exception:
-                pass
+                for row in c.execute(f"SELECT * FROM {tb} ORDER BY rowid DESC LIMIT 80").fetchall():
+                    d = dict(row); ev = pev(d.get("ev") or d.get("edge") or d.get("ev_pct") or 0)
+                    if ev >= mev:
+                        d["_src"] = src; d["_tbl"] = tb; d["ev"] = f"+{ev:.1f}%"; items.append(d)
+            except Exception: pass
         c.close()
     if os.path.exists("global_odds_cache.json"):
         try:
             raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
-            for m in (rows or [])[:60]:
+            for m in (rows or [])[:80]:
                 if isinstance(m, dict):
-                    home = m.get("home_team") or m.get("home") or "Home"
-                    away = m.get("away_team") or m.get("away") or "Away"
-                    odds = float(m.get("odds") or m.get("home_odds") or m.get("best_odds") or 1.90)
-                    o_draw = float(m.get("draw_odds") or 3.50)
-                    o_away = float(m.get("away_odds") or 4.00)
-                    xg_h = float(m.get("xg_home") or 1.60)
-                    xg_a = float(m.get("xg_away") or 1.10)
-                    res = ENGINES.run_all_engines(m.get("id", home), home, away, "GLOBAL", xg_h, xg_a, odds, o_draw, o_away)
-                    if res["is_approved"]:
-                        m["_src"] = "QUANT_EV"
-                        m["prob"] = res["consensus_score"]
-                        m["ev"] = f"+{res['ev_pct']}%"
-                        m["kelly"] = f"{res['kelly_pct']}%"
-                        m["strategy"] = f"Dixon-Coles + No-Vig ({int(w['market_weight']*100)}/{int(w['dc_weight']*100)}) | Fair {res['fair_odds']} vs {odds}"
-                        items.append(m)
-        except Exception:
-            pass
-    return jsonify({"items": items, "weights": w})
+                    hm, aw = m.get("home_team") or "Home", m.get("away_team") or "Away"
+                    od = float(m.get("odds") or m.get("home_odds") or m.get("best_odds") or 1.90)
+                    res = ENGINES.run_all_engines(m.get("id", hm), hm, aw, "GLOBAL", float(m.get("xg_home") or 1.6), float(m.get("xg_away") or 1.1), od, float(m.get("draw_odds") or 3.5), float(m.get("away_odds") or 4.0))
+                    if res["is_approved"] and res["ev_pct"] >= mev:
+                        m["_src"] = "QUANT_EV"; m["prob"] = res["consensus_score"]; m["ev"] = f"+{res['ev_pct']:.1f}%"; m["kelly"] = f"{res['kelly_pct']:.2f}%"; m["strategy"] = f"Dixon-Coles + No-Vig | Fair {res['fair_odds']} vs {od}"; items.append(m)
+        except Exception: pass
+    return jsonify({"items": items, "weights": w, "min_ev_pct": mev})
 
