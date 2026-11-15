@@ -1,3 +1,4 @@
+from evolve_engine import load_genome
 import math
 from poisson_engine import calculate_from_xg, estimate_decayed_xg, apply_context_multipliers
 from ratings_engine import get_elo_xg_prior
@@ -36,7 +37,9 @@ class EngineSuite:
     def run_all_engines(self, match_id, home, away, region, xg_home=None, xg_away=None, odds=1.90, odds_draw=3.50, odds_away=4.00, open_odds=None, recent_matches=None, league_key="DEFAULT", rest_diff=0, home_shock=1.0, away_shock=1.0, over_25_odds=None, under_25_odds=None, btts_yes_odds=None):
         _, _, sigma = get_elo_xg_prior(home, away)
         # Dynamic model weight: higher certainty (lower sigma) earns more weight (20% to 45%)
-        dyn_mod_w = round(max(0.20, min(0.45, 0.52 - (sigma * 1.8))), 3)
+        g = load_genome()
+        base_w = float(g.get('mod_weight_base', 0.40))
+        dyn_mod_w = round(max(0.20, min(0.45, (base_w + 0.12) - (sigma * 1.8))), 3)
 
         if xg_home is None or xg_away is None:
             xg_home, xg_away = estimate_decayed_xg(recent_matches, league_key=league_key, home=home, away=away)
@@ -77,7 +80,8 @@ class EngineSuite:
         b = max(0.01, m_odds - 1.0)
         q_kelly = round(min(2.5, max(0.0, ((b * tp) - (1.0 - tp)) / b) * 0.25 * 100), 2)
 
-        req_ev = round(4.5 + max(0.0, (sigma - 0.14) * 10.0), 2)
+        floor_ev = max(4.5, float(g.get('min_ev_pct', 4.5)))
+        req_ev = round(floor_ev + max(0.0, (sigma - 0.14) * 10.0), 2)
         is_approved = steam_ok and (vig_pct <= 7.5) and (ev_pct >= req_ev) and (tp >= 0.54)
         return {
             "consensus_score": f"{round(tp * 100, 1)}%",
