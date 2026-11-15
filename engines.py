@@ -27,7 +27,7 @@ class EngineSuite:
         q_kelly_pct = round(min(3.0, full_kelly * 0.25 * 100), 2)
 
         # Strict institutional gate: low vig (<=7.5%), positive EV (>=3.0%), realistic win prob (>=54%)
-        is_approved = (vig_pct <= 7.5) and (ev_pct >= 3.0) and (true_prob >= 0.54)
+        is_approved = (vig_pct <= 7.5) and (ev_pct >= 4.5) and (true_prob >= 0.54)
         conf_pct = round(true_prob * 100, 1)
 
         return {

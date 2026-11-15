@@ -8,7 +8,7 @@ DEFAULT_WEIGHTS = {
     "market_weight": 0.60,
     "dc_weight": 0.40,
     "dc_rho": -0.13,
-    "min_ev_pct": 3.0,
+    "min_ev_pct": 4.5,
     "max_vig_pct": 7.5,
     "min_win_prob": 0.54,
     "kelly_fraction": 0.25,
