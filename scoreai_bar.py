@@ -65,7 +65,93 @@ SCOREAI_BAR_HTML = r"""
     border: 1px solid rgba(52, 211, 153, 0.55) !important;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.88), 0 0 24px rgba(16, 185, 129, 0.15) !important;
   }
+
+  /* === INSTITUTIONAL QUANT TRADING DESK LAYER (NON-DESTRUCTIVE CSS) === */
+  :root {
+    --desk-bg: #04070d;
+    --desk-panel: #0a101d;
+    --desk-panel-hi: #0f172a;
+    --desk-border: rgba(148, 163, 184, 0.16);
+    --desk-emerald: #10b981;
+    --desk-cyan: #38bdf8;
+    --desk-amber: #f59e0b;
+  }
+  body {
+    background-color: var(--desk-bg) !important;
+    background-image:
+      linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+      radial-gradient(circle at 50% 0%, #0d192e 0%, #04070d 75%) !important;
+    background-size: 24px 24px, 24px 24px, 100% 100% !important;
+    color: #e2e8f0 !important;
+    font-variant-numeric: tabular-nums lining-nums !important;
+  }
+  /* Crisp Institutional Panel Geometry (Replaces Soft Consumer Rounding) */
+  [data-sai-done], .card, .panel, [class*="card"] {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(9, 14, 26, 0.99) 100%) !important;
+    border: 1px solid var(--desk-border) !important;
+    border-top: 1px solid rgba(56, 189, 248, 0.28) !important;
+    border-left: 3px solid var(--desk-emerald) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+  [data-sai-done]:hover {
+    border-color: rgba(16, 185, 129, 0.45) !important;
+    box-shadow: 0 6px 22px rgba(16, 185, 129, 0.14) !important;
+  }
+  /* Monospace Telemetry & Order-Book Badges */
+  .sai-badge, [class*="badge"], [class*="pill"], code, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-variant-numeric: tabular-nums !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.04em !important;
+  }
+  /* Top Command Bar & Desk Navigation Tabs */
+  .sai-tab {
+    border-radius: 4px !important;
+    border: 1px solid rgba(148, 163, 184, 0.18) !important;
+    text-transform: uppercase;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.05em !important;
+  }
+  .sai-tab.active {
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
+    color: #02130e !important;
+    font-weight: 800 !important;
+    border-color: #34d399 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.35) !important;
+  }
+  /* Execution Buttons & Order Blotter Drawer */
+  button, .sai-auto-btn {
+    border-radius: 5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+  }
+  #sai-coupon-drawer {
+    background: rgba(7, 12, 23, 0.98) !important;
+    backdrop-filter: blur(14px) !important;
+    border: 1px solid rgba(16, 185, 129, 0.45) !important;
+    border-top: 2px solid #10b981 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9) !important;
+  }
+  /* Clean Hairline Dividers & Scrollbars */
+  hr {
+    border-color: rgba(148, 163, 184, 0.14) !important;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #04070d;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 3px;
+  }
 </style>
+
 
 <script>
 (function() {
