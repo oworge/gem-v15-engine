@@ -67,3 +67,7 @@ function run(){if(!document.querySelector('link[href*="gem_polish.css"]')){var l
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 setTimeout(run,850);setTimeout(run,2000);setInterval(enhanceCards,30000);
 })();
+
+.alert-bar{padding:6px 10px!important;gap:6px!important;font-size:11px!important;line-height:1.25!important;flex-wrap:wrap!important}.alert-left{gap:5px!important;font-size:11px!important}.alert-tag,.alert-bar .badge,.alert-bar span,.alert-bar strong{font-size:10px!important;padding:2px 6px!important;letter-spacing:.2px!important}
+
+.hdr .brand{font-size:15px!important}.hdr .badge{font-size:10px!important;padding:3px 7px!important}.card .comp{font-size:10.5px!important}.card .match{font-size:13.5px!important}.card .pick{font-size:12px!important}.card .odds{font-size:13px!important}.card .sai-badge{font-size:10px!important;padding:2px 6px!important}
