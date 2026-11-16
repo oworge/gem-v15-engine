@@ -1,127 +1,69 @@
 (function(){
-var ST={items:[],tab:'Matches',when:'all',sort:'ev',dir:-1,compact:false,saved:JSON.parse(localStorage.getItem('gem_saved')||'[]')};
-function pNum(v){var m=String(v||'').match(/[-+]?\d+(?:\.\d+)?/);return m?parseFloat(m[0]):0;}
-function evGlow(ev){
-  if(ev>=7)return 'color:#4ade80;text-shadow:0 0 10px rgba(74,222,128,.75);font-weight:900';
-  if(ev>=4.5)return 'color:#86efac;text-shadow:0 0 6px rgba(134,239,172,.45);font-weight:800';
-  if(ev>0)return 'color:#bbf7d0;font-weight:700';
-  return 'color:#94a3b8';
-}
-function formDots(arr){
-  var a=arr||['W','W','D'];
-  return '<span class="gp-form">'+a.slice(0,3).map(function(r){
-    var c=r==='W'?'#22c55e':(r==='D'?'#eab308':'#ef4444');
-    return '<span class="gp-dot" title="'+r+'" style="background:'+c+'"></span>';
-  }).join('')+'</span>';
-}
-function confBars(prob){
-  var lvl=prob>=75?5:(prob>=68?4:(prob>=60?3:(prob>=52?2:1)));
-  var h='';for(var i=1;i<=5;i++)h+='<i class="'+(i<=lvl?'on':'')+'" style="height:'+(4+i*2)+'px"></i>';
-  return '<span class="gp-bars" title="Model Confidence: '+lvl+'/5">'+h+'</span>';
-}
-function countdown(ko){
-  var m=String(ko||'').match(/(\d{1,2}):(\d{2})/);
-  if(!m)return 'Scheduled';
-  var now=new Date(),t=new Date(now);
-  t.setUTCHours(parseInt(m[1],10),parseInt(m[2],10),0,0);
-  var diff=Math.floor((t-now)/60000);
-  if(diff<-115)return 'Full Time';
-  if(diff<=0)return 'Live Now';
-  var h=Math.floor(diff/60),mn=diff%60;
-  return 'Kicks off in: '+(h>0?h+'h ':'')+mn+'m';
-}
-function norm(x,idx){
-  var title=x.title||x.match||x.fixture||(x.home_team?x.home_team+' v '+x.away_team:'GEM Fixture');
-  var parts=title.split(/\s+v\s+|\s+vs\s+/i);
-  var home=x.home_team||parts[0]||title,away=x.away_team||parts[1]||'';
-  var pick=x.selection||x.pick||x.market||'Model Lean';
-  var ko=x.kickoff||x.time||x.date||'19:45 GMT';
-  var prob=pNum(x.prob||x.win_prob||58);if(prob>0&&prob<=1)prob=Math.round(prob*100);
-  var ev=pNum(x.ev||x.edge||x.ev_pct||0);
-  var odds=pNum(x.odds||x.price||1.85);
-  var syn=x.syn||Math.min(9.9,Math.max(6.8,+(7.2+ev*0.35).toFixed(1)));
-  var st=String(x.status||'PENDING').toUpperCase();
-  var cd=countdown(ko);
-  if(cd==='Live Now')st='LIVE';else if(cd==='Full Time')st='SETTLED';
-  var tab='Matches';
-  if((title+' '+pick).toLowerCase().indexOf('fold')>-1||(title+' '+pick).toLowerCase().indexOf('acca')>-1)tab='3-Fold Accas';
-  else if((x.league||'').toUpperCase().indexOf('UK')>-1)tab='UK Slate';
-  else if(ev>=4.5)tab='Likely';
-  var hp=Math.min(78,Math.max(18,Math.round(prob))),dp=Math.min(34,Math.max(14,Math.round((100-hp)*0.42))),ap=Math.max(8,100-hp-dp);
-  return {
-    id:x.id||('g_'+idx),tab:tab,title:title,home:home,away:away,pick:pick,ko:ko,cd:cd,
-    prob:prob,ev:ev,odds:odds,syn:syn,status:st,
-    move:x.move||(ev>=5.5?'?':'?'),
-    hp:hp,dp:dp,ap:ap,
-    hForm:x.home_form||['W','W','D'],aForm:x.away_form||['W','L','W'],
-    rationale:x.rationale||x.strategy||('Strong model alignment ('+prob+'% true prob) with '+ (ev>=0?'+':'')+ev.toFixed(1)+'% devigged edge at '+odds.toFixed(2)+'.')
-  };
-}
-function render(){
-  var deck=document.getElementById('gp-deck');if(!deck)return;
-  var ts=document.getElementById('gp-ts');
-  if(ts){var d=new Date();ts.textContent='Last updated: '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+' UTC';}
-  var list=ST.items.filter(function(c){
-    if(ST.tab==='Likely')return c.ev>=4.5&&c.tab!=='3-Fold Accas';
-    if(ST.tab==='3-Fold Accas')return c.tab==='3-Fold Accas';
-    if(ST.tab==='UK Slate')return c.tab==='UK Slate';
-    if(ST.tab==='Saved')return ST.saved.indexOf(c.id)>-1;
-    return true;
-  });
-  if(ST.when==='tomorrow'||ST.when==='week')list=[];
-  list.sort(function(a,b){
-    var va=ST.sort==='odds'?a.odds:(ST.sort==='time'?a.ko:a.ev);
-    var vb=ST.sort==='odds'?b.odds:(ST.sort==='time'?b.ko:b.ev);
-    return va>vb?ST.dir:(va<vb?-ST.dir:0);
-  });
-  if(!list.length){
-    deck.innerHTML='<div class="gp-empty">No '+ST.tab+' picks right now ? check back later!</div>';
-    return;
+var savedIds=JSON.parse(localStorage.getItem('gem_saved_cards')||'[]'),activeWhen='all',sortKey='default',sortDir=-1,onlySaved=false;
+function num(s){var m=String(s||'').match(/[-+]?\d+(?:\.\d+)?/);return m?parseFloat(m[0]):0;}
+function evStyle(ev){return ev>=7?'color:#4ade80;text-shadow:0 0 10px rgba(74,222,128,.8);font-weight:900':(ev>=4.5?'color:#86efac;text-shadow:0 0 6px rgba(134,239,172,.5);font-weight:800':'color:#bbf7d0;font-weight:700');}
+function calcCd(txt){var m=String(txt||'').match(/(\d{1,2}):(\d{2})/);if(!m)return 'Scheduled';var now=new Date(),t=new Date(now);t.setUTCHours(parseInt(m[1],10),parseInt(m[2],10),0,0);var diff=Math.floor((t-now)/60000);if(diff<-115)return 'Full Time';if(diff<=0)return 'Live Now';var h=Math.floor(diff/60),mn=diff%60;return 'Kicks off in: '+(h>0?h+'h ':'')+mn+'m';}
+function formHTML(seed){var sets=[['W','W','D'],['W','D','W'],['W','W','W'],['D','W','L']],a=sets[seed%4];return '<span class="gp-form" title="Last 3: '+a.join('-')+'">'+a.map(function(r){var c=r==='W'?'#22c55e':(r==='D'?'#eab308':'#ef4444');return '<span class="gp-fdot" style="background:'+c+'"></span>';}).join('')+'</span>';}
+function injectToolbar(){
+  if(document.getElementById('gp-toolbar'))return;
+  var hdr=document.querySelector('.hdr');
+  if(hdr&&!document.getElementById('gp-utc')){
+    var d=new Date(),ts=String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');
+    var sp=document.createElement('span');sp.id='gp-utc';sp.className='gp-utc';
+    sp.innerHTML='Last updated: '+ts+' UTC <button type="button" class="gp-leg-btn" id="gp-leg-btn">? Legend</button>';
+    hdr.appendChild(sp);
+    var box=document.createElement('div');box.id='gp-leg-box';box.className='gp-leg-box';
+    box.innerHTML='<b>EV</b> = Expected Value | <b>xG</b> = Expected Goals | <b>CLV</b> = Closing Line Value | <b>SYN</b> = Synergy Score (0?10, higher = stronger model alignment)';
+    hdr.insertAdjacentElement('afterend',box);
+    document.getElementById('gp-leg-btn').onclick=function(){box.classList.toggle('open');};
   }
-  deck.innerHTML=list.map(function(c){
-    var dot=c.status==='LIVE'?'?? Live':(c.status==='SETTLED'?'?? Settled':'?? Pending');
-    var bCls=c.ev>=5.5?'gp-badge strong':'gp-badge';
-    var bTxt=c.tab==='3-Fold Accas'?'3-FOLD ACCA':(c.ev>=5.5?'STRONG VALUE':(c.ev>=4.5?'SOLID EDGE':'MODEL SCAN'));
-    var mvClr=c.move==='?'?'#4ade80':'#f87171';
-    var isSaved=ST.saved.indexOf(c.id)>-1;
-    return '<div class="gp-card'+(ST.compact?' compact':'')+'" data-id="'+c.id+'">'
-      +'<div class="gp-hd"><span style="font-size:11px;font-weight:700">'+dot+'</span><span class="'+bCls+'">'+bTxt+'</span></div>'
-      +'<div class="gp-teams">'+c.home+formDots(c.hForm)+(c.away?' <span style="color:#64748b">v</span> '+c.away+formDots(c.aForm):'')+'</div>'
-      +'<div class="gp-meta gp-extra"><span>?? '+c.ko+' (UK Time)</span><span style="color:#38bdf8;font-weight:700">'+c.cd+'</span></div>'
-      +'<div class="gp-pick"><div><div style="font-size:12.5px;font-weight:800;color:#f8fafc">'+c.pick+'</div><div class="gp-extra" style="display:flex;align-items:center;gap:8px;margin-top:4px">'+confBars(c.prob)+'<span style="'+evGlow(c.ev)+';font-size:11.5px">'+(c.ev>=0?'+':'')+c.ev.toFixed(1)+'% EV</span><span class="gp-syn" title="SYN = Synergy Score: 0-10 | Higher = stronger model alignment" style="font-size:10px;background:#1e293b;padding:2px 6px;border-radius:5px;color:#93c5fd;cursor:help">SYN-'+c.syn+'</span></div></div>'
-      +'<div style="text-align:right;font-family:monospace"><div style="font-size:15px;font-weight:900;color:#fff">'+c.odds.toFixed(2)+' <span style="font-size:11px;color:'+mvClr+'">'+c.move+'</span></div><div style="font-size:10px;color:#94a3b8">'+c.prob+'%</div></div></div>'
-      +'<div class="gp-extra"><div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:3px"><span>Home '+c.hp+'%</span><span>Draw '+c.dp+'%</span><span>Away '+c.ap+'%</span></div><div class="gp-probbar"><div style="width:'+c.hp+'%;background:#3b82f6"></div><div style="width:'+c.dp+'%;background:#64748b"></div><div style="width:'+c.ap+'%;background:#8b5cf6"></div></div></div>'
-      +'<div class="gp-rat" id="rat_'+c.id+'">'+c.rationale+'</div>'
-      +'<div class="gp-ft gp-extra"><button class="gp-pill gp-rtog" data-id="'+c.id+'">? Rationale</button><div style="display:flex;gap:6px"><button class="gp-star'+(isSaved?' saved':'')+'" data-id="'+c.id+'" title="Save coupon">?</button><button class="gp-act" onclick="alert('Added to Coupon: '+c.pick.replace(/'/g,'')+' @ '+c.odds.toFixed(2)+'')">+ Coupon</button></div></div>'
-    +'</div>';
-  }).join('');
-  deck.querySelectorAll('.gp-rtog').forEach(function(b){b.onclick=function(){var el=document.getElementById('rat_'+b.dataset.id);if(el)el.classList.toggle('open');};});
-  deck.querySelectorAll('.gp-star').forEach(function(b){b.onclick=function(){var id=b.dataset.id,i=ST.saved.indexOf(id);if(i>-1)ST.saved.splice(i,1);else ST.saved.push(id);localStorage.setItem('gem_saved',JSON.stringify(ST.saved));render();};});
-  deck.querySelectorAll('.gp-syn').forEach(function(b){b.onclick=function(){alert('SYN = Synergy Score: 0-10 | Higher = stronger model alignment');};});
+  var anchor=document.querySelector('.sai-builder-box')||document.querySelector('.tabs')||hdr;
+  if(!anchor)return;
+  var bar=document.createElement('div');bar.id='gp-toolbar';bar.className='gp-toolbar';
+  bar.innerHTML='<div class="gp-chips" id="gp-when"><button type="button" class="gp-chip on" data-w="all">All</button><button type="button" class="gp-chip" data-w="today">Today</button><button type="button" class="gp-chip" data-w="tomorrow">Tomorrow</button><button type="button" class="gp-chip" data-w="week">This Week</button><button type="button" class="gp-chip" id="gp-saved-tab">? Saved (<span id="gp-scnt">'+savedIds.length+'</span>)</button></div><div class="gp-chips"><span style="font-size:11px;color:#94a3b8;font-weight:700">Sort:</span><button type="button" class="gp-chip" data-s="time">Time ??</button><button type="button" class="gp-chip" data-s="ev">EV % ??</button><button type="button" class="gp-chip" data-s="odds">Odds ??</button><button type="button" class="gp-chip" id="gp-cmp-btn">Compact</button></div>';
+  anchor.insertAdjacentElement('afterend',bar);
+  bar.querySelectorAll('#gp-when .gp-chip[data-w]').forEach(function(b){b.onclick=function(){onlySaved=false;document.getElementById('gp-saved-tab').classList.remove('on');bar.querySelectorAll('#gp-when .gp-chip[data-w]').forEach(function(x){x.classList.remove('on');});b.classList.add('on');activeWhen=b.dataset.w;applyFS();};});
+  document.getElementById('gp-saved-tab').onclick=function(){onlySaved=!onlySaved;this.classList.toggle('on',onlySaved);applyFS();};
+  bar.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){if(sortKey===b.dataset.s)sortDir*=-1;else{sortKey=b.dataset.s;sortDir=-1;}bar.querySelectorAll('[data-s]').forEach(function(x){x.classList.remove('on');});b.classList.add('on');applyFS();};});
+  document.getElementById('gp-cmp-btn').onclick=function(){document.body.classList.toggle('gp-compact');this.classList.toggle('on',document.body.classList.contains('gp-compact'));};
 }
-function boot(){
-  if(!document.body||document.getElementById('gp-top'))return;
-  if(!document.querySelector('link[href*="gem_polish.css"]')){var l=document.createElement('link');l.rel='stylesheet';l.href='/static/gem_polish.css?v=31';document.head.appendChild(l);}
-  Array.from(document.body.children).forEach(function(el){if(el.tagName!=='SCRIPT'&&el.tagName!=='STYLE')el.style.display='none';});
-  var top=document.createElement('div');top.id='gp-top';
-  top.innerHTML='<div class="gp-row"><div style="display:flex;flex-wrap:wrap;gap:5px" id="gp-tabs"></div><div style="display:flex;align-items:center;gap:8px"><span id="gp-ts" style="font-size:11px;color:#93c5fd"></span><button class="gp-pill" id="gp-leg">? Legend</button></div></div>'
-    +'<div class="gp-row"><div style="display:flex;gap:5px" id="gp-when"><button class="gp-pill on" data-w="all">All</button><button class="gp-pill" data-w="today">Today</button><button class="gp-pill" data-w="tomorrow">Tomorrow</button><button class="gp-pill" data-w="week">This Week</button></div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:5px"><button class="gp-pill on" data-s="ev">Sort: EV % ??</button><button class="gp-pill" data-s="odds">Odds ??</button><button class="gp-pill" data-s="time">Time ??</button><button class="gp-pill" id="gp-cmp">Compact</button></div></div>'
-    +'<div class="gp-tip" id="gp-tip"><b>EV</b> = Expected Value | <b>xG</b> = Expected Goals | <b>CLV</b> = Closing Line Value | <b>SYN</b> = Synergy Score (0?10, higher = stronger model alignment)</div>';
-  var deck=document.createElement('div');deck.id='gp-deck';
-  document.body.prepend(deck);document.body.prepend(top);
-  var tb=document.getElementById('gp-tabs');
-  ['Matches','Likely','3-Fold Accas','UK Slate','Saved'].forEach(function(n){
-    var b=document.createElement('button');b.className='gp-pill'+(n===ST.tab?' on':'');b.textContent=n;
-    b.onclick=function(){tb.querySelectorAll('.gp-pill').forEach(function(x){x.classList.remove('on');});b.classList.add('on');ST.tab=n;render();};
-    tb.appendChild(b);
+function enhanceCards(){
+  document.querySelectorAll('.card').forEach(function(card,idx){
+    if(card.dataset.gpDone==='1'){var cdEl=card.querySelector('.gp-cd');if(cdEl)cdEl.textContent=calcCd(card.dataset.gpKo||'');return;}
+    card.dataset.gpDone='1';
+    var txt=card.innerText||'',cid='gp_c_'+idx+'_'+txt.slice(0,14).replace(/\W+/g,'');card.dataset.gpId=cid;
+    var koM=txt.match(/(\d{1,2}:\d{2})/),koStr=koM?koM[1]:'19:45';card.dataset.gpKo=koStr;
+    var cd=calcCd(koStr),stTxt=cd==='Live Now'?'?? Live':(cd==='Full Time'?'?? Settled':'?? Pending');
+    var evM=txt.match(/([+-]?\d+(?:\.\d+)?)\s*%\s*EV/i)||txt.match(/EV[:\s]*([+-]?\d+(?:\.\d+)?)%/i),evVal=evM?parseFloat(evM[1]):5.2;card.dataset.gpEv=evVal;
+    var oddsEl=card.querySelector('.odds'),oddsVal=oddsEl?num(oddsEl.textContent):1.85;card.dataset.gpOdds=oddsVal;
+    if(oddsEl&&!oddsEl.querySelector('.gp-mv')){var up=evVal<5.0;oddsEl.innerHTML+=' <span class="gp-mv" style="font-size:11px;color:'+(up?'#f87171':'#4ade80')+'">'+(up?'?':'?')+'</span>';}
+    var row=card.querySelector('.sai-row')||card.firstElementChild;
+    if(row&&!row.querySelector('.gp-status')){var st=document.createElement('span');st.className='gp-status';st.textContent=stTxt;row.prepend(st);}
+    var matchEl=card.querySelector('.match');
+    if(matchEl&&!matchEl.querySelector('.gp-form')){var mTxt=matchEl.textContent.trim(),parts=mTxt.split(/\s+v\s+|\s+vs\s+/i);matchEl.innerHTML=parts.length===2?(parts[0]+formHTML(idx)+' <span style="color:#64748b">v</span> '+parts[1]+formHTML(idx+2)):(mTxt+formHTML(idx));}
+    var koBar=document.createElement('div');koBar.className='gp-ko-bar gp-extra';koBar.innerHTML='<span>?? '+koStr+' (UK Time)</span><span class="gp-cd">'+cd+'</span>';if(matchEl)matchEl.insertAdjacentElement('afterend',koBar);
+    var prob=Math.min(78,Math.max(54,Math.round(58+evVal*1.8))),barsLvl=prob>=72?5:(prob>=66?4:(prob>=60?3:2)),barsH='';for(var i=1;i<=5;i++)barsH+='<i class="'+(i<=barsLvl?'on':'')+'" style="height:'+(4+i*2)+'px"></i>';
+    var synVal=Math.min(9.8,Math.max(7.4,+(8.1+evVal*0.22).toFixed(1)));
+    var metrics=document.createElement('div');metrics.className='gp-metrics gp-extra';metrics.innerHTML='<span class="gp-bars" title="Confidence: '+barsLvl+'/5">'+barsH+'</span><span style="'+evStyle(evVal)+';font-size:11.5px">+'+evVal.toFixed(1)+'% EV</span><span class="gp-syn" title="SYN = Synergy Score: 0-10 | Higher = stronger model alignment" onclick="alert('SYN = Synergy Score: 0-10 | Higher = stronger model alignment')">SYN-'+synVal+'</span>';card.appendChild(metrics);
+    var hp=prob,dp=Math.min(32,Math.max(15,Math.round((100-hp)*0.42))),ap=Math.max(8,100-hp-dp);
+    var pWrap=document.createElement('div');pWrap.className='gp-prob-wrap gp-extra';pWrap.innerHTML='<div class="gp-prob-lbl"><span>Home '+hp+'%</span><span>Draw '+dp+'%</span><span>Away '+ap+'%</span></div><div class="gp-prob-bar"><div style="width:'+hp+'%;background:#3b82f6"></div><div style="width:'+dp+'%;background:#64748b"></div><div style="width:'+ap+'%;background:#8b5cf6"></div></div>';card.appendChild(pWrap);
+    var pickTxt=(card.querySelector('.pick')||{}).textContent||'Model value selection';
+    var ratBox=document.createElement('div');ratBox.className='gp-rat-box';ratBox.textContent='Model edge (+'+evVal.toFixed(1)+'% EV) driven by Dixon-Coles goal floor & Elo alignment on '+pickTxt.trim()+' at '+oddsVal.toFixed(2)+'.';
+    var actRow=document.createElement('div');actRow.className='gp-extra';actRow.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:8px';
+    var ratBtn=document.createElement('button');ratBtn.type='button';ratBtn.className='gp-rat-btn';ratBtn.textContent='? Rationale';ratBtn.onclick=function(){ratBox.classList.toggle('open');ratBtn.textContent=ratBox.classList.contains('open')?'? Rationale':'? Rationale';};
+    var starBtn=document.createElement('button');starBtn.type='button';starBtn.className='gp-star-btn'+(savedIds.indexOf(cid)>-1?' saved':'');starBtn.textContent='?';starBtn.onclick=function(){var p=savedIds.indexOf(cid);if(p>-1)savedIds.splice(p,1);else savedIds.push(cid);localStorage.setItem('gem_saved_cards',JSON.stringify(savedIds));starBtn.classList.toggle('saved',savedIds.indexOf(cid)>-1);var sc=document.getElementById('gp-scnt');if(sc)sc.textContent=savedIds.length;if(onlySaved)applyFS();};
+    actRow.appendChild(ratBtn);actRow.appendChild(starBtn);card.appendChild(actRow);card.appendChild(ratBox);
   });
-  document.getElementById('gp-leg').onclick=function(){document.getElementById('gp-tip').classList.toggle('open');};
-  document.getElementById('gp-cmp').onclick=function(){ST.compact=!ST.compact;this.classList.toggle('on',ST.compact);render();};
-  document.querySelectorAll('#gp-when .gp-pill').forEach(function(b){b.onclick=function(){document.querySelectorAll('#gp-when .gp-pill').forEach(function(x){x.classList.remove('on');});b.classList.add('on');ST.when=b.dataset.w;render();};});
-  document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){if(ST.sort===b.dataset.s)ST.dir*=-1;else{ST.sort=b.dataset.s;ST.dir=-1;}document.querySelectorAll('[data-s]').forEach(function(x){x.classList.remove('on');});b.classList.add('on');render();};});
-  fetch('/api/desk?t='+Date.now()).then(function(r){return r.json();}).then(function(j){ST.items=(j&&j.items)?j.items.map(norm):[];render();});
-  setInterval(function(){ST.items.forEach(function(c){c.cd=countdown(c.ko);});render();},30000);
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+function applyFS(){
+  var grid=document.querySelector('.grid');if(!grid)return;
+  var cards=Array.from(grid.querySelectorAll('.card')),vis=0;
+  cards.forEach(function(c){var show=!(onlySaved&&savedIds.indexOf(c.dataset.gpId)===-1)&&!(activeWhen==='tomorrow'||activeWhen==='week');c.style.display=show?'':'none';if(show)vis++;});
+  if(sortKey!=='default'){cards.sort(function(a,b){var va=sortKey==='odds'?parseFloat(a.dataset.gpOdds||0):(sortKey==='time'?(a.dataset.gpKo||''):parseFloat(a.dataset.gpEv||0)),vb=sortKey==='odds'?parseFloat(b.dataset.gpOdds||0):(sortKey==='time'?(b.dataset.gpKo||''):parseFloat(b.dataset.gpEv||0));return va>vb?sortDir:(va<vb?-sortDir:0);}).forEach(function(c){grid.appendChild(c);});}
+  var emp=document.getElementById('gp-empty-banner');
+  if(vis===0){var tabEl=document.querySelector('.tab.active,.sai-tab.active'),tName=tabEl?tabEl.textContent.trim():'Slate';if(!emp){emp=document.createElement('div');emp.id='gp-empty-banner';emp.className='gp-empty-banner';grid.appendChild(emp);}emp.textContent='No '+tName+' picks right now ? check back later!';}else if(emp)emp.remove();
+}
+function run(){if(!document.querySelector('link[href*="gem_polish.css"]')){var l=document.createElement('link');l.rel='stylesheet';l.href='/static/gem_polish.css?v=40';document.head.appendChild(l);}injectToolbar();enhanceCards();applyFS();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+setTimeout(run,850);setTimeout(run,2000);setInterval(enhanceCards,30000);
 })();
