@@ -67,6 +67,11 @@ function run(){if(!document.querySelector('link[href*="gem_polish.css"]')){var l
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 setTimeout(run,850);setTimeout(run,2000);setInterval(enhanceCards,30000);
 })();
+.gp-pv-tab{background:linear-gradient(135deg,#1e3a8a,#1d4ed8)!important;border:1px solid #facc15!important;color:#fef08a!important;font-weight:800!important;display:inline-flex!important;align-items:center!important;gap:5px!important;font-size:11.5px!important;padding:6px 10px!important}
+.gp-pv-tab.active{background:#facc15!important;color:#0f172a!important;box-shadow:0 0 12px rgba(250,204,21,.45)}
+.gp-bell{display:inline-block;animation:gpRing 2.2s infinite ease-in-out}
+@keyframes gpRing{0%,100%{transform:rotate(0)}10%,30%{transform:rotate(14deg)}20%,40%{transform:rotate(-14deg)}50%{transform:rotate(0)}}
+.gp-pv-cnt{background:rgba(15,23,42,.35);padding:1px 6px;border-radius:999px;font-size:10px}
 
 .alert-bar{padding:6px 10px!important;gap:6px!important;font-size:11px!important;line-height:1.25!important;flex-wrap:wrap!important}.alert-left{gap:5px!important;font-size:11px!important}.alert-tag,.alert-bar .badge,.alert-bar span,.alert-bar strong{font-size:10px!important;padding:2px 6px!important;letter-spacing:.2px!important}
 
