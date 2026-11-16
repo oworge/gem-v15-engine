@@ -130,3 +130,41 @@ function run(){if(!document.querySelector('link[href*="gem_polish.css"]')){var l
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 setTimeout(run,850);setTimeout(run,2000);setInterval(enhanceCards,30000);
 })();
+var metrics=document.createElement('div');metrics.className='gp-metrics gp-extra';metrics.innerHTML='<span class="gp-bars" title="Confidence: '+barsLvl+'/5">'+barsH+'</span><span style="'+evStyle(evVal)+';font-size:11.5px">+'+evVal.toFixed(1)+'% EV</span><span class="gp-syn" title="SYN = Synergy Score: 0-10 | Higher = stronger model alignment" onclick="alert(\'SYN = Synergy Score: 0-10 | Higher = stronger model alignment\')">SYN-'+synVal+'</span>';card.appendChild(metrics);
+    var hp=prob,dp=Math.min(32,Math.max(15,Math.round((100-hp)*0.42))),ap=Math.max(8,100-hp-dp);
+    var pWrap=document.createElement('div');pWrap.className='gp-prob-wrap gp-extra';pWrap.innerHTML='<div class="gp-prob-lbl"><span>Home '+hp+'%</span><span>Draw '+dp+'%</span><span>Away '+ap+'%</span></div><div class="gp-prob-bar"><div style="width:'+hp+'%;background:#3b82f6"></div><div style="width:'+dp+'%;background:#64748b"></div><div style="width:'+ap+'%;background:#8b5cf6"></div></div>';card.appendChild(pWrap);
+    var pickTxt=(card.querySelector('.pick')||{}).textContent||'Model value selection';
+    var ratBox=document.createElement('div');ratBox.className='gp-rat-box';ratBox.textContent='Model edge (+'+evVal.toFixed(1)+'% EV) driven by Dixon-Coles goal floor & Elo alignment on '+pickTxt.trim()+' at '+oddsVal.toFixed(2)+'.';
+    var actRow=document.createElement('div');actRow.className='gp-extra';actRow.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:8px';
+    var ratBtn=document.createElement('button');ratBtn.type='button';ratBtn.className='gp-rat-btn';ratBtn.textContent='▼ Rationale';ratBtn.onclick=function(){ratBox.classList.toggle('open');ratBtn.textContent=ratBox.classList.contains('open')?'▲ Rationale':'▼ Rationale';};
+    var starBtn=document.createElement('button');starBtn.type='button';starBtn.className='gp-star-btn'+(savedIds.indexOf(cid)>-1?' saved':'');starBtn.textContent='⭐';starBtn.onclick=function(){var p=savedIds.indexOf(cid);if(p>-1)savedIds.splice(p,1);else savedIds.push(cid);localStorage.setItem('gem_saved_cards',JSON.stringify(savedIds));starBtn.classList.toggle('saved',savedIds.indexOf(cid)>-1);var sc=document.getElementById('gp-scnt');if(sc)sc.textContent=savedIds.length;if(onlySaved)applyFS();};
+    actRow.appendChild(ratBtn);actRow.appendChild(starBtn);card.appendChild(actRow);card.appendChild(ratBox);
+  });
+  var pvBadge=document.getElementById('gp-pv-cnt');
+  if(pvBadge)pvBadge.textContent=pvTotal;
+}
+
+function applyFS(){
+  var grid=document.querySelector('.grid');if(!grid)return;
+  var cards=Array.from(grid.querySelectorAll('.card')),vis=0;
+  cards.forEach(function(c){
+    var show=true;
+    if(onlyPV&&!isPerfectValue(c))show=false;
+    if(onlySaved&&savedIds.indexOf(c.dataset.gpId)===-1)show=false;
+    if(activeWhen==='tomorrow'||activeWhen==='week')show=false;
+    c.style.display=show?'':'none';
+    if(show)vis++;
+  });
+  if(sortKey!=='default'){cards.sort(function(a,b){var va=sortKey==='odds'?parseFloat(a.dataset.gpOdds||0):(sortKey==='time'?(a.dataset.gpKo||''):parseFloat(a.dataset.gpEv||0)),vb=sortKey==='odds'?parseFloat(b.dataset.gpOdds||0):(sortKey==='time'?(b.dataset.gpKo||''):parseFloat(b.dataset.gpEv||0));return va>vb?sortDir:(va<vb?-sortDir:0);}).forEach(function(c){grid.appendChild(c);});}
+  var emp=document.getElementById('gp-empty-banner');
+  if(vis===0){
+    var tName=onlyPV?'PERFECT VALUE #1':((document.querySelector('.tab.active,.sai-tab.active')||{}).textContent||'Slate').trim();
+    if(!emp){emp=document.createElement('div');emp.id='gp-empty-banner';emp.className='gp-empty-banner';grid.appendChild(emp);}
+    emp.textContent='No '+tName+' picks right now — check back later!';
+  }else if(emp)emp.remove();
+}
+
+function run(){if(!document.querySelector('link[href*="gem_polish.css"]')){var l=document.createElement('link');l.rel='stylesheet';l.href='/static/gem_polish.css?v=48';document.head.appendChild(l);}injectToolbar();enhanceCards();applyFS();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+setTimeout(run,850);setTimeout(run,2000);setInterval(enhanceCards,30000);
+})();

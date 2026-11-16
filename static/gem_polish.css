@@ -76,3 +76,11 @@ setTimeout(run,850);setTimeout(run,2000);setInterval(enhanceCards,30000);
 .alert-bar{padding:6px 10px!important;gap:6px!important;font-size:11px!important;line-height:1.25!important;flex-wrap:wrap!important}.alert-left{gap:5px!important;font-size:11px!important}.alert-tag,.alert-bar .badge,.alert-bar span,.alert-bar strong{font-size:10px!important;padding:2px 6px!important;letter-spacing:.2px!important}
 
 .hdr .brand{font-size:15px!important}.hdr .badge{font-size:10px!important;padding:3px 7px!important}.card .comp{font-size:10.5px!important}.card .match{font-size:13.5px!important}.card .pick{font-size:12px!important}.card .odds{font-size:13px!important}.card .sai-badge{font-size:10px!important;padding:2px 6px!important}
+.alert-bar{padding:6px 10px!important;gap:6px!important}
+.alert-bar div,.alert-bar span{font-size:11px!important;line-height:1.25!important}
+.alert-tag{font-size:10px!important;padding:3px 7px!important}
+.gp-pv-tab{background:linear-gradient(135deg,#1e3a8a,#1d4ed8)!important;border:1px solid #facc15!important;color:#fef08a!important;font-weight:800!important;display:inline-flex!important;align-items:center!important;gap:5px!important;font-size:11.5px!important;padding:6px 10px!important;text-decoration:none!important;cursor:pointer!important}
+.gp-pv-tab.active{background:#facc15!important;color:#0f172a!important;box-shadow:0 0 12px rgba(250,204,21,.45)}
+.gp-bell{display:inline-block;animation:gpRing 2s infinite ease-in-out}
+@keyframes gpRing{0%,100%{transform:rotate(0)}15%,35%{transform:rotate(15deg)}25%,45%{transform:rotate(-15deg)}55%{transform:rotate(0)}}
+.gp-pv-cnt{background:rgba(15,23,42,.45);color:#fff;padding:1px 6px;border-radius:999px;font-size:10px}
