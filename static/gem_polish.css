@@ -28,3 +28,5 @@
 .gp-star.saved{color:#facc15;border-color:#facc15}
 .gp-empty{grid-column:1/-1;text-align:center;padding:36px 16px;background:#0b1730;border:1px dashed #1e3a8a;border-radius:14px;color:#94a3b8;font-size:13.5px}
 @media(max-width:600px){#gp-deck{grid-template-columns:1fr;gap:16px;padding:12px}.gp-card{padding:15px}}
+
+body > *:not(#gp-top):not(#gp-deck):not(script):not(style){display:none!important;}
