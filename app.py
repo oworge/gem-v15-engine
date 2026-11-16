@@ -263,3 +263,17 @@ def gem_api_desk():
         except Exception: pass
     return jsonify({"items": items, "weights": w, "min_ev_pct": mev})
 
+
+
+@app.after_request
+def _inject_gem_polish(resp):
+    try:
+        if "text/html" in resp.headers.get("Content-Type", ""):
+            html = resp.get_data(as_text=True)
+            tag = '<link rel="stylesheet" href="/static/gem_polish.css?v=32"><script src="/static/gem_polish.js?v=32"></script>'
+            if "gem_polish.js" not in html:
+                html = html.replace("</body>", tag + "</body>") if "</body>" in html else (html + tag)
+                resp.set_data(html)
+    except Exception:
+        pass
+    return resp
