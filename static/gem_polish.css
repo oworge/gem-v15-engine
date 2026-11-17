@@ -45,3 +45,17 @@
 .gp-pulse{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.25);animation:gpPulse 1.8s infinite;}
 @keyframes gpPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.55;transform:scale(.85);}}
 .gp-syndicate-badge{background:linear-gradient(180deg,#34d399 0%,#059669 58%,#047857 100%);color:#022c22;border:1px solid #a7f3d0;font-size:11.5px;font-weight:900;letter-spacing:.06em;padding:7px 14px;border-radius:8px;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 8px rgba(0,0,0,.32);}
+/* Page 1 Rich Data Tables & Calibration Bars (v77) */
+.gp-p1-sec{background:#fff;border:1px solid #cbd5e1;border-radius:11px;padding:15px 18px;margin-bottom:13px;box-shadow:0 2px 8px rgba(15,23,42,.04);}
+.gp-p1-sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;font-size:14px;font-weight:800;color:#064e3b;}
+.gp-p1-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.gp-p1-tbl th{text-align:left;padding:8px 10px;background:#f1f5f9;color:#334155;font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #cbd5e1;}
+.gp-p1-tbl td{padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#0f172a;font-weight:600;}
+.gp-p1-tbl tr:last-child td{border-bottom:none;}
+.gp-pill-won{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;}
+.gp-pill-lost{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;}
+.gp-pill-open{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;}
+.gp-cal-row{margin-bottom:10px;}
+.gp-cal-meta{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:#1e293b;margin-bottom:4px;}
+.gp-cal-track{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;}
+.gp-cal-fill{height:100%;background:linear-gradient(90deg,#059669,#10b981);border-radius:999px;}
