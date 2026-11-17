@@ -306,3 +306,50 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 else mount();
 setTimeout(mount,200);
 })();
+(function(){
+function clvTag(b){
+  var taken=Number(b.odds||1.9),close=Number(b.closing_odds||b.fair_odds||taken);
+  if(!close||close<=1.01)return "+0.0% CLV";
+  var clv=((taken/close)-1)*100;
+  return (clv>=0?"+":"")+clv.toFixed(1)+"% CLV";
+}
+function injectBackupControls(){
+  var panel=document.getElementById("gp-desk-panel");
+  var active=document.querySelector(".gp-mtab.active");
+  if(!panel||!active||active.dataset.mode!=="bets"||document.getElementById("gp-backup-bar"))return;
+  var bar=document.createElement("div");
+  bar.id="gp-backup-bar";
+  bar.style.cssText="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#0f172a;color:#e2e8f0;padding:11px 14px;border-radius:10px;margin:12px 0;border:1px solid #334155;";
+  bar.innerHTML='<span style="font-size:12px;font-weight:800;color:#6ee7b7;">ZERO-CREDIT PERSISTENCE &amp; CLV AUDIT</span>';
+  var exp=document.createElement("button");exp.type="button";exp.textContent="Export Ledger & Weights (.json)";
+  exp.style.cssText="margin-left:auto;background:#059669;color:#fff;border:none;padding:6px 12px;border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;";
+  exp.onclick=function(){
+    fetch("/api/backup").then(function(r){return r.json();}).then(function(data){
+      localStorage.setItem("gem_ledger_snapshot",JSON.stringify(data));
+      var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="edgemetrix_ledger_backup.json";a.click();
+    });
+  };
+  var imp=document.createElement("button");imp.type="button";imp.textContent="Restore Snapshot";
+  imp.style.cssText="background:#1e293b;color:#34d399;border:1px solid #34d399;padding:6px 12px;border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;";
+  imp.onclick=function(){
+    var inp=document.createElement("input");inp.type="file";inp.accept=".json";
+    inp.onchange=function(ev){
+      var f=ev.target.files&&ev.target.files[0];if(!f)return;
+      var rd=new FileReader();
+      rd.onload=function(){
+        fetch("/api/restore",{method:"POST",headers:{"Content-Type":"application/json"},body:rd.result})
+          .then(function(r){return r.json();}).then(function(res){if(res&&res.ok){imp.textContent="Restored ("+res.restored+") ✓";}});
+      };
+      rd.readAsText(f);
+    };
+    inp.click();
+  };
+  bar.appendChild(exp);bar.appendChild(imp);
+  panel.insertBefore(bar,panel.firstChild);
+}
+document.addEventListener("click",function(e){
+  if(e.target.closest(".gp-mtab")||e.target.closest(".gp-open-app-btn"))setTimeout(injectBackupControls,60);
+});
+setInterval(injectBackupControls,900);
+})();

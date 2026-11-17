@@ -247,8 +247,8 @@ def api_get_ledger():
         status TEXT DEFAULT 'OPEN'
     )""")
     c.commit()
-    rows = [dict(zip(["id","created_at","fixture","market","odds","fair_odds","ev_pct","true_prob","stake","status"], r))
-            for r in c.execute("SELECT id,created_at,fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status FROM user_bets ORDER BY id DESC LIMIT 40").fetchall()]
+    rows = [dict(zip(["id","created_at","fixture","market","odds","fair_odds","ev_pct","true_prob","stake","status","closing_odds"], r))
+            for r in c.execute("SELECT id,created_at,fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status,closing_odds FROM user_bets ORDER BY id DESC LIMIT 40").fetchall()]
     c.close()
     return jsonify({"bets": rows})
 
@@ -289,6 +289,64 @@ def api_settle_bet():
     c.close()
     w = audit_and_calibrate()
     return jsonify({"ok": True, "status": st, "weights": w})
+
+
+@app.route("/api/backup")
+def api_backup_state():
+    import sqlite3, json, os
+    from flask import jsonify
+    c = sqlite3.connect("syndicate_ledger.db")
+    c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        fixture TEXT, market TEXT, odds REAL, fair_odds REAL,
+        ev_pct REAL, true_prob REAL, stake REAL DEFAULT 10.0,
+        status TEXT DEFAULT 'OPEN', closing_odds REAL
+    )""")
+    try:
+        c.execute("ALTER TABLE user_bets ADD COLUMN closing_odds REAL")
+    except Exception:
+        pass
+    c.commit()
+    cols = ["id","created_at","fixture","market","odds","fair_odds","ev_pct","true_prob","stake","status","closing_odds"]
+    bets = [dict(zip(cols, r)) for r in c.execute("SELECT id,created_at,fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status,closing_odds FROM user_bets ORDER BY id ASC").fetchall()]
+    c.close()
+    weights = json.load(open("model_weights.json", encoding="utf-8")) if os.path.exists("model_weights.json") else {}
+    return jsonify({"ok": True, "bets": bets, "weights": weights})
+
+@app.route("/api/restore", methods=["POST"])
+def api_restore_state():
+    import sqlite3, json
+    from flask import request, jsonify
+    d = request.get_json(silent=True) or {}
+    bets = d.get("bets") or []
+    weights = d.get("weights")
+    c = sqlite3.connect("syndicate_ledger.db")
+    c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        fixture TEXT, market TEXT, odds REAL, fair_odds REAL,
+        ev_pct REAL, true_prob REAL, stake REAL DEFAULT 10.0,
+        status TEXT DEFAULT 'OPEN', closing_odds REAL
+    )""")
+    try:
+        c.execute("ALTER TABLE user_bets ADD COLUMN closing_odds REAL")
+    except Exception:
+        pass
+    c.execute("DELETE FROM user_bets")
+    for b in bets:
+        c.execute("INSERT INTO user_bets (created_at,fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status,closing_odds) VALUES (?,?,?,?,?,?,?,?,?,?)", (
+            b.get("created_at"), b.get("fixture"), b.get("market"),
+            float(b.get("odds",1.9)), float(b.get("fair_odds",1.8)),
+            float(b.get("ev_pct",4.5)), float(b.get("true_prob",0.55)),
+            float(b.get("stake",10.0)), b.get("status","OPEN"),
+            float(b["closing_odds"]) if b.get("closing_odds") else None
+        ))
+    c.commit()
+    c.close()
+    if isinstance(weights, dict) and weights:
+        json.dump(weights, open("model_weights.json", "w", encoding="utf-8"), indent=2)
+    return jsonify({"ok": True, "restored": len(bets)})
 
 @app.after_request
 def gem_inject_blue_desk(resp):
@@ -348,8 +406,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=82"><script src="/static/gem_data.js?v=82"></script><script src="/static/gem_polish.js?v=82"></script>'
-            if "gem_polish.js?v=82" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=83"><script src="/static/gem_data.js?v=83"></script><script src="/static/gem_polish.js?v=83"></script>'
+            if "gem_polish.js?v=83" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
