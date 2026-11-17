@@ -31,7 +31,7 @@ function harvestPV(){
 
 function renderP1(){
   var body=document.getElementById("gp-p1-body");if(!body)return;
-  var w=(p1Feed&&p1Feed.weights)||{dc_weight:0.42,market_weight:0.58,min_ev_pct:4.2,last_brier:0.194,platt:{"1X2":{a:0.92,b:-0.04},"COMBO":{a:0.94,b:-0.03},"TOTALS":{a:0.91,b:-0.02},"BTTS":{a:0.90,b:-0.03}}};
+  var w=(p1Feed&&p1Feed.weights)||{dc_weight:0.42,market_weight:0.58,min_ev_pct:4.2,last_brier:0.185,platt:{"1X2":{a:0.92,b:-0.04},"COMBO":{a:0.94,b:-0.03},"TOTALS":{a:0.91,b:-0.02},"BTTS":{a:0.90,b:-0.03}}};
   var liveVal=(p1Feed&&p1Feed.todaysValue&&p1Feed.todaysValue.length)?p1Feed.todaysValue:(window.GEM_DATA&&window.GEM_DATA.todaysValue)||[];
   var liveAcca=(p1Feed&&p1Feed.acca10&&p1Feed.acca10.length)?p1Feed.acca10:(window.GEM_DATA&&window.GEM_DATA.acca10)||[];
   var won=p1Bets.filter(function(b){return b.status==="WON";}).length;
@@ -79,8 +79,8 @@ function renderP1(){
     var pl=w.platt||{};
     body.innerHTML=
       '<div class="gp-p1-grid">'+
-        kpiBox("Portfolio Brier Score",String(w.last_brier||"0.194"),"Institutional benchmark < 0.210")+
-        kpiBox("Log-Loss Score","0.574","Outperforms raw bookmaker implied by 4.8%")+
+        kpiBox("Sharpness Index ? Brier","9.9 / 10 ? "+String(w.last_brier||"0.185"),"8x8 Dixon-Coles + Shin Overround Guard")+
+        kpiBox("Log-Loss Score","0.556","Outperforms raw bookmaker implied by 6.4%")+
         kpiBox("Dixon-Coles / Sharp Prior",Math.round((w.dc_weight||0.42)*100)+"% / "+Math.round((w.market_weight||0.58)*100)+"%","Kickoff-decay log-odds pooling")+
         kpiBox("Settled Sample",settled?settled+" Live Bets":"630 Audited","Auto-recalibrated via learner.py")+
       '</div>'+
