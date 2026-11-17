@@ -79,6 +79,8 @@ def shrink_lambdas(lh, la, mkt_h, mkt_a, sample_games=14):
 
 def bivariate_matrix(lh, la, league="GLOBAL"):
     rho = RHO_MAP.get(str(league).upper(), -0.115)
+    if abs(lh - la) < 0.45 and (lh + la) < 2.65:
+        rho = min(rho, -0.155)  # extra zero-inflation for tight tactical fixtures
     mat, tot = {}, 0.0
     for i in range(8):
         ph = math.exp(-lh) * (lh ** i) / math.factorial(i)
@@ -93,14 +95,20 @@ def bivariate_matrix(lh, la, league="GLOBAL"):
             mat[(i, j)] = p
             tot += p
     for k in mat: mat[k] /= max(1e-9, tot)
-    top_cs = max(mat.items(), key=lambda kv: kv[1])
+    ranked_cs = sorted(mat.items(), key=lambda kv: kv[1], reverse=True)
+    top_cs = ranked_cs[0]
+    top3 = ranked_cs[:3]
+    cluster_labels = "/".join(f"{s[0][0]}-{s[0][1]}" for s in top3)
+    cluster_prob = round(sum(s[1] for s in top3), 4)
     return {
         "1x_o15": round(sum(p for (i, j), p in mat.items() if i >= j and (i + j) >= 2), 4),
         "x2_o15": round(sum(p for (i, j), p in mat.items() if j >= i and (i + j) >= 2), 4),
         "o25": round(sum(p for (i, j), p in mat.items() if (i + j) >= 3), 4),
         "btts": round(sum(p for (i, j), p in mat.items() if i >= 1 and j >= 1), 4),
         "top_cs": f"{top_cs[0][0]}-{top_cs[0][1]}",
-        "top_cs_prob": round(top_cs[1], 4)
+        "top_cs_prob": round(top_cs[1], 4),
+        "cs_cluster": cluster_labels,
+        "cs_cluster_prob": cluster_prob
     }
 
 def detect_arb(home, away, league, odds_a, book_a, odds_b, book_b, mkt_label):
@@ -210,7 +218,7 @@ def build_calibrated_feed():
             "prob": round(best_prob * 100.0, 1),
             "kelly": kelly,
             "xg_sum": round(xh + xa, 2),
-            "top_cs": bv["top_cs"],
+            "top_cs": f"{bv['top_cs']} (Cluster {bv['cs_cluster']} @ {round(bv['cs_cluster_prob']*100,1)}%)",
             "cs_odds": round(1.0 / max(0.05, bv["top_cs_prob"]), 2),
             "sharpness": 9.9,
             "approved": overround <= 8.5
