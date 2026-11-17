@@ -1,7 +1,20 @@
 ﻿(function(){
-var mode="matches",activeDay=0,accMode="10fold";
-var TABS=[["matches","Matches"],["today","Today's picks"],["likely","Likely"],["ai","AI predictions"],["value","Value"],["arbs","Arbs"],["acc","Accumulator"],["bets","Bets"]];
+var mode="matches",activeDay=0,accMode="10fold",pvCache=[];
+var TABS=[["matches","Matches"],["perfect","Perfect Value"],["today","Today's picks"],["likely","Likely"],["ai","AI predictions"],["value","Value"],["arbs","Arbs"],["acc","Accumulator"],["bets","Bets"]];
 function h(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
+function harvestPV(){
+  if(pvCache.length)return;
+  document.querySelectorAll(".alert,.alert-box,[class*='alert']").forEach(function(el){
+    var txt=(el.innerText||"").trim();
+    if(/PERFECT VALUE/i.test(txt)){
+      var lines=txt.split("\n").map(function(s){return s.trim();}).filter(Boolean);
+      var tag=(el.querySelector(".alert-tag,button,a")||{}).innerText||lines[lines.length-1]||"PLACE BET";
+      var body=lines.filter(function(l){return l!==tag;}).join(" — ");
+      pvCache.push({title:lines[0]||"PERFECT VALUE SIGNAL",detail:body,tag:tag});
+    }
+    el.style.display="none";
+  });
+}
 function cardEl(p){
   var c=h("div","gp-pred-card"),t=h("div","gp-pred-top");
   t.appendChild(h("span","gp-pred-kicker",p.k));t.appendChild(h("span","gp-pred-prob",p.p));c.appendChild(t);
@@ -17,6 +30,7 @@ function slipBox(title,sub,legs,footL,footR,bg){
   var ft=h("div","gp-acca-foot");ft.appendChild(h("span","",footL));ft.appendChild(h("span","",footR));box.appendChild(ft);return box;
 }
 function renderDesk(){
+  harvestPV();
   var D=window.GEM_DATA;if(!D)return;
   var tabsRow=document.querySelector(".tabs"),g=document.querySelector(".grid"),host=tabsRow||g;if(!host||!host.parentNode)return;
   var panel=document.getElementById("gp-desk-panel");if(!panel){panel=h("div");panel.id="gp-desk-panel";host.parentNode.insertBefore(panel,host);}
@@ -26,6 +40,15 @@ function renderDesk(){
     var d=D.days[activeDay]||D.days[0];u.appendChild(h("span","","5-Day Dated Slate · Odds updated "+D.upd));u.appendChild(h("span","","Day "+(activeDay+1)+" of 5"));panel.appendChild(u);
     var strip=h("div","gp-day-strip");D.days.forEach(function(it,idx){var b=h("button","gp-day-pill"+(idx===activeDay?" active":""),it.label);b.type="button";b.onclick=function(){activeDay=idx;renderDesk();};strip.appendChild(b);});
     panel.appendChild(strip);d.picks.forEach(function(p){panel.appendChild(cardEl(p));});
+  }else if(mode==="perfect"){
+    u.appendChild(h("span","","PERFECT VALUE SIGNALS ("+(pvCache.length||D.todaysValue.length)+" ACTIVE)"));u.appendChild(h("span","","Moved from Dashboard"));panel.appendChild(u);
+    if(pvCache.length){
+      pvCache.forEach(function(item){
+        var row=h("div","gp-pv-card"),info=h("div");
+        info.appendChild(h("div","",item.detail));
+        row.appendChild(info);row.appendChild(h("span","gp-pv-btn",item.tag));panel.appendChild(row);
+      });
+    }else{D.todaysValue.forEach(function(p){panel.appendChild(cardEl(p));});}
   }else if(mode==="today"){u.appendChild(h("span","","TODAY'S BEST VALUE FOUND (+EV RANKED)"));panel.appendChild(u);D.todaysValue.forEach(function(p){panel.appendChild(cardEl(p));});}
   else if(mode==="likely"){u.appendChild(h("span","","MOST LIKELY PREDICTIONS (HIGHEST HIT RATE)"));panel.appendChild(u);D.likely.forEach(function(p){panel.appendChild(cardEl(p));});}
   else if(mode==="ai"){u.appendChild(h("span","","AI GENERATED VALUE PREDICTIONS"));panel.appendChild(u);D.ai.forEach(function(p){panel.appendChild(cardEl(p));});}
@@ -47,6 +70,6 @@ function nav(){
   var cs=h("button","gp-cs-btn","Build CS 3-Fold");cs.type="button";cs.onclick=function(){accMode="cs3";n.querySelector("[data-mode=acc]").click();accMode="cs3";renderDesk();};n.appendChild(cs);
   a.parentNode.insertBefore(n,a);
 }
-function run(){nav();renderDesk();}
+function run(){harvestPV();nav();renderDesk();}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();setTimeout(run,500);setTimeout(run,1500);
 })();
