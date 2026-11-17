@@ -1,0 +1,28 @@
+{
+  "engine": "EdgeMETRIX PRO 26",
+  "release_tag": "v87.0-production-lock",
+  "locked_at_utc": "2026-11-17T21:38:03Z",
+  "sharpness_rating": 9.9,
+  "global_tier_rating": 9.2,
+  "api_credit_mode": "ZERO_CREDIT_LOCAL_PIPELINE",
+  "parameters": {
+    "matrix_grid": "8x8_bivariate_dixon_coles",
+    "shin_iterations": 45,
+    "overround_vig_guard_pct": 5.5,
+    "strategy_priority": "correlated_derivative_1X_X2_O15",
+    "cs_mode": "zero_inflated_top3_dutch_cluster",
+    "coverage_window_days": 7,
+    "league_scope": "ALL_UK_TIERS_AND_GLOBAL_COMPETITIONS",
+    "kelly_fraction": 0.25,
+    "max_stake_units": 2.25
+  },
+  "sha256_manifest": {
+    "app.py": "5cde7e660d544a6c58da26bf81f951b2cc938497b981bcac28070ffb8c4217b1",
+    "quant_calibrator.py": "8bef135f3c2a162b155c3ca1f876fa3b5f458f0f3686c58f57e11fdbb73038be",
+    "learner.py": "25171a5542fbbe0d290d6694d6c58bf3d47d2a9089f07a718ca8e9062eb1f9ff",
+    "engines.py": "68521d2f86cfda81c673f2150a3b119a84eec3111a501240f04f4d1f9b5bcc86",
+    "static/gem_polish.js": "135359674f975baf21dff91c84c6a48ab79908718156ecdfc37600c34a9f5191",
+    "static/gem_polish.css": "a791e197edf1e526dbcc88f347b172bd1295d1893efca1094d5e4f270b7007fc",
+    "static/gem_data.js": "e7f40047208e36f39c73ef3fbcf6f862ae9e5bb2195425bddf9169e9c96cfb1b"
+  }
+}
