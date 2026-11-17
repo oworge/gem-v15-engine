@@ -233,6 +233,63 @@ def api_gem_feed():
         "acca10": [{"f":f"{i+1}. {x['fixture']}","pk":x["combo_pick"],"od":x["odds"],"ev":f"+{x['ev']:.1f}%"} for i,x in enumerate(acca)]
     })
 
+
+@app.route("/api/ledger")
+def api_get_ledger():
+    import sqlite3
+    from flask import jsonify
+    c = sqlite3.connect("syndicate_ledger.db")
+    c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        fixture TEXT, market TEXT, odds REAL, fair_odds REAL,
+        ev_pct REAL, true_prob REAL, stake REAL DEFAULT 10.0,
+        status TEXT DEFAULT 'OPEN'
+    )""")
+    c.commit()
+    rows = [dict(zip(["id","created_at","fixture","market","odds","fair_odds","ev_pct","true_prob","stake","status"], r))
+            for r in c.execute("SELECT id,created_at,fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status FROM user_bets ORDER BY id DESC LIMIT 40").fetchall()]
+    c.close()
+    return jsonify({"bets": rows})
+
+@app.route("/api/place-bet", methods=["POST"])
+def api_place_bet():
+    import sqlite3
+    from flask import request, jsonify
+    d = request.get_json(silent=True) or {}
+    c = sqlite3.connect("syndicate_ledger.db")
+    c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        fixture TEXT, market TEXT, odds REAL, fair_odds REAL,
+        ev_pct REAL, true_prob REAL, stake REAL DEFAULT 10.0,
+        status TEXT DEFAULT 'OPEN'
+    )""")
+    c.execute("INSERT INTO user_bets (fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status) VALUES (?,?,?,?,?,?,?,'OPEN')", (
+        str(d.get("fixture","Selection")), str(d.get("market","1X2")),
+        float(d.get("odds",1.90)), float(d.get("fair_odds",1.80)),
+        float(d.get("ev_pct",4.5)), float(d.get("true_prob",0.58)),
+        float(d.get("stake",10.0))
+    ))
+    c.commit()
+    bid = c.execute("SELECT last_insert_rowid()").fetchone()[0]
+    c.close()
+    return jsonify({"ok": True, "id": bid})
+
+@app.route("/api/settle-bet", methods=["POST"])
+def api_settle_bet():
+    import sqlite3
+    from flask import request, jsonify
+    from learner import audit_and_calibrate
+    d = request.get_json(silent=True) or {}
+    st = "WON" if str(d.get("status","")).upper() == "WON" else "LOST"
+    c = sqlite3.connect("syndicate_ledger.db")
+    c.execute("UPDATE user_bets SET status=? WHERE id=?", (st, int(d.get("id",0))))
+    c.commit()
+    c.close()
+    w = audit_and_calibrate()
+    return jsonify({"ok": True, "status": st, "weights": w})
+
 @app.after_request
 def gem_inject_blue_desk(resp):
     try:
@@ -291,8 +348,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=74"><script src="/static/gem_data.js?v=74"></script><script src="/static/gem_polish.js?v=74"></script>'
-            if "gem_polish.js?v=74" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=75"><script src="/static/gem_data.js?v=75"></script><script src="/static/gem_polish.js?v=75"></script>'
+            if "gem_polish.js?v=75" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:

@@ -108,3 +108,66 @@ fetch("/api/gem-feed").then(function(r){return r.json();}).then(function(live){
   if(active)active.click();
 }).catch(function(){});
 })();
+(function(){
+function logBet(btn, payload){
+  btn.textContent="LOGGING...";
+  fetch("/api/place-bet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res&&res.ok){btn.textContent="LOGGED #"+res.id+" ✓";btn.style.opacity="0.85";refreshLedger();}
+    }).catch(function(){btn.textContent="RETRY";});
+}
+function parseAndSend(btn, cardTxt){
+  var odM=cardTxt.match(/@\s*(\d+\.\d+)/);
+  var evM=cardTxt.match(/\+?(\d+\.\d+)%\s*EV/i);
+  var frM=cardTxt.match(/Fair\s*(\d+\.\d+)/i);
+  var parts=cardTxt.split("—");
+  var fix=(parts[0]||"Signal").replace(/PERFECT VALUE #\d+.*?(?=[A-Z])/i,"").trim();
+  var mkt=(parts[2]||parts[1]||"Value Selection").trim().slice(0,70);
+  var od=odM?parseFloat(odM[1]):1.95;
+  var fr=frM?parseFloat(frM[1]):+(od*0.94).toFixed(2);
+  logBet(btn,{fixture:fix,market:mkt,odds:od,fair_odds:fr,ev_pct:evM?parseFloat(evM[1]):5.0,true_prob:+(1/fr).toFixed(4),stake:10});
+}
+document.addEventListener("click",function(e){
+  var b=e.target.closest(".gp-pv-btn");
+  if(b&&!/LOGGED/.test(b.textContent)){
+    var card=b.closest(".gp-pv-card");
+    parseAndSend(b,card?card.innerText:b.textContent);
+  }
+});
+function refreshLedger(){
+  var panel=document.getElementById("gp-desk-panel");
+  var active=document.querySelector(".gp-mtab.active");
+  if(!panel||!active||active.dataset.mode!=="bets")return;
+  fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){
+    var box=document.getElementById("gp-live-ledger");
+    if(!box){box=document.createElement("div");box.id="gp-live-ledger";panel.appendChild(box);}
+    box.innerHTML="";
+    var bets=d.bets||[];
+    if(!bets.length)return;
+    var hdr=document.createElement("div");
+    hdr.className="gp-upd";hdr.style.marginTop="14px";
+    hdr.innerHTML="<span>SYNDICATE SQLITE LEDGER ("+bets.length+" LOGGED)</span><span>Feeds Platt Calibration</span>";
+    box.appendChild(hdr);
+    bets.forEach(function(b){
+      var row=document.createElement("div");row.className="gp-pred-card";
+      row.innerHTML="<div class='gp-pred-top'><span class='gp-pred-kicker'>#"+b.id+" · "+b.status+" · EV +"+Number(b.ev_pct).toFixed(1)+"%</span><span class='gp-pred-prob'>@ "+Number(b.odds).toFixed(2)+"</span></div><div class='gp-pred-fixture'>"+b.fixture+"</div><div class='gp-pred-pick'>"+b.market+" (Stake £"+Number(b.stake).toFixed(2)+")</div>";
+      if(b.status==="OPEN"){
+        var bar=document.createElement("div");bar.style.cssText="display:flex;gap:8px;margin-top:8px;";
+        ["WON","LOST"].forEach(function(st){
+          var sb=document.createElement("button");sb.type="button";sb.textContent="Settle "+st;
+          sb.style.cssText="padding:5px 12px;border-radius:6px;border:none;font-weight:800;cursor:pointer;color:#fff;background:"+(st==="WON"?"#059669":"#dc2626");
+          sb.onclick=function(){fetch("/api/settle-bet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:b.id,status:st})}).then(refreshLedger);};
+          bar.appendChild(sb);
+        });
+        row.appendChild(bar);
+      }
+      box.appendChild(row);
+    });
+  }).catch(function(){});
+}
+document.addEventListener("click",function(e){
+  var t=e.target.closest(".gp-mtab");
+  if(t&&t.dataset.mode==="bets")setTimeout(refreshLedger,80);
+});
+})();
