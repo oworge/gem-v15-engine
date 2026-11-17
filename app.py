@@ -209,6 +209,30 @@ def gem_api_history():
         c.close()
     return jsonify({"items": items})
 
+
+@app.route("/api/gem-feed")
+def api_gem_feed():
+    from flask import jsonify
+    from quant_calibrator import build_calibrated_feed
+    data = build_calibrated_feed()
+    en = data["enriched"]
+    if not en:
+        return jsonify({"live": False, "weights": data["weights"]})
+    val = sorted([x for x in en if x["ev"] >= 3.5], key=lambda z: z["ev"], reverse=True)[:8]
+    lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:6]
+    ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:6]
+    acca = sorted(en, key=lambda z: (z["prob"] / max(1.15, z["odds"])), reverse=True)[:10]
+    return jsonify({
+        "live": True,
+        "upd": data["updated"],
+        "weights": data["weights"],
+        "todaysValue": [{"k":f"BEST VALUE #{i+1} ? +{x['ev']:.1f}% EV","p":f"{x['prob']:.0f}%","b":"Calibrated +EV Edge","f":x["fixture"],"m":f"{x['league']} ? {x['kickoff']}","pk":x["pick"],"o":f"Bookie {x['odds']:.2f} vs Fair {x['fair']:.2f} ? EV +{x['ev']:.1f}%","n":f"Kelly Stake: {x['kelly']:.2f}u ? Proj xG {x['xg_sum']} ? Top CS {x['top_cs']}"} for i,x in enumerate(val)],
+        "likely": [{"k":f"MOST LIKELY #{i+1} ? {x['prob']:.0f}% HIT RATE","p":f"{x['prob']:.0f}%","b":"High-Confidence Banker","f":x["fixture"],"m":f"{x['league']} ? {x['kickoff']}","pk":x["combo_pick"],"o":f"Odds {x['odds']:.2f} ? Calibrated Hit Prob {x['prob']:.1f}%","n":f"Dixon-Coles low-variance combo ? Proj xG {x['xg_sum']}"} for i,x in enumerate(lik)],
+        "ai": [{"k":f"AI BIVARIATE POISSON ? SYN-9.6","p":f"{x['prob']:.0f}%","b":"AI Calibrated Engine","t":"ai","f":x["fixture"],"m":f"Dixon-Coles + Logit Pool ? xG {x['xg_sum']}","pk":f"AI Pick: {x['pick']} (Proj CS {x['top_cs']})","o":f"Fair {x['fair']:.2f} vs Market {x['odds']:.2f} ? Edge +{x['ev']:.1f}%","n":"Platt/Log-Odds sharp market prior + time-decayed npxG."} for x in ai_list],
+        "arbs": data["arbs"],
+        "acca10": [{"f":f"{i+1}. {x['fixture']}","pk":x["combo_pick"],"od":x["odds"],"ev":f"+{x['ev']:.1f}%"} for i,x in enumerate(acca)]
+    })
+
 @app.after_request
 def gem_inject_blue_desk(resp):
     try:
@@ -267,8 +291,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=73"><script src="/static/gem_data.js?v=73"></script><script src="/static/gem_polish.js?v=73"></script>'
-            if "gem_polish.js?v=73" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=74"><script src="/static/gem_data.js?v=74"></script><script src="/static/gem_polish.js?v=74"></script>'
+            if "gem_polish.js?v=74" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:

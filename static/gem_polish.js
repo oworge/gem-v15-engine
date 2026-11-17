@@ -95,3 +95,16 @@ else spiceHeader();
 setTimeout(spiceHeader,250);
 setTimeout(spiceHeader,900);
 })();
+(function(){
+fetch("/api/gem-feed").then(function(r){return r.json();}).then(function(live){
+  if(!live||!live.live||!window.GEM_DATA)return;
+  if(live.upd)window.GEM_DATA.upd=live.upd;
+  if(live.todaysValue&&live.todaysValue.length)window.GEM_DATA.todaysValue=live.todaysValue;
+  if(live.likely&&live.likely.length)window.GEM_DATA.likely=live.likely;
+  if(live.ai&&live.ai.length)window.GEM_DATA.ai=live.ai;
+  if(live.arbs&&live.arbs.length)window.GEM_DATA.arbs=live.arbs;
+  if(live.acca10&&live.acca10.length>=10)window.GEM_DATA.acca10=live.acca10;
+  var active=document.querySelector(".gp-mtab.active");
+  if(active)active.click();
+}).catch(function(){});
+})();
