@@ -32,3 +32,16 @@
 .alerts,.alert-wrap,[class*="alert-list"],body > .alert,body > div > .alert{display:none!important;}
 .gp-pv-card{background:linear-gradient(135deg,#042f2e 0%,#065f46 48%,#047857 100%);border:1.5px solid #34d399;border-radius:12px;padding:14px 18px;margin-bottom:11px;color:#ecfdf5;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:inset 0 1px 0 rgba(167,243,208,.35),0 4px 12px rgba(0,0,0,.22);}
 .gp-pv-btn{background:linear-gradient(180deg,#34d399 0%,#059669 60%,#047857 100%);color:#022c22;font-weight:800;font-size:12.5px;padding:8px 14px;border-radius:8px;border:1px solid #a7f3d0;white-space:nowrap;}
+/* Institutional Syndicate Header v73 */
+.gp-pro-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;background:linear-gradient(135deg,#021510 0%,#052e24 45%,#064e3b 85%,#03221a 100%);border:1.5px solid #10b981;border-radius:12px;padding:14px 20px;margin:8px 0 12px;box-shadow:inset 0 1px 0 rgba(167,243,208,.28),0 8px 24px rgba(0,0,0,.42);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+.gp-brand-wrap{display:flex;align-items:center;gap:14px;}
+.gp-emblem{width:42px;height:42px;border-radius:10px;background:linear-gradient(145deg,#34d399 0%,#059669 55%,#022c22 100%);border:1.5px solid #a7f3d0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;letter-spacing:-.04em;color:#022c22;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 10px rgba(16,185,129,.35);}
+.gp-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.gp-brand-main{font-size:21px;font-weight:900;letter-spacing:-.02em;color:#f8fafc;line-height:1.1;}
+.gp-brand-pro{background:linear-gradient(180deg,#fde047 0%,#eab308 100%);color:#022c22;font-size:11.5px;font-weight:900;padding:2px 8px;border-radius:5px;letter-spacing:.04em;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.gp-brand-sub{font-size:11.5px;font-weight:600;letter-spacing:.08em;color:#6ee7b7;text-transform:uppercase;margin-top:3px;}
+.gp-hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.gp-live-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(2,44,34,.85);border:1px solid rgba(52,211,153,.45);color:#a7f3d0;font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;letter-spacing:.03em;}
+.gp-pulse{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.25);animation:gpPulse 1.8s infinite;}
+@keyframes gpPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.55;transform:scale(.85);}}
+.gp-syndicate-badge{background:linear-gradient(180deg,#34d399 0%,#059669 58%,#047857 100%);color:#022c22;border:1px solid #a7f3d0;font-size:11.5px;font-weight:900;letter-spacing:.06em;padding:7px 14px;border-radius:8px;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 8px rgba(0,0,0,.32);}

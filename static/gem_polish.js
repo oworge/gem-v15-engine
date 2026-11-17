@@ -73,3 +73,25 @@ function nav(){
 function run(){harvestPV();nav();renderDesk();}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();setTimeout(run,500);setTimeout(run,1500);
 })();
+(function(){
+function spiceHeader(){
+  if(document.getElementById("gp-pro-hdr"))return;
+  var navEl=document.getElementById("gp-mint-nav");
+  var host=navEl||document.querySelector(".tabs")||document.querySelector(".grid")||document.body.firstElementChild;
+  if(!host||!host.parentNode)return;
+  Array.from(host.parentNode.children).forEach(function(el){
+    if(el!==navEl && el.id!=="gp-pro-hdr" && /EdgeMETRIX PRO 26/i.test(el.innerText||"") && !el.querySelector("#gp-mint-nav")){
+      el.style.display="none";
+    }
+  });
+  var hdr=document.createElement("header");
+  hdr.id="gp-pro-hdr";
+  hdr.className="gp-pro-hdr";
+  hdr.innerHTML='<div class="gp-brand-wrap"><div class="gp-emblem">EM</div><div><div class="gp-title-row"><span class="gp-brand-main">EdgeMETRIX</span><span class="gp-brand-pro">PRO 26</span></div><div class="gp-brand-sub">Institutional Poisson &amp; No-Vig CLV Analytics Engine</div></div></div><div class="gp-hdr-right"><span class="gp-live-pill"><span class="gp-pulse"></span>ENGINE LIVE &middot; GLOBAL FEED</span><span class="gp-syndicate-badge">Global Quant Syndicate Terminal</span></div>';
+  host.parentNode.insertBefore(hdr,host);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",spiceHeader);
+else spiceHeader();
+setTimeout(spiceHeader,250);
+setTimeout(spiceHeader,900);
+})();
