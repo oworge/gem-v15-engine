@@ -392,3 +392,35 @@ document.addEventListener("click",function(e){
 });
 setInterval(injectEquityChart,900);
 })();
+(function(){
+function injectSevenDayBar(){
+  var panel=document.getElementById("gp-desk-panel");
+  var active=document.querySelector(".gp-mtab.active");
+  if(!panel||!active||active.dataset.mode!=="matches"||document.getElementById("gp-7day-bar"))return;
+  var bar=document.createElement("div");
+  bar.id="gp-7day-bar";
+  bar.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f1f5f9;padding:10px 14px;border-radius:10px;margin:10px 0 14px;border:1px solid #cbd5e1;";
+  bar.innerHTML='<span style="font-size:12px;font-weight:800;color:#0f172a;margin-right:4px;">7-DAY GLOBAL WINDOW:</span>';
+  [["ALL","All 7 Days (24)"],["TODAY","Day 1 · Today"],["TOMORROW","Day 2 · Tomorrow"],["DAYS37","Days 3–7"]].forEach(function(item,i){
+    var b=document.createElement("button");b.type="button";b.textContent=item[1];
+    b.style.cssText="padding:5px 11px;border-radius:7px;font-size:12px;font-weight:800;cursor:pointer;border:1px solid #94a3b8;"+(i===0?"background:#059669;color:#fff;border-color:#059669;":"background:#fff;color:#1e293b;");
+    b.onclick=function(){
+      bar.querySelectorAll("button").forEach(function(x){x.style.background="#fff";x.style.color="#1e293b";x.style.borderColor="#94a3b8";});
+      b.style.background="#059669";b.style.color="#fff";b.style.borderColor="#059669";
+      panel.querySelectorAll(".gp-card").forEach(function(card){
+        var txt=card.textContent||"";
+        if(item[0]==="ALL")card.style.display="";
+        else if(item[0]==="TODAY")card.style.display=(txt.indexOf("Today")!==-1?"":"none");
+        else if(item[0]==="TOMORROW")card.style.display=(txt.indexOf("Tomorrow")!==-1?"":"none");
+        else card.style.display=((txt.indexOf("Today")===-1&&txt.indexOf("Tomorrow")===-1)?"":"none");
+      });
+    };
+    bar.appendChild(b);
+  });
+  panel.insertBefore(bar,panel.firstChild);
+}
+document.addEventListener("click",function(e){
+  if(e.target.closest(".gp-mtab")||e.target.closest(".gp-open-app-btn"))setTimeout(injectSevenDayBar,60);
+});
+setInterval(injectSevenDayBar,900);
+})();

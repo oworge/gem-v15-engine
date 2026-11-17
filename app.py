@@ -406,8 +406,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=85"><script src="/static/gem_data.js?v=85"></script><script src="/static/gem_polish.js?v=85"></script>'
-            if "gem_polish.js?v=85" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=86"><script src="/static/gem_data.js?v=86"></script><script src="/static/gem_polish.js?v=86"></script>'
+            if "gem_polish.js?v=86" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
