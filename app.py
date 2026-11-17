@@ -26,7 +26,7 @@ def _build_dynamic_tabs(picks):
         m = p.get("match", "")
         teams = [t.strip() for t in m.split(" vs. ")] if " vs. " in m else ([t.strip() for t in m.split(" vs ")] if " vs " in m else ["Home Team", "Away Team"])
         home, away = teams[0], (teams[1] if len(teams) > 1 else "Away Team")
-        base_pick = str(p.get("pick", "")).split("?")[-1].split("[")[0].strip()
+        base_pick = str(p.get("pick", "")).split("|")[-1].split("[")[0].strip()
         try:
             base_odds = float(str(p.get("odds", "1.80")).replace("@", "").strip())
         except Exception:
@@ -44,7 +44,7 @@ def _build_dynamic_tabs(picks):
         sgm_odds = f"{round(base_odds * 3.15, 2):.2f}"
         return {
             "match": m,
-            "comp": f"1-FIXTURE 5-LEG BET BUILDER ? {p.get('comp', '')}",
+            "comp": f"1-FIXTURE 5-LEG BET BUILDER | {p.get('comp', '')}",
             "pick": " | ".join(f"{idx+1}) {lg}" for idx, lg in enumerate(legs)),
             "odds": sgm_odds,
         }
@@ -191,7 +191,7 @@ def gem_api_history():
                     for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
                         cols = [r[1] for r in c.execute(f"PRAGMA table_info({t})").fetchall()]
                         if "status" in cols and "id" in cols:
-                            c.execute(f"UPDATE {t} SET status=? WHERE id=?", (st, rid))
+                            c.execute(f"UPDATE {t} SET status=| WHERE id=|", (st, rid))
                     c.commit()
                     c.close()
         return jsonify({"ok": True})
@@ -226,9 +226,9 @@ def api_gem_feed():
         "live": True,
         "upd": data["updated"],
         "weights": data["weights"],
-        "todaysValue": [{"k":f"BEST VALUE #{i+1} ? +{x['ev']:.1f}% EV","p":f"{x['prob']:.0f}%","b":"Calibrated +EV Edge","f":x["fixture"],"m":f"{x['league']} ? {x['kickoff']}","pk":x["pick"],"o":f"Bookie {x['odds']:.2f} vs Fair {x['fair']:.2f} ? EV +{x['ev']:.1f}%","n":f"Kelly Stake: {x['kelly']:.2f}u ? Proj xG {x['xg_sum']} ? Top CS {x['top_cs']}"} for i,x in enumerate(val)],
-        "likely": [{"k":f"MOST LIKELY #{i+1} ? {x['prob']:.0f}% HIT RATE","p":f"{x['prob']:.0f}%","b":"High-Confidence Banker","f":x["fixture"],"m":f"{x['league']} ? {x['kickoff']}","pk":x["combo_pick"],"o":f"Odds {x['odds']:.2f} ? Calibrated Hit Prob {x['prob']:.1f}%","n":f"Dixon-Coles low-variance combo ? Proj xG {x['xg_sum']}"} for i,x in enumerate(lik)],
-        "ai": [{"k":f"AI BIVARIATE POISSON ? SYN-9.6","p":f"{x['prob']:.0f}%","b":"AI Calibrated Engine","t":"ai","f":x["fixture"],"m":f"Dixon-Coles + Logit Pool ? xG {x['xg_sum']}","pk":f"AI Pick: {x['pick']} (Proj CS {x['top_cs']})","o":f"Fair {x['fair']:.2f} vs Market {x['odds']:.2f} ? Edge +{x['ev']:.1f}%","n":"Platt/Log-Odds sharp market prior + time-decayed npxG."} for x in ai_list],
+        "todaysValue": [{"k":f"BEST VALUE #{i+1} | +{x['ev']:.1f}% EV","p":f"{x['prob']:.0f}%","b":"Calibrated +EV Edge","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["pick"],"o":f"Bookie {x['odds']:.2f} vs Fair {x['fair']:.2f} | EV +{x['ev']:.1f}%","n":f"Kelly Stake: {x['kelly']:.2f}u | Proj xG {x['xg_sum']} | Top CS {x['top_cs']}"} for i,x in enumerate(val)],
+        "likely": [{"k":f"MOST LIKELY #{i+1} | {x['prob']:.0f}% HIT RATE","p":f"{x['prob']:.0f}%","b":"High-Confidence Banker","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["combo_pick"],"o":f"Odds {x['odds']:.2f} | Calibrated Hit Prob {x['prob']:.1f}%","n":f"Dixon-Coles low-variance combo | Proj xG {x['xg_sum']}"} for i,x in enumerate(lik)],
+        "ai": [{"k":f"AI BIVARIATE POISSON | SYN-9.6","p":f"{x['prob']:.0f}%","b":"AI Calibrated Engine","t":"ai","f":x["fixture"],"m":f"Dixon-Coles + Logit Pool | xG {x['xg_sum']}","pk":f"AI Pick: {x['pick']} (Proj CS {x['top_cs']})","o":f"Fair {x['fair']:.2f} vs Market {x['odds']:.2f} | Edge +{x['ev']:.1f}%","n":"Platt/Log-Odds sharp market prior + time-decayed npxG."} for x in ai_list],
         "arbs": data["arbs"],
         "acca10": [{"f":f"{i+1}. {x['fixture']}","pk":x["combo_pick"],"od":x["odds"],"ev":f"+{x['ev']:.1f}%"} for i,x in enumerate(acca)]
     })
@@ -265,7 +265,7 @@ def api_place_bet():
         ev_pct REAL, true_prob REAL, stake REAL DEFAULT 10.0,
         status TEXT DEFAULT 'OPEN'
     )""")
-    c.execute("INSERT INTO user_bets (fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status) VALUES (?,?,?,?,?,?,?,'OPEN')", (
+    c.execute("INSERT INTO user_bets (fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status) VALUES (|,|,|,|,|,|,|,'OPEN')", (
         str(d.get("fixture","Selection")), str(d.get("market","1X2")),
         float(d.get("odds",1.90)), float(d.get("fair_odds",1.80)),
         float(d.get("ev_pct",4.5)), float(d.get("true_prob",0.58)),
@@ -284,7 +284,7 @@ def api_settle_bet():
     d = request.get_json(silent=True) or {}
     st = "WON" if str(d.get("status","")).upper() == "WON" else "LOST"
     c = sqlite3.connect("syndicate_ledger.db")
-    c.execute("UPDATE user_bets SET status=? WHERE id=?", (st, int(d.get("id",0))))
+    c.execute("UPDATE user_bets SET status=| WHERE id=|", (st, int(d.get("id",0))))
     c.commit()
     c.close()
     w = audit_and_calibrate()
@@ -316,7 +316,7 @@ def gem_api_desk():
     w = audit_and_calibrate()
     mev = float(w.get("min_ev_pct", 4.5))
     items = []
-    pev = lambda v: float(m.group(0)) if (m := re.search(r"[-+]?\d+(?:\.\d+)?", str(v or ""))) else 0.0
+    pev = lambda v: float(m.group(0)) if (m := re.search(r"[-+]|\d+(|:\.\d+)|", str(v or ""))) else 0.0
     for db, src in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "CLV")):
         if not os.path.exists(db): continue
         c = sqlite3.connect(db); c.row_factory = sqlite3.Row
@@ -348,8 +348,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=79"><script src="/static/gem_data.js?v=79"></script><script src="/static/gem_polish.js?v=79"></script>'
-            if "gem_polish.js?v=79" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css|v=80"><script src="/static/gem_data.js|v=80"></script><script src="/static/gem_polish.js|v=80"></script>'
+            if "gem_polish.js|v=80" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
