@@ -188,7 +188,9 @@ def build_calibrated_feed():
         combo_ev = round((combo_cal * combo_odds - 1.0) * 100.0, 2)
         main_ev = round((main_cal * od_h - 1.0) * 100.0, 2)
 
-        use_main = main_ev >= max(3.6, combo_ev) and main_cal >= 0.49
+        # Niche derivative edge boost: soft books misprice correlated 1X/X2 + O1.5 combos
+        derivative_edge = (combo_ev - main_ev) >= -1.2 and combo_cal >= 0.56
+        use_main = (not derivative_edge) and main_ev >= max(4.2, combo_ev) and main_cal >= 0.52
         best_prob = main_cal if use_main else combo_cal
         best_odds = od_h if use_main else combo_odds
         best_ev = round(max(2.5, min(14.5, main_ev if use_main else combo_ev)), 2)

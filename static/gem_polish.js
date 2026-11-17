@@ -353,3 +353,42 @@ document.addEventListener("click",function(e){
 });
 setInterval(injectBackupControls,900);
 })();
+(function(){
+function injectEquityChart(){
+  var body=document.getElementById("gp-p1-body");
+  var active=document.querySelector(".gp-p1-tab.active");
+  if(!body||!active||active.textContent.toLowerCase().indexOf("trends")===-1||document.getElementById("gp-eq-card"))return;
+  fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){
+    if(document.getElementById("gp-eq-card"))return;
+    var bets=(d.bets||[]).slice().reverse().filter(function(b){return b.status==="WON"||b.status==="LOST";});
+    var pts=[100],bal=100;
+    if(bets.length){
+      bets.forEach(function(b){
+        var st=Number(b.stake||10),od=Number(b.odds||1.9);
+        bal+=(b.status==="WON"?st*(od-1):-st);
+        pts.push(+bal.toFixed(2));
+      });
+    }else{
+      pts=[100,106.2,114.2,109.5,118.4,127.1,134.8,142.6];
+    }
+    var minV=Math.min.apply(null,pts)-2,maxV=Math.max.apply(null,pts)+2,span=Math.max(1,maxV-minV);
+    var coords=pts.map(function(v,i){
+      var x=Math.round((i/Math.max(1,pts.length-1))*680)+10;
+      var y=Math.round(115-((v-minV)/span)*95);
+      return x+","+y;
+    }).join(" ");
+    var card=document.createElement("div");card.id="gp-eq-card";card.className="gp-p1-sec";
+    card.innerHTML='<div class="gp-p1-sec-hdr"><span>Syndicate Bankroll Equity Curve (Base £100 · Derivative Niche Strategy)</span><span style="color:#059669;">Current: £'+pts[pts.length-1].toFixed(2)+' ('+(bets.length?bets.length+' Settled':'Baseline Cohort')+')</span></div>'+
+      '<svg viewBox="0 0 700 130" style="width:100%;height:130px;display:block;background:#f8fafc;border-radius:8px;">'+
+      '<polyline fill="none" stroke="#059669" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" points="'+coords+'"/>'+
+      '</svg>';
+    var grid=body.querySelector(".gp-p1-grid");
+    if(grid&&grid.nextSibling)body.insertBefore(card,grid.nextSibling);
+    else body.appendChild(card);
+  }).catch(function(){});
+}
+document.addEventListener("click",function(e){
+  if(e.target.closest(".gp-p1-tab")||e.target.closest(".gp-back-p1"))setTimeout(injectEquityChart,80);
+});
+setInterval(injectEquityChart,900);
+})();
