@@ -424,3 +424,31 @@ document.addEventListener("click",function(e){
 });
 setInterval(injectSevenDayBar,900);
 })();
+(function(){
+function injectRegionToggle(){
+  var bar=document.getElementById("gp-7day-bar");
+  var panel=document.getElementById("gp-desk-panel");
+  if(!bar||!panel||document.getElementById("gp-region-grp"))return;
+  var grp=document.createElement("span");
+  grp.id="gp-region-grp";
+  grp.style.cssText="margin-left:auto;display:flex;gap:6px;align-items:center;";
+  var ukRx=/(Premier League|EFL|Championship|League One|League Two|National League|Scottish)/i;
+  [["ALL","All UK + Global"],["UK","UK Leagues"],["GLOBAL","Global Leagues"]].forEach(function(r,idx){
+    var btn=document.createElement("button");btn.type="button";btn.textContent=r[1];
+    btn.style.cssText="padding:5px 10px;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;border:1px solid #0f172a;"+(idx===0?"background:#0f172a;color:#6ee7b7;":"background:#fff;color:#0f172a;");
+    btn.onclick=function(){
+      grp.querySelectorAll("button").forEach(function(x){x.style.background="#fff";x.style.color="#0f172a";});
+      btn.style.background="#0f172a";btn.style.color="#6ee7b7";
+      panel.querySelectorAll(".gp-card").forEach(function(card){
+        var isUk=ukRx.test(card.textContent||"");
+        if(r[0]==="ALL")card.style.display="";
+        else if(r[0]==="UK")card.style.display=(isUk?"":"none");
+        else card.style.display=(!isUk?"":"none");
+      });
+    };
+    grp.appendChild(btn);
+  });
+  bar.appendChild(grp);
+}
+setInterval(injectRegionToggle,900);
+})();

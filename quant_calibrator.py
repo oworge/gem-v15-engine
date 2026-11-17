@@ -41,6 +41,24 @@ SEVEN_DAY_EXTRA = [
     {"day_offset": 6, "home_team": "Aston Villa", "away_team": "Juventus", "league": "UEFA Champions League", "kickoff_time": "20:00 UTC", "home_odds": 2.32, "draw_odds": 3.30, "away_odds": 3.20, "xg_home": 1.52, "xg_away": 1.22, "over_25_odds": 2.04, "under_25_odds": 1.82}
 ]
 
+
+UK_GLOBAL_LEAGUES_POOL = [
+    {"day_offset": 0, "region": "UK", "home_team": "Wrexham", "away_team": "Stockport County", "league": "EFL League One", "kickoff_time": "19:45 UTC", "home_odds": 2.15, "draw_odds": 3.40, "away_odds": 3.35, "xg_home": 1.62, "xg_away": 1.18, "over_25_odds": 1.88, "under_25_odds": 1.96},
+    {"day_offset": 0, "region": "UK", "home_team": "Notts County", "away_team": "Walsall", "league": "EFL League Two", "kickoff_time": "19:45 UTC", "home_odds": 2.08, "draw_odds": 3.45, "away_odds": 3.45, "xg_home": 1.68, "xg_away": 1.24, "over_25_odds": 1.84, "under_25_odds": 2.00},
+    {"day_offset": 1, "region": "UK", "home_team": "Barnet", "away_team": "York City", "league": "National League", "kickoff_time": "19:45 UTC", "home_odds": 1.95, "draw_odds": 3.50, "away_odds": 3.70, "xg_home": 1.74, "xg_away": 1.14, "over_25_odds": 1.82, "under_25_odds": 2.02},
+    {"day_offset": 1, "region": "UK", "home_team": "Celtic", "away_team": "Aberdeen", "league": "Scottish Premiership", "kickoff_time": "15:00 UTC", "home_odds": 1.28, "draw_odds": 5.60, "away_odds": 9.80, "xg_home": 2.44, "xg_away": 0.68, "over_25_odds": 1.56, "under_25_odds": 2.45},
+    {"day_offset": 2, "region": "UK", "home_team": "Rangers", "away_team": "Hearts", "league": "Scottish Premiership", "kickoff_time": "15:00 UTC", "home_odds": 1.44, "draw_odds": 4.45, "away_odds": 6.90, "xg_home": 2.06, "xg_away": 0.82, "over_25_odds": 1.72, "under_25_odds": 2.15},
+    {"day_offset": 2, "region": "UK", "home_team": "Falkirk", "away_team": "Livingston", "league": "Scottish Championship", "kickoff_time": "15:00 UTC", "home_odds": 2.18, "draw_odds": 3.35, "away_odds": 3.25, "xg_home": 1.54, "xg_away": 1.16, "over_25_odds": 1.92, "under_25_odds": 1.92},
+    {"day_offset": 2, "region": "UK", "home_team": "Burnley", "away_team": "Sheffield United", "league": "EFL Championship", "kickoff_time": "12:30 UTC", "home_odds": 2.24, "draw_odds": 3.20, "away_odds": 3.30, "xg_home": 1.44, "xg_away": 1.18, "over_25_odds": 2.06, "under_25_odds": 1.80},
+    {"day_offset": 3, "region": "GLOBAL", "home_team": "Bayer Leverkusen", "away_team": "RB Salzburg", "league": "Bundesliga", "kickoff_time": "14:30 UTC", "home_odds": 1.36, "draw_odds": 5.10, "away_odds": 7.80, "xg_home": 2.32, "xg_away": 0.84, "over_25_odds": 1.54, "under_25_odds": 2.50},
+    {"day_offset": 3, "region": "GLOBAL", "home_team": "PSV Eindhoven", "away_team": "Feyenoord", "league": "Eredivisie", "kickoff_time": "15:45 UTC", "home_odds": 1.84, "draw_odds": 3.85, "away_odds": 3.95, "xg_home": 1.94, "xg_away": 1.36, "over_25_odds": 1.58, "under_25_odds": 2.40},
+    {"day_offset": 4, "region": "GLOBAL", "home_team": "Sporting CP", "away_team": "FC Porto", "league": "Primeira Liga", "kickoff_time": "20:30 UTC", "home_odds": 2.02, "draw_odds": 3.45, "away_odds": 3.65, "xg_home": 1.66, "xg_away": 1.24, "over_25_odds": 1.86, "under_25_odds": 1.98},
+    {"day_offset": 4, "region": "GLOBAL", "home_team": "Flamengo", "away_team": "Palmeiras", "league": "Brasileirao Serie A", "kickoff_time": "23:30 UTC", "home_odds": 2.22, "draw_odds": 3.25, "away_odds": 3.35, "xg_home": 1.48, "xg_away": 1.22, "over_25_odds": 2.04, "under_25_odds": 1.82},
+    {"day_offset": 5, "region": "GLOBAL", "home_team": "Vissel Kobe", "away_team": "Yokohama F. Marinos", "league": "J1 League", "kickoff_time": "10:00 UTC", "home_odds": 1.90, "draw_odds": 3.65, "away_odds": 3.80, "xg_home": 1.78, "xg_away": 1.28, "over_25_odds": 1.70, "under_25_odds": 2.18},
+    {"day_offset": 5, "region": "GLOBAL", "home_team": "LAFC", "away_team": "Inter Miami", "league": "MLS Cup Playoffs", "kickoff_time": "01:30 UTC", "home_odds": 2.12, "draw_odds": 3.70, "away_odds": 3.15, "xg_home": 1.82, "xg_away": 1.54, "over_25_odds": 1.56, "under_25_odds": 2.44},
+    {"day_offset": 6, "region": "GLOBAL", "home_team": "Atalanta", "away_team": "Lazio", "league": "Serie A", "kickoff_time": "19:45 UTC", "home_odds": 1.96, "draw_odds": 3.55, "away_odds": 3.75, "xg_home": 1.76, "xg_away": 1.26, "over_25_odds": 1.74, "under_25_odds": 2.12}
+]
+
 def extract_teams(m, idx):
     hm = m.get("home_team") or m.get("home") or m.get("team1") or m.get("h")
     aw = m.get("away_team") or m.get("away") or m.get("team2") or m.get("a")
@@ -164,9 +182,10 @@ def build_calibrated_feed():
                 raw_matches.extend(rows)
         except Exception:
             pass
-    if len(raw_matches) < 24:
+    if len(raw_matches) < 38:
         raw_matches.extend(FALLBACK_SLATE)
         raw_matches.extend(SEVEN_DAY_EXTRA)
+        raw_matches.extend(UK_GLOBAL_LEAGUES_POOL)
 
     seen_fixtures = set()
     enriched, arbs = [], []
@@ -232,6 +251,7 @@ def build_calibrated_feed():
         enriched.append({
             "fixture": fx_key,
             "league": lg,
+            "region": "UK" if any(k in lg.upper() for k in ("PREMIER LEAGUE","EFL","CHAMPIONSHIP","LEAGUE ONE","LEAGUE TWO","NATIONAL LEAGUE","SCOTTISH","FA CUP","CARABAO")) else "GLOBAL",
             "kickoff": ko,
             "day_offset": day_off,
             "day_label": day_tag,
