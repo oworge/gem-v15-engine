@@ -499,6 +499,7 @@ def build_calibrated_feed():
             all_markets.append((f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, round(_bty_od, 2)))
         if xg_tot <= 2.40 and p_btts_n >= 0.53:
             all_markets.append((f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, round(_btn_od, 2)))
+        qualified = []
         for m_lbl, m_pr, m_od in all_markets:
             if m_pr < 0.50:
                 continue
