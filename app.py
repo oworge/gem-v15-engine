@@ -440,8 +440,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=134"><script src="/static/gem_data.js?v=134"></script><script src="/static/gem_polish.js?v=134"></script>'
-            if "gem_polish.js?v=134" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=135"><script src="/static/gem_data.js?v=135"></script><script src="/static/gem_polish.js?v=135"></script>'
+            if "gem_polish.js?v=135" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
@@ -449,14 +449,18 @@ def _inject_gem_polish_v40(resp):
     return resp
 
 
-# Permanent startup warm-up: sync Football-Data.co.uk xG and global +EV slate
-try:
-    from football_data_sync import sync_football_data as _boot_fd
-    from quant_calibrator import build_calibrated_feed as _boot_feed
-    _boot_fd(force=False)
-    _boot_feed()
-except Exception as _boot_err:
-    print("[BOOT WARMUP WARNING]", _boot_err)
+# Non-blocking background startup warm-up so Render responds immediately on wake-up
+def _bg_warmup():
+    try:
+        from football_data_sync import sync_football_data as _boot_fd
+        from quant_calibrator import build_calibrated_feed as _boot_feed
+        _boot_fd(force=False)
+        _boot_feed()
+    except Exception as _boot_err:
+        print("[BOOT WARMUP WARNING]", _boot_err)
+
+import threading as _threading
+_threading.Thread(target=_bg_warmup, daemon=True).start()
 
 
 @app.after_request
@@ -532,4 +536,51 @@ def _gem_v134_feed_guard(response):
                 response.set_data(json.dumps(data))
     except Exception as _e:
         print("[V134 GUARD WARNING]", _e)
+    return response
+
+
+_LAST_GOOD_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_good_feed.json")
+_LAST_GOOD_FEED_MEM = None
+
+@app.after_request
+def _gem_v135_never_blank_guard(response):
+    global _LAST_GOOD_FEED_MEM
+    try:
+        from flask import request
+        if request.path != "/api/gem-feed":
+            return response
+        import json
+        ok_payload = None
+        if response.status_code == 200:
+            try:
+                parsed = json.loads(response.get_data(as_text=True))
+                if isinstance(parsed, dict) and len(parsed.get("matches", [])) > 0:
+                    ok_payload = parsed
+            except Exception:
+                ok_payload = None
+
+        if ok_payload is not None:
+            _LAST_GOOD_FEED_MEM = ok_payload
+            try:
+                with open(_LAST_GOOD_FEED_PATH, "w", encoding="utf-8") as _f:
+                    json.dump(ok_payload, _f)
+            except Exception:
+                pass
+            return response
+
+        # Fallback: serve last known good feed instead of 500 or empty tabs
+        fallback = _LAST_GOOD_FEED_MEM
+        if fallback is None and os.path.exists(_LAST_GOOD_FEED_PATH):
+            try:
+                with open(_LAST_GOOD_FEED_PATH, "r", encoding="utf-8") as _f:
+                    fallback = json.load(_f)
+            except Exception:
+                fallback = None
+
+        if isinstance(fallback, dict) and len(fallback.get("matches", [])) > 0:
+            response.status_code = 200
+            response.mimetype = "application/json"
+            response.set_data(json.dumps(fallback))
+    except Exception as _guard_err:
+        print("[V135 NEVER-BLANK WARNING]", _guard_err)
     return response

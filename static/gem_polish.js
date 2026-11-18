@@ -1,4 +1,65 @@
 
+// Permanent v135 Never-Blank Guard: cache last valid feed & auto-retry during Render cold starts
+(function() {
+  const CACHE_KEY = "gem_last_good_feed_v1";
+  const origFetch = window.fetch;
+  if (!origFetch || window.__gemFetchGuarded) return;
+  window.__gemFetchGuarded = true;
+
+  function showWakeBanner(msg) {
+    let el = document.getElementById("gem-wake-banner");
+    if (!el && document.body) {
+      el = document.createElement("div");
+      el.id = "gem-wake-banner";
+      el.style.cssText = "position:fixed;bottom:14px;right:14px;z-index:99999;background:#0f172a;color:#38bdf8;border:1px solid #38bdf8;padding:10px 14px;border-radius:8px;font:600 12px/1.4 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45)";
+      document.body.appendChild(el);
+    }
+    if (el) el.textContent = msg;
+  }
+
+  function hideWakeBanner() {
+    const el = document.getElementById("gem-wake-banner");
+    if (el) el.remove();
+  }
+
+  window.fetch = async function(input, init) {
+    const url = typeof input === "string" ? input : (input && input.url) || "";
+    if (!url.includes("/api/gem-feed")) {
+      return origFetch.apply(this, arguments);
+    }
+
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      try {
+        const res = await origFetch.apply(this, arguments);
+        if (res.ok) {
+          const clone = res.clone();
+          const data = await clone.json();
+          if (data && Array.isArray(data.matches) && data.matches.length > 0) {
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+            hideWakeBanner();
+            return res;
+          }
+        }
+      } catch (err) {}
+
+      showWakeBanner("Waking EdgeMETRIX engine (" + attempt + "/6)...");
+      await new Promise(r => setTimeout(r, 4000));
+    }
+
+    // Serve cached snapshot if server is still spinning up
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        hideWakeBanner();
+        return new Response(cached, { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+    } catch (e) {}
+
+    return origFetch.apply(this, arguments);
+  };
+})();
+
+
 // Permanent daily BET & Perfect Value reset on new UTC day
 (function() {
   try {
