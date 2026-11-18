@@ -6,12 +6,12 @@
     "league": "Global Football Slate",
     "kickoff": "2026-11-18T17:45Z",
     "home_odds": 7.5,
-    "draw_odds": 5.75,
-    "away_odds": 1.33,
+    "draw_odds": 6.0,
+    "away_odds": 1.32,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.99
+    "xg_away": 2.01
   },
   {
     "sport_key": "soccer_all",
@@ -19,12 +19,12 @@
     "away_team": "Internazionale",
     "league": "Global Football Slate",
     "kickoff": "2026-11-18T17:45Z",
-    "home_odds": 1.19,
-    "draw_odds": 7.5,
-    "away_odds": 12.0,
+    "home_odds": 1.21,
+    "draw_odds": 7.0,
+    "away_odds": 11.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.23,
+    "xg_home": 2.19,
     "xg_away": 0.65
   },
   {
@@ -48,12 +48,12 @@
     "league": "Global Football Slate",
     "kickoff": "2026-11-18T18:00Z",
     "home_odds": 6.0,
-    "draw_odds": 4.1,
-    "away_odds": 1.56,
+    "draw_odds": 4.0,
+    "away_odds": 1.57,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.7
+    "xg_away": 1.69
   },
   {
     "sport_key": "soccer_all",
@@ -61,13 +61,13 @@
     "away_team": "Mallorca",
     "league": "Global Football Slate",
     "kickoff": "2026-11-18T19:00Z",
-    "home_odds": 6.5,
-    "draw_odds": 4.3,
-    "away_odds": 1.51,
+    "home_odds": 7.0,
+    "draw_odds": 4.4,
+    "away_odds": 1.49,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.75
+    "xg_away": 1.78
   },
   {
     "sport_key": "soccer_all",
@@ -89,12 +89,12 @@
     "away_team": "OH Leuven",
     "league": "Global Football Slate",
     "kickoff": "2026-11-18T20:00Z",
-    "home_odds": 1.32,
-    "draw_odds": 5.5,
-    "away_odds": 8.5,
+    "home_odds": 1.22,
+    "draw_odds": 6.5,
+    "away_odds": 11.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.01,
+    "xg_home": 2.17,
     "xg_away": 0.65
   },
   {
@@ -117,12 +117,12 @@
     "away_team": "Chapecoense",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-18T23:00Z",
-    "home_odds": 1.45,
-    "draw_odds": 4.6,
+    "home_odds": 1.48,
+    "draw_odds": 4.4,
     "away_odds": 6.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.83,
+    "xg_home": 1.79,
     "xg_away": 0.65
   },
   {
@@ -131,13 +131,13 @@
     "away_team": "Palmeiras",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-18T23:30Z",
-    "home_odds": 2.65,
-    "draw_odds": 3.45,
-    "away_odds": 2.55,
+    "home_odds": 2.7,
+    "draw_odds": 3.5,
+    "away_odds": 2.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.0,
-    "xg_away": 1.04
+    "xg_home": 0.98,
+    "xg_away": 1.06
   },
   {
     "sport_key": "soccer_bra.1",
@@ -159,12 +159,12 @@
     "away_team": "Botafogo",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-19T00:30Z",
-    "home_odds": 1.83,
-    "draw_odds": 3.7,
-    "away_odds": 4.1,
+    "home_odds": 1.77,
+    "draw_odds": 3.8,
+    "away_odds": 4.4,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.45,
+    "xg_home": 1.5,
     "xg_away": 0.65
   },
   {
@@ -244,7 +244,7 @@
     "league": "English Premier League",
     "kickoff": "2026-11-21T12:30Z",
     "home_odds": 1.4,
-    "draw_odds": 5.0,
+    "draw_odds": 5.25,
     "away_odds": 7.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
@@ -257,13 +257,13 @@
     "away_team": "Queens Park Rangers",
     "league": "English League Championship",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 2.55,
-    "draw_odds": 3.5,
-    "away_odds": 2.6,
+    "home_odds": 2.6,
+    "draw_odds": 3.55,
+    "away_odds": 2.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.04,
-    "xg_away": 1.02
+    "xg_home": 1.02,
+    "xg_away": 1.0
   },
   {
     "sport_key": "soccer_eng.2",
@@ -271,13 +271,13 @@
     "away_team": "Cardiff City",
     "league": "English League Championship",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.77,
+    "home_odds": 1.8,
     "draw_odds": 4.4,
-    "away_odds": 3.75,
+    "away_odds": 3.8,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.5,
-    "xg_away": 0.71
+    "xg_home": 1.47,
+    "xg_away": 0.7
   },
   {
     "sport_key": "soccer_eng.2",
@@ -285,12 +285,12 @@
     "away_team": "Derby County",
     "league": "English League Championship",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.4,
+    "home_odds": 1.41,
     "draw_odds": 5.0,
     "away_odds": 7.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.89,
+    "xg_home": 1.88,
     "xg_away": 0.65
   },
   {
@@ -299,12 +299,12 @@
     "away_team": "Crewe Alexandra",
     "league": "English League Two",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 2.65,
-    "draw_odds": 3.2,
+    "home_odds": 2.7,
+    "draw_odds": 3.25,
     "away_odds": 2.55,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.0,
+    "xg_home": 0.98,
     "xg_away": 1.04
   },
   {
@@ -314,12 +314,12 @@
     "league": "English League Two",
     "kickoff": "2026-11-21T12:30Z",
     "home_odds": 1.83,
-    "draw_odds": 3.7,
-    "away_odds": 3.8,
+    "draw_odds": 3.75,
+    "away_odds": 3.85,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 1.45,
-    "xg_away": 0.7
+    "xg_away": 0.69
   },
   {
     "sport_key": "soccer_ita.1",
@@ -1069,13 +1069,13 @@
     "away_team": "Celtic",
     "league": "UEFA Europa League",
     "kickoff": "2026-11-26T20:00Z",
-    "home_odds": 4.2,
+    "home_odds": 4.3,
     "draw_odds": 4.0,
-    "away_odds": 1.71,
+    "away_odds": 1.69,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.55
+    "xg_away": 1.57
   },
   {
     "sport_key": "soccer_uefa.europa",

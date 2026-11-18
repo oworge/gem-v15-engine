@@ -1,4 +1,4 @@
-﻿from flask import Flask, render_template, request
+from flask import Flask, render_template, request
 from data_generator import DAILY_PICKS, BET_BUILDERS, get_global_daily_picks
 
 app = Flask(__name__)
