@@ -1,7 +1,24 @@
 
+// v142 Auto-Purge stale Service Workers & old localStorage snapshots
+(function() {
+  try {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.unregister(); });
+      });
+    }
+    Object.keys(localStorage).forEach(function(k) {
+      if (k.startsWith("gem_last_good_feed_") && k !== "gem_last_good_feed_v142") {
+        localStorage.removeItem(k);
+      }
+    });
+  } catch (e) {}
+})();
+
+
 // Permanent v135 Never-Blank Guard: cache last valid feed & auto-retry during Render cold starts
 (function() {
-  const CACHE_KEY = "gem_last_good_feed_v141";
+  const CACHE_KEY = "gem_last_good_feed_v142";
   const origFetch = window.fetch;
   if (!origFetch || window.__gemFetchGuarded) return;
   window.__gemFetchGuarded = true;
