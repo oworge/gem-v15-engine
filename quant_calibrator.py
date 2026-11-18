@@ -252,6 +252,16 @@ def fetch_live_daily_fixtures(force=False):
         return True
     return False
 
+
+NON_FOOTBALL_TERMS = ("NBA", "NFL", "NHL", "MLB", "TENNIS", "ATP", "WTA", "BASKETBALL", "HOCKEY", "BASEBALL", "CRICKET", "RUGBY", "UFC", "MMA", "BOXING", "GOLF", "AMERICAN FOOTBALL")
+
+def is_football_only(item):
+    sk = str(item.get("sport_key", "")).lower()
+    if sk and not sk.startswith("soccer_"):
+        return False
+    blob = f"{item.get('league','')} {item.get('sport_title','')} {item.get('home_team','')} {item.get('away_team','')}".upper()
+    return not any(t in blob for t in NON_FOOTBALL_TERMS)
+
 def build_calibrated_feed():
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
@@ -262,7 +272,7 @@ def build_calibrated_feed():
             raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
             if isinstance(rows, list):
-                raw_matches.extend(rows)
+                raw_matches.extend([r for r in rows if isinstance(r, dict) and is_football_only(r)])
         except Exception:
             pass
     if len(raw_matches) < 38:
