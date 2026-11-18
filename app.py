@@ -453,6 +453,8 @@ def _gem_v139_unified_guard(response):
                 clean.append(it)
             if clean:
                 data[k] = clean
+            elif k in ("todaysValue", "acca10", "likely", "ai") and isinstance(data.get("matches"), list) and data["matches"]:
+                data[k] = data["matches"][:8]
 
         # Surface all markets (Straight Wins, BTTS - Yes, Over 2.5 Goals, and 1X/X2 Combos) across all tabs
         for tab in ("todaysValue", "acca10", "likely", "ai", "matches"):
