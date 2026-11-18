@@ -348,6 +348,15 @@ def api_restore_state():
         json.dump(weights, open("model_weights.json", "w", encoding="utf-8"), indent=2)
     return jsonify({"ok": True, "restored": len(bets)})
 
+
+@app.route("/api/refresh_daily")
+def api_refresh_daily():
+    from flask import jsonify
+    from quant_calibrator import fetch_live_daily_fixtures, build_calibrated_feed
+    ok = fetch_live_daily_fixtures(force=True)
+    feed = build_calibrated_feed()
+    return jsonify({"ok": ok, "live_daily_cache": feed.get("live_daily_cache"), "count": len(feed.get("enriched", [])), "updated": feed.get("updated")})
+
 @app.after_request
 def gem_inject_blue_desk(resp):
     try:
@@ -406,8 +415,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=87"><script src="/static/gem_data.js?v=87"></script><script src="/static/gem_polish.js?v=87"></script>'
-            if "gem_polish.js?v=87" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=89"><script src="/static/gem_data.js?v=89"></script><script src="/static/gem_polish.js?v=89"></script>'
+            if "gem_polish.js?v=89" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
