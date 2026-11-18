@@ -211,10 +211,52 @@ def gem_api_history():
 
 
 @app.route("/api/gem-feed")
+
+def _diversify_likely_markets(items, max_per_archetype=2):
+    if not isinstance(items, list):
+        return items
+    counts, diverse, overflow = {}, [], []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        pk = str(it.get("pk", ""))
+        if "or Draw (1X) & Over 1.5" in pk:
+            arch = "1X_O15"
+        elif "or Draw (X2) & Over 1.5" in pk:
+            arch = "X2_O15"
+        elif "Over 1.5" in pk:
+            arch = "O15"
+        elif "Over 2.5" in pk:
+            arch = "O25"
+        elif "Under 2.5" in pk:
+            arch = "U25"
+        elif "Under 3.5" in pk:
+            arch = "U35"
+        elif "Both Teams to Score - Yes" in pk:
+            arch = "BTTS_Y"
+        elif "Both Teams to Score - No" in pk:
+            arch = "BTTS_N"
+        elif "Win" in pk:
+            arch = "1X2_WIN"
+        else:
+            arch = pk.split("(")[0].strip()[:24]
+        if counts.get(arch, 0) < max_per_archetype:
+            counts[arch] = counts.get(arch, 0) + 1
+            diverse.append(it)
+        else:
+            overflow.append(it)
+    res = (diverse + overflow)[:len(items)]
+    for idx, it in enumerate(res, 1):
+        if "k" in it and "MOST LIKELY #" in str(it["k"]):
+            it["k"] = re.sub(r"MOST LIKELY #\d+", f"MOST LIKELY #{idx}", str(it["k"]))
+    return res
+
 def api_gem_feed():
     from flask import jsonify
     from quant_calibrator import build_calibrated_feed, fetch_live_daily_fixtures
     data = build_calibrated_feed()
+    if isinstance(data, dict) and isinstance(data.get("likely"), list):
+        data["likely"] = _diversify_likely_markets(data["likely"], max_per_archetype=2)
     en = [x for x in data["enriched"] if float(x.get("ev", 0)) >= 4.5]
     if not en:
         fetch_live_daily_fixtures(force=True)
@@ -440,8 +482,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=130"><script src="/static/gem_data.js?v=130"></script><script src="/static/gem_polish.js?v=130"></script>'
-            if "gem_polish.js?v=130" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=132"><script src="/static/gem_data.js?v=132"></script><script src="/static/gem_polish.js?v=132"></script>'
+            if "gem_polish.js?v=132" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
