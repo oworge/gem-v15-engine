@@ -329,10 +329,11 @@ def fetch_live_daily_fixtures(force=False):
             ("bra.1", "Brazilian Serie A"), ("fifa.worldq.uefa", "UEFA World Cup Qualifiers"),
             ("uefa.nations", "UEFA Nations League"), ("fifa.friendly", "International Friendly")
         ]
-        ymd = today_str.replace("-", "")
+        ymd_start = datetime.now(timezone.utc).strftime("%Y%m%d")
+        ymd_end = (datetime.now(timezone.utc) + timedelta(days=6)).strftime("%Y%m%d")
         seen_e = set()
         for slug, lg_name in espn_leagues:
-            e_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={ymd}"
+            e_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={ymd_start}-{ymd_end}"
             try:
                 with urllib.request.urlopen(urllib.request.Request(e_url, headers={"User-Agent": "EdgeMETRIX-PRO-26/99.0"}), timeout=10) as er:
                     edata = json.loads(er.read().decode("utf-8"))
