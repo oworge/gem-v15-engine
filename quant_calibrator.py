@@ -413,7 +413,7 @@ def build_calibrated_feed():
 
         fd_lh, fd_la, has_fd = get_fixture_xg(hm, aw, bv.get("lh", 1.38), bv.get("la", 1.18))
         if has_fd:
-            bv = bivariate_poisson(fd_lh, fd_la)
+            bv = bivariate_poisson_grid(fd_lh, fd_la)
         xg_tot = round(fd_lh + fd_la, 2)
         p_home = max(0.24, min(0.84, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
         p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("draw", 0.26), "1X2", w)))
