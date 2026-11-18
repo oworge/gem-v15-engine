@@ -395,7 +395,7 @@ def _gem_v139_unified_guard(response):
         if request.path != "/api/gem-feed":
             return response
 
-        import json
+        import json, re
         from datetime import datetime as _dt, timezone as _tz
 
         data = None
