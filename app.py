@@ -440,8 +440,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=136"><script src="/static/gem_data.js?v=136"></script><script src="/static/gem_polish.js?v=136"></script>'
-            if "gem_polish.js?v=136" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=138"><script src="/static/gem_data.js?v=138"></script><script src="/static/gem_polish.js?v=138"></script>'
+            if "gem_polish.js?v=138" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
@@ -498,7 +498,7 @@ def _gem_v134_feed_guard(response):
                         data[k] = clean
 
                 # Promote straight Wins, BTTS - Yes, and Over 2.5 across high-qualifying fixtures
-                for _tab in ("likely", "ai", "matches"):
+                for _tab in ("todaysValue", "acca10", "likely", "ai", "matches"):
                     _lst = data.get(_tab)
                     if not isinstance(_lst, list):
                         continue
