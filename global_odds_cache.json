@@ -61,12 +61,12 @@
     "away_team": "Botafogo",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-19T00:30Z",
-    "home_odds": 1.71,
-    "draw_odds": 3.75,
-    "away_odds": 4.7,
+    "home_odds": 1.69,
+    "draw_odds": 3.8,
+    "away_odds": 4.9,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.55,
+    "xg_home": 1.57,
     "xg_away": 0.65
   },
   {

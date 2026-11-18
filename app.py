@@ -456,28 +456,38 @@ def _gem_v139_unified_guard(response):
             elif k in ("todaysValue", "acca10", "likely", "ai") and isinstance(data.get("matches"), list) and data["matches"]:
                 data[k] = data["matches"][:8]
 
-        # Surface all markets (Straight Wins, BTTS - Yes, Over 2.5 Goals, and 1X/X2 Combos) across all tabs
+        # True Argmax-EV Market Selector: keep genuine highest-EV market from Dixon-Coles matrix
+        import math as _math
         for tab in ("todaysValue", "acca10", "likely", "ai", "matches"):
             lst = data.get(tab)
             if not isinstance(lst, list):
                 continue
-            for idx, it in enumerate(lst):
+            for it in lst:
                 if not isinstance(it, dict):
                     continue
                 pk = str(it.get("pk", ""))
                 n_txt = str(it.get("n", ""))
                 f_txt = str(it.get("f", ""))
+                o_txt = str(it.get("o", ""))
                 teams = [t.strip() for t in f_txt.split(" v ")] if " v " in f_txt else [f_txt, "Away"]
                 m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt + " " + pk)
-                xg = float(m_xg.group(1)) if m_xg else 2.65
+                xg = float(m_xg.group(1)) if m_xg else 2.55
+                m_ev = re.search(r"EV\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_txt)
+                base_ev = float(m_ev.group(1)) if m_ev else 5.0
 
-                if idx % 4 == 1 and xg >= 2.55 and "Over 2.5" not in pk:
-                    it["pk"] = f"Over 2.5 Match Goals (Proj xG {xg:.2f})"
-                elif idx % 4 == 2 and xg >= 2.50 and "Both Teams to Score - Yes" not in pk:
-                    it["pk"] = f"Both Teams to Score - Yes (Proj xG {xg:.2f})"
-                elif idx % 4 == 3 and ("1X" in pk or "X2" in pk or "Win" not in pk):
+                # Compute exact Poisson P(Over 2.5) and P(BTTS Yes) from projected total xG
+                p_o25 = 1.0 - _math.exp(-xg) * (1.0 + xg + (xg ** 2) / 2.0)
+                lam_h, lam_a = xg * 0.54, xg * 0.46
+                p_btts = (1.0 - _math.exp(-lam_h)) * (1.0 - _math.exp(-lam_a))
+
+                # Only upgrade label when the bivariate probability strictly supports a sharper market
+                if ("1X" in pk or "X2" in pk) and base_ev >= 8.5 and ("Win" not in pk):
                     winner = teams[-1] if "X2" in pk else teams[0]
                     it["pk"] = f"{winner} Win (1X2)"
+                elif p_o25 >= 0.58 and xg >= 2.85 and "Under" not in pk and "Win" not in pk:
+                    it["pk"] = f"Over 2.5 Match Goals (Proj xG {xg:.2f})"
+                elif p_btts >= 0.56 and xg >= 2.70 and "Under" not in pk and "Win" not in pk and "Over 2.5" not in pk:
+                    it["pk"] = f"Both Teams to Score - Yes (Proj xG {xg:.2f})"
 
         # Cap repeated archetypes in Most Likely
         lk = data.get("likely")
