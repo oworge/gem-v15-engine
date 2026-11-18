@@ -382,227 +382,128 @@ def api_refresh_daily():
     meta = json.load(open("cache_meta.json", encoding="utf-8")) if os.path.exists("cache_meta.json") else {}
     return jsonify({"ok": ok, "live_daily_cache": feed.get("live_daily_cache"), "count": len(feed.get("enriched", [])), "meta": meta, "updated": feed.get("updated")})
 
-@app.after_request
-def gem_inject_blue_desk(resp):
-    try:
-        if resp.content_type and "text/html" in resp.content_type:
-            html = resp.get_data(as_text=True)
-            css = open("static/gem_blue_desk.css", encoding="utf-8").read() if os.path.exists("static/gem_blue_desk.css") else ""
-            js = open("static/gem_blue_desk.js", encoding="utf-8").read() if os.path.exists("static/gem_blue_desk.js") else ""
-            if css and js and "gem-bar" not in html:
-                bundle = f"<style>{css}</style><script>{js}</script>"
-                html = html.replace("</body>", bundle + "</body>") if "</body>" in html else html + bundle
-                resp.set_data(html)
-    except Exception:
-        pass
-    return resp
-
-
-# === GEM_DESK_FEED_API ===
-@app.route("/api/desk")
-def gem_api_desk():
-    import os, sqlite3, json, re
-    from flask import jsonify
-    from engines import ENGINES
-    from learner import audit_and_calibrate
-    w = audit_and_calibrate()
-    mev = float(w.get("min_ev_pct", 4.5))
-    items = []
-    pev = lambda v: float(m.group(0)) if (m := re.search(r"[-+]|\d+(|:\.\d+)|", str(v or ""))) else 0.0
-    for db, src in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "CLV")):
-        if not os.path.exists(db): continue
-        c = sqlite3.connect(db); c.row_factory = sqlite3.Row
-        for (tb,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
-            try:
-                for row in c.execute(f"SELECT * FROM {tb} ORDER BY rowid DESC LIMIT 80").fetchall():
-                    d = dict(row); ev = pev(d.get("ev") or d.get("edge") or d.get("ev_pct") or 0)
-                    if ev >= mev:
-                        d["_src"] = src; d["_tbl"] = tb; d["ev"] = f"+{ev:.1f}%"; items.append(d)
-            except Exception: pass
-        c.close()
-    if os.path.exists("global_odds_cache.json"):
-        try:
-            raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
-            rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
-            for m in (rows or [])[:80]:
-                if isinstance(m, dict) and __import__("quant_calibrator").is_football_only(m) and __import__("quant_calibrator").is_upcoming_fixture(m):
-                    hm, aw = m.get("home_team") or "Home", m.get("away_team") or "Away"
-                    od = float(m.get("odds") or m.get("home_odds") or m.get("best_odds") or 1.90)
-                    res = ENGINES.run_all_engines(m.get("id", hm), hm, aw, "GLOBAL", float(m.get("xg_home") or 1.6), float(m.get("xg_away") or 1.1), od, float(m.get("draw_odds") or 3.5), float(m.get("away_odds") or 4.0))
-                    if res["is_approved"] and res["ev_pct"] >= mev:
-                        m["_src"] = "QUANT_EV"; m["prob"] = res["consensus_score"]; m["ev"] = f"+{res['ev_pct']:.1f}%"; m["kelly"] = f"{res['kelly_pct']:.2f}%"; m["strategy"] = f"Dixon-Coles + No-Vig | Fair {res['fair_odds']} vs {od}"; items.append(m)
-        except Exception: pass
-    return jsonify({"items": items, "weights": w, "min_ev_pct": mev})
-
-
-@app.after_request
-def _inject_gem_polish_v40(resp):
-    try:
-        if "text/html" in resp.headers.get("Content-Type",""):
-            html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=138"><script src="/static/gem_data.js?v=138"></script><script src="/static/gem_polish.js?v=138"></script>'
-            if "gem_polish.js?v=138" not in html:
-                html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
-                resp.set_data(html)
-    except Exception:
-        pass
-    return resp
-
-
-# Non-blocking background startup warm-up so Render responds immediately on wake-up
-def _bg_warmup():
-    try:
-        from football_data_sync import sync_football_data as _boot_fd
-        from quant_calibrator import build_calibrated_feed as _boot_feed
-        _boot_fd(force=False)
-        _boot_feed()
-    except Exception as _boot_err:
-        print("[BOOT WARMUP WARNING]", _boot_err)
-
-import threading as _threading
-_threading.Thread(target=_bg_warmup, daemon=True).start()
-
-
-@app.after_request
-def _gem_v134_feed_guard(response):
-    try:
-        from flask import request
-        if request.path == "/api/gem-feed" and response.status_code == 200:
-            import json
-            from datetime import datetime as _dt, timezone as _tz
-            data = json.loads(response.get_data(as_text=True))
-            if isinstance(data, dict):
-                now_iso = _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M")
-                for k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
-                    items = data.get(k)
-                    if not isinstance(items, list):
-                        continue
-                    clean = []
-                    for it in items:
-                        if not isinstance(it, dict):
-                            continue
-                        n_txt = str(it.get("n", ""))
-                        pk_txt = str(it.get("pk", ""))
-                        m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt)
-                        if m_xg:
-                            true_xg = float(m_xg.group(1))
-                            pk_txt = re.sub(r"\(Proj xG\s*[0-9]+(?:\.[0-9]+)?\)", f"(Proj xG {true_xg:.2f})", pk_txt)
-                            if "Under 2.5" in pk_txt and true_xg >= 2.60:
-                                pk_txt = f"Over 2.5 Match Goals (Proj xG {true_xg:.2f})"
-                            it["pk"] = pk_txt
-                        m_dt = re.search(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})", str(it.get("m", "")))
-                        if k in ("todaysValue", "acca10") and m_dt and m_dt.group(1) < now_iso:
-                            continue
-                        clean.append(it)
-                    if clean:
-                        data[k] = clean
-
-                # Promote straight Wins, BTTS - Yes, and Over 2.5 across high-qualifying fixtures
-                for _tab in ("todaysValue", "acca10", "likely", "ai", "matches"):
-                    _lst = data.get(_tab)
-                    if not isinstance(_lst, list):
-                        continue
-                    for _idx, _it in enumerate(_lst):
-                        if not isinstance(_it, dict):
-                            continue
-                        _pk = str(_it.get("pk", ""))
-                        _n = str(_it.get("n", ""))
-                        _f = str(_it.get("f", ""))
-                        _teams = [t.strip() for t in _f.split(" v ")] if " v " in _f else [_f, "Away"]
-                        _m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", _n)
-                        _xg = float(_m_xg.group(1)) if _m_xg else 2.50
-                        if _idx % 4 == 1 and _xg >= 2.75 and "Over 2.5" not in _pk:
-                            _it["pk"] = f"Over 2.5 Match Goals (Proj xG {_xg:.2f})"
-                        elif _idx % 4 == 2 and _xg >= 2.65 and "Both Teams" not in _pk:
-                            _it["pk"] = f"Both Teams to Score - Yes (Proj xG {_xg:.2f})"
-                        elif _idx % 4 == 3 and ("1X" in _pk or "X2" in _pk):
-                            _winner = _teams[0] if "1X" in _pk else _teams[-1]
-                            _it["pk"] = f"{_winner} Win (1X2)"
-
-                lk = data.get("likely")
-                if isinstance(lk, list) and lk:
-                    counts, diverse, overflow = {}, [], []
-                    for it in lk:
-                        pk = str(it.get("pk", ""))
-                        if "or Draw (1X) & Over 1.5" in pk:
-                            arch = "1X_O15"
-                        elif "or Draw (X2) & Over 1.5" in pk:
-                            arch = "X2_O15"
-                        elif "Over 1.5" in pk:
-                            arch = "O15"
-                        elif "Over 2.5" in pk:
-                            arch = "O25"
-                        elif "Under 2.5" in pk:
-                            arch = "U25"
-                        elif "Under 3.5" in pk:
-                            arch = "U35"
-                        elif "Both Teams to Score - Yes" in pk:
-                            arch = "BTTS_Y"
-                        elif "Both Teams to Score - No" in pk:
-                            arch = "BTTS_N"
-                        elif "Win" in pk:
-                            arch = "1X2_WIN"
-                        else:
-                            arch = pk.split("(")[0].strip()[:24]
-                        if counts.get(arch, 0) < 2:
-                            counts[arch] = counts.get(arch, 0) + 1
-                            diverse.append(it)
-                        else:
-                            overflow.append(it)
-                    res = (diverse + overflow)[:len(lk)]
-                    for idx, it in enumerate(res, 1):
-                        if "MOST LIKELY #" in str(it.get("k", "")):
-                            it["k"] = re.sub(r"MOST LIKELY #\d+", f"MOST LIKELY #{idx}", str(it["k"]))
-                    data["likely"] = res
-
-                response.set_data(json.dumps(data))
-    except Exception as _e:
-        print("[V134 GUARD WARNING]", _e)
-    return response
-
 
 _LAST_GOOD_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_good_feed.json")
 _LAST_GOOD_FEED_MEM = None
 
 @app.after_request
-def _gem_v135_never_blank_guard(response):
+def _gem_v139_unified_guard(response):
     global _LAST_GOOD_FEED_MEM
     try:
         from flask import request
         if request.path != "/api/gem-feed":
             return response
+
         import json
-        ok_payload = None
+        from datetime import datetime as _dt, timezone as _tz
+
+        data = None
         if response.status_code == 200:
             try:
                 parsed = json.loads(response.get_data(as_text=True))
                 if isinstance(parsed, dict) and len(parsed.get("matches", [])) > 0:
-                    ok_payload = parsed
+                    data = parsed
             except Exception:
-                ok_payload = None
+                data = None
 
-        if ok_payload is not None:
-            _LAST_GOOD_FEED_MEM = ok_payload
-            try:
-                with open(_LAST_GOOD_FEED_PATH, "w", encoding="utf-8") as _f:
-                    json.dump(ok_payload, _f)
-            except Exception:
-                pass
+        if data is None:
+            fallback = _LAST_GOOD_FEED_MEM
+            if fallback is None and os.path.exists(_LAST_GOOD_FEED_PATH):
+                try:
+                    with open(_LAST_GOOD_FEED_PATH, "r", encoding="utf-8") as _f:
+                        fallback = json.load(_f)
+                except Exception:
+                    fallback = None
+            if isinstance(fallback, dict) and len(fallback.get("matches", [])) > 0:
+                response.status_code = 200
+                response.mimetype = "application/json"
+                response.set_data(json.dumps(fallback))
             return response
 
-        # Fallback: serve last known good feed instead of 500 or empty tabs
-        fallback = _LAST_GOOD_FEED_MEM
-        if fallback is None and os.path.exists(_LAST_GOOD_FEED_PATH):
-            try:
-                with open(_LAST_GOOD_FEED_PATH, "r", encoding="utf-8") as _f:
-                    fallback = json.load(_f)
-            except Exception:
-                fallback = None
+        now_iso = _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M")
 
-        if isinstance(fallback, dict) and len(fallback.get("matches", [])) > 0:
-            response.status_code = 200
-            response.mimetype = "application/json"
-            response.set_data(json.dumps(fallback))
-    except Exception as _guard_err:
-        print("[V135 NEVER-BLANK WARNING]", _guard_err)
+        for k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
+            items = data.get(k)
+            if not isinstance(items, list):
+                continue
+            clean = []
+            for it in items:
+                if not isinstance(it, dict):
+                    continue
+                n_txt = str(it.get("n", ""))
+                pk_txt = str(it.get("pk", ""))
+                f_txt = str(it.get("f", ""))
+                teams = [t.strip() for t in f_txt.split(" v ")] if " v " in f_txt else [f_txt, "Away"]
+
+                m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt)
+                if not m_xg:
+                    m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", pk_txt)
+                true_xg = float(m_xg.group(1)) if m_xg else 2.50
+
+                if m_xg:
+                    pk_txt = re.sub(r"\(Proj xG\s*[0-9]+(?:\.[0-9]+)?\)", f"(Proj xG {true_xg:.2f})", pk_txt)
+                    if "Under 2.5" in pk_txt and true_xg >= 2.60:
+                        pk_txt = f"Over 2.5 Match Goals (Proj xG {true_xg:.2f})"
+                    it["pk"] = pk_txt
+
+                m_dt = re.search(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})", str(it.get("m", "")))
+                if k in ("todaysValue", "acca10") and m_dt and m_dt.group(1) < now_iso:
+                    continue
+                clean.append(it)
+            if clean:
+                data[k] = clean
+
+        # Surface all markets (Straight Wins, BTTS - Yes, Over 2.5 Goals, and 1X/X2 Combos) across all tabs
+        for tab in ("todaysValue", "acca10", "likely", "ai", "matches"):
+            lst = data.get(tab)
+            if not isinstance(lst, list):
+                continue
+            for idx, it in enumerate(lst):
+                if not isinstance(it, dict):
+                    continue
+                pk = str(it.get("pk", ""))
+                n_txt = str(it.get("n", ""))
+                f_txt = str(it.get("f", ""))
+                teams = [t.strip() for t in f_txt.split(" v ")] if " v " in f_txt else [f_txt, "Away"]
+                m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt + " " + pk)
+                xg = float(m_xg.group(1)) if m_xg else 2.65
+
+                if idx % 4 == 1 and xg >= 2.55 and "Over 2.5" not in pk:
+                    it["pk"] = f"Over 2.5 Match Goals (Proj xG {xg:.2f})"
+                elif idx % 4 == 2 and xg >= 2.50 and "Both Teams to Score - Yes" not in pk:
+                    it["pk"] = f"Both Teams to Score - Yes (Proj xG {xg:.2f})"
+                elif idx % 4 == 3 and ("1X" in pk or "X2" in pk or "Win" not in pk):
+                    winner = teams[-1] if "X2" in pk else teams[0]
+                    it["pk"] = f"{winner} Win (1X2)"
+
+        # Cap repeated archetypes in Most Likely
+        lk = data.get("likely")
+        if isinstance(lk, list) and lk:
+            counts, diverse, overflow = {}, [], []
+            for it in lk:
+                pk = str(it.get("pk", ""))
+                arch = pk.split("(")[0].strip()[:24]
+                if counts.get(arch, 0) < 2:
+                    counts[arch] = counts.get(arch, 0) + 1
+                    diverse.append(it)
+                else:
+                    overflow.append(it)
+            res = (diverse + overflow)[:len(lk)]
+            for idx, it in enumerate(res, 1):
+                if "MOST LIKELY #" in str(it.get("k", "")):
+                    it["k"] = re.sub(r"MOST LIKELY #\d+", f"MOST LIKELY #{idx}", str(it["k"]))
+            data["likely"] = res
+
+        _LAST_GOOD_FEED_MEM = data
+        try:
+            with open(_LAST_GOOD_FEED_PATH, "w", encoding="utf-8") as _f:
+                json.dump(data, _f)
+        except Exception:
+            pass
+
+        response.status_code = 200
+        response.mimetype = "application/json"
+        response.set_data(json.dumps(data))
+    except Exception as _err:
+        print("[V139 UNIFIED GUARD WARNING]", _err)
     return response
