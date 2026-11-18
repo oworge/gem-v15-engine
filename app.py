@@ -351,11 +351,13 @@ def api_restore_state():
 
 @app.route("/api/refresh_daily")
 def api_refresh_daily():
+    import json, os
     from flask import jsonify
     from quant_calibrator import fetch_live_daily_fixtures, build_calibrated_feed
     ok = fetch_live_daily_fixtures(force=True)
     feed = build_calibrated_feed()
-    return jsonify({"ok": ok, "live_daily_cache": feed.get("live_daily_cache"), "count": len(feed.get("enriched", [])), "updated": feed.get("updated")})
+    meta = json.load(open("cache_meta.json", encoding="utf-8")) if os.path.exists("cache_meta.json") else {}
+    return jsonify({"ok": ok, "live_daily_cache": feed.get("live_daily_cache"), "count": len(feed.get("enriched", [])), "meta": meta, "updated": feed.get("updated")})
 
 @app.after_request
 def gem_inject_blue_desk(resp):
@@ -400,7 +402,7 @@ def gem_api_desk():
             raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
             for m in (rows or [])[:80]:
-                if isinstance(m, dict):
+                if isinstance(m, dict) and __import__("quant_calibrator").is_football_only(m) and __import__("quant_calibrator").is_upcoming_fixture(m):
                     hm, aw = m.get("home_team") or "Home", m.get("away_team") or "Away"
                     od = float(m.get("odds") or m.get("home_odds") or m.get("best_odds") or 1.90)
                     res = ENGINES.run_all_engines(m.get("id", hm), hm, aw, "GLOBAL", float(m.get("xg_home") or 1.6), float(m.get("xg_away") or 1.1), od, float(m.get("draw_odds") or 3.5), float(m.get("away_odds") or 4.0))
@@ -415,8 +417,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=95"><script src="/static/gem_data.js?v=95"></script><script src="/static/gem_polish.js?v=95"></script>'
-            if "gem_polish.js?v=95" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=96"><script src="/static/gem_data.js?v=96"></script><script src="/static/gem_polish.js?v=96"></script>'
+            if "gem_polish.js?v=96" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:

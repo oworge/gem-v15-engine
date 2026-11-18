@@ -19,27 +19,30 @@ CACHE_FILE = "global_odds_cache.json"
 CACHE_TTL = 900  # 15-minute live global refresh
 
 VERIFIED_SLATE_DATE = "2026-11-12"
-BASE_GLOBAL_SLATE = [
-    ("TÃ¼rkiye vs. Belgium", "UEFA Nations League (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.75, 1.55, 1.85),
-    ("Italy vs. France", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "BTTS Yes", 1.98, 1.77, 2.10),
-    ("England vs. Croatia", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "England Win & O1.5", 1.78, 1.60, 2.25),
-    ("Czechia vs. Spain", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Spain Win & O1.5", 1.86, 1.67, 2.28),
-    ("Ivory Coast vs. Gambia", "AFCON 2027 Qualifiers (2026-11-12 | 19:00 UTC)", "Ivory Coast Win & O1.5", 1.74, 1.57, 2.48),
-    ("Senegal vs. Sudan", "AFCON 2027 Qualifiers (2026-11-12 | 19:00 UTC)", "Senegal -1.5 AH", 1.67, 1.50, 2.68),
-    ("Cameroon vs. Namibia", "AFCON 2027 Qualifiers (2026-11-12 | 19:00 UTC)", "Cameroon Win", 1.72, 1.55, 2.55),
-    ("Ghana vs. Somalia", "AFCON 2027 Qualifiers (2026-11-12 | 15:00 UTC)", "Over 2.5 Goals", 1.68, 1.52, 2.60),
-    ("Albania vs. Finland", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Albania Win", 1.84, 1.67, 2.22),
-    ("Armenia vs. Cyprus", "UEFA Nations League (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.76, 1.60, 2.38),
-    ("Montenegro vs. Latvia", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Montenegro Win", 1.70, 1.55, 2.50),
-    ("San Marino vs. Belarus", "UEFA Nations League (2026-11-12 | 19:45 UTC)", "Belarus -1.5 AH", 1.75, 1.60, 2.40),
-    ("CuraÃ§ao vs. Panama", "CONCACAF Nations League QF (2026-11-12)", "Panama Win", 1.83, 1.68, 2.20),
-    ("Benin vs. Central African Republic", "AFCON 2027 Qualifiers (2026-11-12 | 19:00 UTC)", "Under 2.5 Goals", 1.79, 1.64, 2.32),
-    ("Madagascar vs. Guinea-Bissau", "AFCON 2027 Qualifiers (2026-11-12 | 16:00 UTC)", "1X Double Chance", 1.66, 1.52, 2.58),
-    ("Uzbekistan vs. Russia", "International Friendly (2026-11-12 | 15:00 UTC)", "BTTS Yes", 1.88, 1.74, 2.12),
-    ("Lithuania vs. Suriname", "International Friendly (2026-11-12 | 17:00 UTC)", "Over 1.5 Goals", 1.74, 1.62, 2.38),
-    ("Navalcarnero vs. Real Betis", "Spanish Copa del Rey (2026-11-12 | 18:00 UTC)", "Real Betis -1.5 AH", 1.69, 1.57, 2.48),
-    ("TarancÃ³n vs. Levante", "Spanish Copa del Rey (2026-11-12 | 18:00 UTC)", "Over 2.5 Goals", 1.67, 1.56, 2.52)
-]
+import os, json
+from datetime import datetime, timezone
+
+def _load_live_base_slate():
+    try:
+        from quant_calibrator import fetch_live_daily_fixtures, is_football_only, is_upcoming_fixture
+        fetch_live_daily_fixtures(force=False)
+        if os.path.exists("global_odds_cache.json"):
+            raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
+            rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
+            out = []
+            for m in (rows or []):
+                if isinstance(m, dict) and is_football_only(m) and is_upcoming_fixture(m):
+                    fx = f"{m.get('home_team','')} vs. {m.get('away_team','')}"
+                    lg = f"{m.get('league','Global Football')} ({m.get('kickoff','')[:16].replace('T',' ')} UTC)"
+                    h_od = float(m.get("home_odds") or 2.0)
+                    out.append((fx, lg, "Double Chance & O1.5", round(max(1.22, h_od * 0.72), 2), round(max(1.18, h_od * 0.66), 2), round(h_od, 2)))
+            if out:
+                return out
+    except Exception:
+        pass
+    return []
+
+BASE_GLOBAL_SLATE = _load_live_base_slate()
 
 BET_BUILDERS = [
     {"match": "Daily 5-Fold Elite Value Acca #1", "comp": "UEFA + AFCON Verified Today Slate", "pick": "Top Devigged Over 1.5 / BTTS / Sharp 1X2 Outliers", "odds": "15.80"},
