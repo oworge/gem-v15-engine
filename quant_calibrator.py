@@ -437,7 +437,7 @@ def build_calibrated_feed():
                 "p_home": round(_ph / _tot, 4), "p_draw": round(_pd / _tot, 4), "p_away": round(_pa / _tot, 4),
                 "p_o25": round(min(0.92, _po25 / _tot), 4), "p_u25": round(max(0.08, 1.0 - (_po25 / _tot)), 4),
                 "p_btts_y": round(min(0.90, _pbtts / _tot), 4), "p_btts_n": round(max(0.10, 1.0 - (_pbtts / _tot)), 4),
-                "cs": _best_sc
+                "cs": _best_sc, "top_cs": _best_sc
             }
         xg_tot = round(fd_lh + fd_la, 2)
         p_home = max(0.24, min(0.84, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
