@@ -211,77 +211,6 @@ def gem_api_history():
 
 
 @app.route("/api/gem-feed")
-
-def _postprocess_feed(data):
-    if not isinstance(data, dict):
-        return data
-    from datetime import datetime as _dt, timezone as _tz
-    now_iso = _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M")
-
-    # 1. Sync Proj xG labels & prune already kicked-off games from todaysValue / acca10
-    for k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
-        items = data.get(k)
-        if not isinstance(items, list):
-            continue
-        clean = []
-        for it in items:
-            if not isinstance(it, dict):
-                continue
-            n_txt = str(it.get("n", ""))
-            pk_txt = str(it.get("pk", ""))
-            m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt)
-            if m_xg:
-                true_xg = float(m_xg.group(1))
-                pk_txt = re.sub(r"\(Proj xG\s*[0-9]+(?:\.[0-9]+)?\)", f"(Proj xG {true_xg:.2f})", pk_txt)
-                if "Under 2.5" in pk_txt and true_xg >= 2.60:
-                    pk_txt = f"Over 2.5 Match Goals (Proj xG {true_xg:.2f})"
-                it["pk"] = pk_txt
-            m_dt = re.search(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})", str(it.get("m", "")))
-            if k in ("todaysValue", "acca10") and m_dt and m_dt.group(1) < now_iso:
-                continue
-            clean.append(it)
-        if clean:
-            data[k] = clean
-
-    # 2. Diversify Most Likely markets (max 2 per market archetype)
-    lk = data.get("likely")
-    if isinstance(lk, list) and lk:
-        counts, diverse, overflow = {}, [], []
-        for it in lk:
-            pk = str(it.get("pk", ""))
-            if "or Draw (1X) & Over 1.5" in pk:
-                arch = "1X_O15"
-            elif "or Draw (X2) & Over 1.5" in pk:
-                arch = "X2_O15"
-            elif "Over 1.5" in pk:
-                arch = "O15"
-            elif "Over 2.5" in pk:
-                arch = "O25"
-            elif "Under 2.5" in pk:
-                arch = "U25"
-            elif "Under 3.5" in pk:
-                arch = "U35"
-            elif "Both Teams to Score - Yes" in pk:
-                arch = "BTTS_Y"
-            elif "Both Teams to Score - No" in pk:
-                arch = "BTTS_N"
-            elif "Win" in pk:
-                arch = "1X2_WIN"
-            else:
-                arch = pk.split("(")[0].strip()[:24]
-            if counts.get(arch, 0) < 2:
-                counts[arch] = counts.get(arch, 0) + 1
-                diverse.append(it)
-            else:
-                overflow.append(it)
-        res = (diverse + overflow)[:len(lk)]
-        for idx, it in enumerate(res, 1):
-            if "MOST LIKELY #" in str(it.get("k", "")):
-                it["k"] = re.sub(r"MOST LIKELY #\d+", f"MOST LIKELY #{idx}", str(it["k"]))
-        data["likely"] = res
-
-    return data
-
 def api_gem_feed():
     from flask import jsonify
     from quant_calibrator import build_calibrated_feed, fetch_live_daily_fixtures
@@ -292,7 +221,7 @@ def api_gem_feed():
         data = build_calibrated_feed()
         en = data["enriched"]
     if not en:
-        return jsonify(_postprocess_feed({"live": False, "weights": data["weights"]}))
+        return jsonify({"live": False, "weights": data["weights"]})
     val = sorted([x for x in en if x["ev"] >= 4.5], key=lambda z: z["ev"], reverse=True)[:8]
     lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:6]
     ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:6]
@@ -314,12 +243,12 @@ def api_gem_feed():
     days_list = [{"label": f"{d} ({len(by_day[d])})", "picks": by_day[d]} for d in sorted(by_day)[:5]]
     if not days_list:
         days_list = [{"label": "Upcoming (0)", "picks": []}]
-    return jsonify(_postprocess_feed({
+    return jsonify({
         "live": True,
         "days": days_list,
         "upd": data["updated"],
         "weights": data["weights"],
-        "matches": data.get("enriched", [])),
+        "matches": data.get("enriched", []),
         "todaysValue": [{"k":f"BEST VALUE #{i+1} | +{x['ev']:.1f}% EV","p":f"{x['prob']:.0f}%","b":"Calibrated +EV Edge","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["pick"],"o":f"Bookie {x['odds']:.2f} vs Fair {x['fair']:.2f} | EV +{x['ev']:.1f}%","n":f"Kelly Stake: {x['kelly']:.2f}u | Proj xG {x['xg_sum']} | Top CS {x['top_cs']}"} for i,x in enumerate(val)],
         "likely": [{"k":f"MOST LIKELY #{i+1} | {x['prob']:.0f}% HIT RATE","p":f"{x['prob']:.0f}%","b":"High-Confidence Banker","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["combo_pick"],"o":f"Odds {x['odds']:.2f} | Calibrated Hit Prob {x['prob']:.1f}%","n":f"Dixon-Coles low-variance combo | Proj xG {x['xg_sum']}"} for i,x in enumerate(lik)],
         "ai": [{"k":f"AI BIVARIATE POISSON | SYN-9.6","p":f"{x['prob']:.0f}%","b":"AI Calibrated Engine","t":"ai","f":x["fixture"],"m":f"Dixon-Coles + Logit Pool | xG {x['xg_sum']}","pk":f"AI Pick: {x['pick']} (Proj CS {x['top_cs']})","o":f"Fair {x['fair']:.2f} vs Market {x['odds']:.2f} | Edge +{x['ev']:.1f}%","n":"Platt/Log-Odds sharp market prior + time-decayed npxG."} for x in ai_list],
@@ -511,8 +440,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=133"><script src="/static/gem_data.js?v=133"></script><script src="/static/gem_polish.js?v=133"></script>'
-            if "gem_polish.js?v=133" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=134"><script src="/static/gem_data.js?v=134"></script><script src="/static/gem_polish.js?v=134"></script>'
+            if "gem_polish.js?v=134" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
@@ -528,3 +457,79 @@ try:
     _boot_feed()
 except Exception as _boot_err:
     print("[BOOT WARMUP WARNING]", _boot_err)
+
+
+@app.after_request
+def _gem_v134_feed_guard(response):
+    try:
+        from flask import request
+        if request.path == "/api/gem-feed" and response.status_code == 200:
+            import json
+            from datetime import datetime as _dt, timezone as _tz
+            data = json.loads(response.get_data(as_text=True))
+            if isinstance(data, dict):
+                now_iso = _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M")
+                for k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
+                    items = data.get(k)
+                    if not isinstance(items, list):
+                        continue
+                    clean = []
+                    for it in items:
+                        if not isinstance(it, dict):
+                            continue
+                        n_txt = str(it.get("n", ""))
+                        pk_txt = str(it.get("pk", ""))
+                        m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt)
+                        if m_xg:
+                            true_xg = float(m_xg.group(1))
+                            pk_txt = re.sub(r"\(Proj xG\s*[0-9]+(?:\.[0-9]+)?\)", f"(Proj xG {true_xg:.2f})", pk_txt)
+                            if "Under 2.5" in pk_txt and true_xg >= 2.60:
+                                pk_txt = f"Over 2.5 Match Goals (Proj xG {true_xg:.2f})"
+                            it["pk"] = pk_txt
+                        m_dt = re.search(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})", str(it.get("m", "")))
+                        if k in ("todaysValue", "acca10") and m_dt and m_dt.group(1) < now_iso:
+                            continue
+                        clean.append(it)
+                    if clean:
+                        data[k] = clean
+
+                lk = data.get("likely")
+                if isinstance(lk, list) and lk:
+                    counts, diverse, overflow = {}, [], []
+                    for it in lk:
+                        pk = str(it.get("pk", ""))
+                        if "or Draw (1X) & Over 1.5" in pk:
+                            arch = "1X_O15"
+                        elif "or Draw (X2) & Over 1.5" in pk:
+                            arch = "X2_O15"
+                        elif "Over 1.5" in pk:
+                            arch = "O15"
+                        elif "Over 2.5" in pk:
+                            arch = "O25"
+                        elif "Under 2.5" in pk:
+                            arch = "U25"
+                        elif "Under 3.5" in pk:
+                            arch = "U35"
+                        elif "Both Teams to Score - Yes" in pk:
+                            arch = "BTTS_Y"
+                        elif "Both Teams to Score - No" in pk:
+                            arch = "BTTS_N"
+                        elif "Win" in pk:
+                            arch = "1X2_WIN"
+                        else:
+                            arch = pk.split("(")[0].strip()[:24]
+                        if counts.get(arch, 0) < 2:
+                            counts[arch] = counts.get(arch, 0) + 1
+                            diverse.append(it)
+                        else:
+                            overflow.append(it)
+                    res = (diverse + overflow)[:len(lk)]
+                    for idx, it in enumerate(res, 1):
+                        if "MOST LIKELY #" in str(it.get("k", "")):
+                            it["k"] = re.sub(r"MOST LIKELY #\d+", f"MOST LIKELY #{idx}", str(it["k"]))
+                    data["likely"] = res
+
+                response.set_data(json.dumps(data))
+    except Exception as _e:
+        print("[V134 GUARD WARNING]", _e)
+    return response
