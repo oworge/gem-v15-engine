@@ -187,6 +187,13 @@ def fetch_live_daily_fixtures(force=False):
                 return True
         except Exception:
             pass
+    # Purge stale/previous-day cache files before fresh daily API pull
+    for stale_fn in ("global_odds_cache.json", meta_file, "daily_v15_slip.json"):
+        if os.path.exists(stale_fn):
+            try:
+                os.remove(stale_fn)
+            except Exception:
+                pass
 
     odds_key = os.environ.get("ODDS_API_KEY") or os.environ.get("THE_ODDS_API_KEY") or ""
     af_key = os.environ.get("API_FOOTBALL_KEY") or ""
@@ -251,6 +258,7 @@ def fetch_live_daily_fixtures(force=False):
         except Exception:
             pass
 
+    fetched = [m for m in fetched if is_football_only(m) and is_upcoming_fixture(m)]
     if fetched:
         json.dump(fetched, open("global_odds_cache.json", "w", encoding="utf-8"), indent=2)
         json.dump({"date": today_str, "count": len(fetched), "updated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}, open(meta_file, "w", encoding="utf-8"))
@@ -269,7 +277,7 @@ def is_upcoming_fixture(item):
         dt = datetime.fromisoformat(ko.replace("Z", "+00:00"))
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        return dt >= (datetime.now(timezone.utc) - timedelta(hours=3))
+        return dt >= datetime.now(timezone.utc)
     except Exception:
         return True
 
