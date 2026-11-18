@@ -200,6 +200,10 @@ def _find_render_api_keys():
                 break
     return odds_k, af_k
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CACHE_PATH = os.path.join(BASE_DIR, "global_odds_cache.json")
+META_PATH = os.path.join(BASE_DIR, "cache_meta.json")
+
 def fetch_live_daily_fixtures(force=False):
     """Keyless daily live football engine using ESPN Public Scoreboard JSON with automatic expiration purge."""
     now_utc = datetime.now(timezone.utc)
