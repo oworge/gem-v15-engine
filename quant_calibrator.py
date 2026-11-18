@@ -1,5 +1,5 @@
 ﻿import math, json, os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from engines import ENGINES, logit_pool
 from learner import audit_and_calibrate, platt_calibrate
 
@@ -319,7 +319,6 @@ def fetch_live_daily_fixtures(force=False):
             diag_error = str(exc)
 
     if not fetched:
-        # Secondary live football-only feed when ODDS_API_KEY returns 401/quota limit
         espn_leagues = [
             ("eng.1", "Premier League"), ("eng.2", "EFL Championship"),
             ("eng.3", "EFL League One"), ("eng.4", "EFL League Two"),
@@ -335,7 +334,7 @@ def fetch_live_daily_fixtures(force=False):
         for slug, lg_name in espn_leagues:
             e_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={ymd_start}-{ymd_end}"
             try:
-                with urllib.request.urlopen(urllib.request.Request(e_url, headers={"User-Agent": "EdgeMETRIX-PRO-26/99.0"}), timeout=10) as er:
+                with urllib.request.urlopen(urllib.request.Request(e_url, headers={"User-Agent": "Mozilla/5.0"}), timeout=10) as er:
                     edata = json.loads(er.read().decode("utf-8"))
                 for ev in edata.get("events", []):
                     comp = (ev.get("competitions") or [{}])[0]
@@ -374,7 +373,8 @@ def fetch_live_daily_fixtures(force=False):
                         fetched.append(item)
                         if lg_name not in active_leagues:
                             active_leagues.append(lg_name)
-            except Exception:
+            except Exception as e_exc:
+                diag_error = f"{diag_error} | espn:{e_exc}"
                 continue
 
     env_key_names = [k for k in os.environ.keys() if any(w in k.upper() for w in ("KEY", "API", "TOKEN", "ODDS", "FOOTBALL", "SPORT"))]
