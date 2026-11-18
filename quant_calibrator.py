@@ -333,7 +333,9 @@ def is_upcoming_fixture(item):
 
 def is_football_only(item):
     sk = str(item.get("sport_key", "")).lower()
-    if sk and not sk.startswith("soccer_"):
+    if sk.startswith("soccer_"):
+        return True
+    if sk:
         return False
     blob = f"{item.get('league','')} {item.get('sport_title','')} {item.get('home_team','')} {item.get('away_team','')}".upper()
     return not any(t in blob for t in NON_FOOTBALL_TERMS)
