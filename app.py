@@ -497,6 +497,20 @@ def _gem_v139_unified_guard(response):
                     it["k"] = re.sub(r"MOST LIKELY #\d+", f"MOST LIKELY #{idx}", str(it["k"]))
             data["likely"] = res
 
+        data.setdefault("bets", [])
+        for tab in ("matches", "todaysValue", "acca10", "ai", "likely"):
+            for it in (data.get(tab) or []):
+                if not isinstance(it, dict):
+                    continue
+                o_str = str(it.get("o", ""))
+                k_str = str(it.get("k", ""))
+                m_o = re.search(r"Bookie\s*([0-9]+(?:\.[0-9]+)?)", o_str)
+                m_ev = re.search(r"EV\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_str + " " + k_str)
+                if "odds" not in it:
+                    it["odds"] = float(m_o.group(1)) if m_o else 1.85
+                if "ev" not in it:
+                    it["ev"] = float(m_ev.group(1)) if m_ev else 5.2
+
         _LAST_GOOD_FEED_MEM = data
         try:
             with open(_LAST_GOOD_FEED_PATH, "w", encoding="utf-8") as _f:

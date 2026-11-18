@@ -8,7 +8,7 @@
       });
     }
     Object.keys(localStorage).forEach(function(k) {
-      if (k.startsWith("gem_last_good_feed_") && k !== "gem_last_good_feed_v150") {
+      if (k.startsWith("gem_last_good_feed_") && k !== "gem_last_good_feed_v152") {
         localStorage.removeItem(k);
       }
     });
@@ -18,7 +18,7 @@
 
 // Permanent v135 Never-Blank Guard: cache last valid feed & auto-retry during Render cold starts
 (function() {
-  const CACHE_KEY = "gem_last_good_feed_v150";
+  const CACHE_KEY = "gem_last_good_feed_v152";
   const origFetch = window.fetch;
   if (!origFetch || window.__gemFetchGuarded) return;
   window.__gemFetchGuarded = true;
@@ -547,4 +547,25 @@ function injectRegionToggle(){
   bar.appendChild(grp);
 }
 setInterval(injectRegionToggle,900);
+})();
+
+
+// v152 Instant Desk Hydrator: sync /api/gem-feed into window.GEM_DATA and re-render all 9 tabs
+(function() {
+  async function syncDeskNow() {
+    try {
+      const r = await fetch("/api/gem-feed?v=152", { cache: "no-store" });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
+      window.GEM_DATA = Object.assign(window.GEM_DATA || {}, d);
+      if (typeof window.renderDesk === "function") window.renderDesk();
+      if (typeof window.hydrateDesk === "function") window.hydrateDesk(d);
+    } catch (e) {}
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", syncDeskNow);
+  } else {
+    syncDeskNow();
+  }
 })();
