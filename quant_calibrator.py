@@ -312,6 +312,11 @@ def fetch_live_daily_fixtures(force=False):
         "source": "espn_keyless_live",
         "updated": now_utc.strftime("%a %d %b, %H:%M UTC"),
     }
+    for _k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
+        for _item in _res.get(_k, []):
+            if isinstance(_item, dict):
+                _sync_pick_xg_label(_item)
+    return _res
     json.dump(meta_out, open(META_PATH, "w", encoding="utf-8"), indent=2)
     if fetched:
         json.dump(fetched, open(CACHE_PATH, "w", encoding="utf-8"), indent=2)
@@ -529,9 +534,4 @@ def build_calibrated_feed():
             if arb:
                 arbs.append(arb)
 
-    for _k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
-        if isinstance(locals().get(_k), list):
-            for _item in locals()[_k]:
-                if isinstance(_item, dict):
-                    _sync_pick_xg_label(_item)
-    return {"weights": w, "enriched": enriched, "arbs": arbs, "sharpness_score": 9.9, "updated": datetime.now(timezone.utc).strftime("%a %d %b, %H:%M UTC")}
+    _res = {"weights": w, "enriched": enriched, "arbs": arbs, "sharpness_score": 9.9, "updated": datetime.now(timezone.utc).strftime("%a %d %b, %H:%M UTC")}
