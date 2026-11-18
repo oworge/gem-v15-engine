@@ -172,75 +172,112 @@ def detect_arb(home, away, league, odds_a, book_a, odds_b, book_b, mkt_label):
 
 import urllib.request, urllib.parse
 
+def _find_render_api_keys():
+    odds_k = (
+        os.environ.get("ODDS_API_KEY")
+        or os.environ.get("THE_ODDS_API_KEY")
+        or os.environ.get("SPORTS_API_KEY")
+        or os.environ.get("ODDS_KEY")
+        or ""
+    ).strip()
+    af_k = (
+        os.environ.get("API_FOOTBALL_KEY")
+        or os.environ.get("FOOTBALL_API_KEY")
+        or os.environ.get("APISPORTS_KEY")
+        or ""
+    ).strip()
+    if not odds_k:
+        for k, v in os.environ.items():
+            ku = k.upper()
+            if ("ODDS" in ku or "SPORT" in ku) and ("KEY" in ku or "TOKEN" in ku) and v.strip():
+                odds_k = v.strip()
+                break
+    if not af_k:
+        for k, v in os.environ.items():
+            ku = k.upper()
+            if "FOOTBALL" in ku and ("KEY" in ku or "TOKEN" in ku) and v.strip():
+                af_k = v.strip()
+                break
+    return odds_k, af_k
+
 def fetch_live_daily_fixtures(force=False):
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     meta_file = "cache_meta.json"
     if force:
-        for fn in ("global_odds_cache.json", meta_file):
+        for fn in ("global_odds_cache.json", meta_file, "daily_v15_slip.json"):
             if os.path.exists(fn):
                 try: os.remove(fn)
                 except Exception: pass
-    if not force and os.path.exists(meta_file) and os.path.exists("global_odds_cache.json"):
+    elif os.path.exists(meta_file) and os.path.exists("global_odds_cache.json"):
         try:
             meta = json.load(open(meta_file, encoding="utf-8"))
             if meta.get("date") == today_str and meta.get("count", 0) > 0:
                 return True
         except Exception:
             pass
-    # Purge stale/previous-day cache files before fresh daily API pull
-    for stale_fn in ("global_odds_cache.json", meta_file, "daily_v15_slip.json"):
-        if os.path.exists(stale_fn):
-            try:
-                os.remove(stale_fn)
-            except Exception:
-                pass
-    # Purge stale/previous-day cache files before fresh daily API pull
-    for stale_fn in ("global_odds_cache.json", meta_file, "daily_v15_slip.json"):
-        if os.path.exists(stale_fn):
-            try:
-                os.remove(stale_fn)
-            except Exception:
-                pass
+    else:
+        for stale_fn in ("global_odds_cache.json", meta_file, "daily_v15_slip.json"):
+            if os.path.exists(stale_fn):
+                try: os.remove(stale_fn)
+                except Exception: pass
 
-    odds_key = os.environ.get("ODDS_API_KEY") or os.environ.get("THE_ODDS_API_KEY") or ""
-    af_key = os.environ.get("API_FOOTBALL_KEY") or ""
+    odds_key, af_key = _find_render_api_keys()
     fetched = []
+    diag_error = None
+    active_leagues = []
 
     if odds_key:
         try:
-            url = f"https://api.the-odds-api.com/v4/sports/upcoming/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu&markets=h2h&oddsFormat=decimal"
-            req = urllib.request.Request(url, headers={"User-Agent": "EdgeMETRIX-PRO-26/89.0"})
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                events = json.loads(resp.read().decode("utf-8"))
-            for ev in [e for e in events if str(e.get("sport_key","")).startswith("soccer_")][:60]:
-                h_team = ev.get("home_team", "")
-                a_team = ev.get("away_team", "")
-                lg = ev.get("sport_title", "Global Football")
-                ko = ev.get("commence_time", f"{today_str}T19:45:00Z")
-                h_od, d_od, a_od, o25_od, u25_od = 2.10, 3.40, 3.40, 1.85, 1.95
-                for bm in ev.get("bookmakers", [])[:3]:
-                    for mkt in bm.get("markets", []):
-                        if mkt.get("key") == "h2h":
-                            for out in mkt.get("outcomes", []):
-                                if out.get("name") == h_team: h_od = float(out.get("price", h_od))
-                                elif out.get("name") == a_team: a_od = float(out.get("price", a_od))
-                                elif out.get("name", "").lower() == "draw": d_od = float(out.get("price", d_od))
-                        elif mkt.get("key") == "totals":
-                            for out in mkt.get("outcomes", []):
-                                if out.get("name") == "Over" and float(out.get("point", 0)) == 2.5:
-                                    o25_od = float(out.get("price", o25_od))
-                                elif out.get("name") == "Under" and float(out.get("point", 0)) == 2.5:
-                                    u25_od = float(out.get("price", u25_od))
-                if h_team and a_team:
-                    fetched.append({
-                        "home_team": h_team, "away_team": a_team, "league": lg,
-                        "kickoff": ko, "home_odds": h_od, "draw_odds": d_od, "away_odds": a_od,
-                        "over_25_odds": o25_od, "under_25_odds": u25_od,
-                        "xg_home": round(max(0.65, 2.65 / max(1.15, h_od)), 2),
-                        "xg_away": round(max(0.55, 2.65 / max(1.15, a_od)), 2)
-                    })
-        except Exception:
-            pass
+            sp_url = f"https://api.the-odds-api.com/v4/sports/?apiKey={urllib.parse.quote(odds_key)}"
+            with urllib.request.urlopen(urllib.request.Request(sp_url, headers={"User-Agent": "EdgeMETRIX-PRO-26/95.0"}), timeout=15) as r:
+                sports = json.loads(r.read().decode("utf-8"))
+            soccer_keys = [
+                sp["key"] for sp in sports
+                if (str(sp.get("key", "")).startswith("soccer_") or str(sp.get("group", "")).lower() == "soccer")
+                and sp.get("active")
+            ]
+            active_leagues = soccer_keys[:20]
+            seen_ids = set()
+            for sk in active_leagues:
+                url = f"https://api.the-odds-api.com/v4/sports/{sk}/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu&markets=h2h&oddsFormat=decimal"
+                try:
+                    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "EdgeMETRIX-PRO-26/95.0"}), timeout=15) as resp:
+                        events = json.loads(resp.read().decode("utf-8"))
+                except Exception:
+                    continue
+                for ev in events:
+                    if not str(ev.get("sport_key", "")).startswith("soccer_"):
+                        continue
+                    eid = ev.get("id") or f"{ev.get('home_team')}_{ev.get('away_team')}"
+                    if eid in seen_ids:
+                        continue
+                    seen_ids.add(eid)
+                    h_team, a_team = ev.get("home_team", ""), ev.get("away_team", "")
+                    lg = ev.get("sport_title", "Global Football")
+                    ko = ev.get("commence_time", f"{today_str}T19:45:00Z")
+                    h_od, d_od, a_od = 2.10, 3.40, 3.40
+                    for bm in ev.get("bookmakers", [])[:3]:
+                        for mkt in bm.get("markets", []):
+                            if mkt.get("key") == "h2h":
+                                for out in mkt.get("outcomes", []):
+                                    if out.get("name") == h_team: h_od = float(out.get("price", h_od))
+                                    elif out.get("name") == a_team: a_od = float(out.get("price", a_od))
+                                    elif out.get("name", "").lower() == "draw": d_od = float(out.get("price", d_od))
+                    if h_team and a_team:
+                        item = {
+                            "sport_key": ev.get("sport_key", sk),
+                            "home_team": h_team, "away_team": a_team, "league": lg,
+                            "kickoff": ko, "home_odds": h_od, "draw_odds": d_od, "away_odds": a_od,
+                            "over_25_odds": 1.85, "under_25_odds": 1.95,
+                            "xg_home": round(max(0.65, 2.65 / max(1.15, h_od)), 2),
+                            "xg_away": round(max(0.55, 2.65 / max(1.15, a_od)), 2)
+                        }
+                        if is_football_only(item) and is_upcoming_fixture(item):
+                            fetched.append(item)
+                if len(fetched) >= 60:
+                    break
+        except Exception as exc:
+            diag_error = str(exc)
 
     if not fetched and af_key:
         try:
@@ -248,34 +285,38 @@ def fetch_live_daily_fixtures(force=False):
             req = urllib.request.Request(url, headers={"x-apisports-key": af_key})
             with urllib.request.urlopen(req, timeout=20) as resp:
                 data = json.loads(resp.read().decode("utf-8")).get("response", [])
-            for item in data[:60]:
-                fix = item.get("fixture", {})
-                teams = item.get("teams", {})
-                lg = item.get("league", {}).get("name", "Global Football")
+            for row in data[:60]:
+                fix = row.get("fixture", {})
+                teams = row.get("teams", {})
+                lg = row.get("league", {}).get("name", "Global Football")
                 h_team = teams.get("home", {}).get("name", "")
                 a_team = teams.get("away", {}).get("name", "")
                 if h_team and a_team:
-                    fetched.append({
+                    item = {
+                        "sport_key": "soccer_apifootball",
                         "home_team": h_team, "away_team": a_team, "league": lg,
                         "kickoff": fix.get("date", f"{today_str}T19:45:00Z"),
                         "home_odds": 2.05, "draw_odds": 3.40, "away_odds": 3.50,
                         "over_25_odds": 1.85, "under_25_odds": 1.95,
                         "xg_home": 1.52, "xg_away": 1.18
-                    })
-        except Exception:
-            pass
+                    }
+                    if is_football_only(item) and is_upcoming_fixture(item):
+                        fetched.append(item)
+        except Exception as exc:
+            diag_error = str(exc)
 
-    fetched = [m for m in fetched if is_football_only(m) and is_upcoming_fixture(m)]
-    fetched = [m for m in fetched if is_football_only(m) and is_upcoming_fixture(m)]
+    env_key_names = [k for k in os.environ.keys() if any(w in k.upper() for w in ("KEY", "API", "TOKEN", "ODDS", "FOOTBALL", "SPORT"))]
     if fetched:
         json.dump(fetched, open("global_odds_cache.json", "w", encoding="utf-8"), indent=2)
-        json.dump({"date": today_str, "count": len(fetched), "updated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}, open(meta_file, "w", encoding="utf-8"))
+        json.dump({"date": today_str, "count": len(fetched), "leagues": active_leagues[:8], "updated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}, open(meta_file, "w", encoding="utf-8"))
         return True
+    json.dump({
+        "date": today_str, "count": 0,
+        "has_odds_key": bool(odds_key), "has_af_key": bool(af_key),
+        "detected_env_names": env_key_names,
+        "error": diag_error or "No live soccer fixtures returned"
+    }, open(meta_file, "w", encoding="utf-8"))
     return False
-
-
-NON_FOOTBALL_TERMS = ("NBA", "NFL", "NHL", "MLB", "TENNIS", "ATP", "WTA", "BASKETBALL", "HOCKEY", "BASEBALL", "CRICKET", "RUGBY", "UFC", "MMA", "BOXING", "GOLF", "AMERICAN FOOTBALL")
-
 
 def is_upcoming_fixture(item):
     ko = str(item.get("kickoff") or item.get("commence_time") or "").strip()
@@ -309,10 +350,7 @@ def build_calibrated_feed():
                 raw_matches.extend([r for r in rows if isinstance(r, dict) and is_football_only(r) and is_upcoming_fixture(r)])
         except Exception:
             pass
-    if len(raw_matches) < 38:
-        raw_matches.extend(FALLBACK_SLATE)
-        raw_matches.extend(SEVEN_DAY_EXTRA)
-        raw_matches.extend(UK_GLOBAL_LEAGUES_POOL)
+    # Strict live-only mode: never inject static fallback/old fixtures
 
     seen_fixtures = set()
     enriched, arbs = [], []
