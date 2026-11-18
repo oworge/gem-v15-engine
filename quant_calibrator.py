@@ -212,7 +212,7 @@ def fetch_live_daily_fixtures(force=False):
     if not force and os.path.exists(CACHE_PATH) and os.path.exists(META_PATH):
         try:
             meta = json.load(open(META_PATH, encoding="utf-8"))
-            cached = json.load(open(CACHE_PATH, encoding="utf-8"))
+            cached = json.load(open(cache_f, encoding="utf-8"))
             fresh = [m for m in cached if is_football_only(m) and is_upcoming_fixture(m)]
             if meta.get("date") == today_str and len(fresh) > 0:
                 if len(fresh) != len(cached):
@@ -345,9 +345,10 @@ def build_calibrated_feed():
     w["sharpness_score"] = 9.9
     w["last_brier"] = min(float(w.get("last_brier", 0.185)), 0.185)
     raw_matches = []
-    if not os.path.exists(CACHE_PATH):
+    cache_f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "global_odds_cache.json")
+    if not os.path.exists(cache_f):
         fetch_live_daily_fixtures(force=True)
-    if os.path.exists(CACHE_PATH):
+    if os.path.exists(cache_f):
         try:
             raw = json.load(open(CACHE_PATH, encoding="utf-8"))
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
