@@ -224,6 +224,7 @@ def fetch_live_daily_fixtures(force=False):
     odds_key, af_key = _find_render_api_keys()
     fetched = []
     diag_error = None
+    http_errors = []
     active_leagues = []
 
     if odds_key:
