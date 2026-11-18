@@ -175,6 +175,11 @@ import urllib.request, urllib.parse
 def fetch_live_daily_fixtures(force=False):
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     meta_file = "cache_meta.json"
+    if force:
+        for fn in ("global_odds_cache.json", meta_file):
+            if os.path.exists(fn):
+                try: os.remove(fn)
+                except Exception: pass
     if not force and os.path.exists(meta_file) and os.path.exists("global_odds_cache.json"):
         try:
             meta = json.load(open(meta_file, encoding="utf-8"))
@@ -255,6 +260,19 @@ def fetch_live_daily_fixtures(force=False):
 
 NON_FOOTBALL_TERMS = ("NBA", "NFL", "NHL", "MLB", "TENNIS", "ATP", "WTA", "BASKETBALL", "HOCKEY", "BASEBALL", "CRICKET", "RUGBY", "UFC", "MMA", "BOXING", "GOLF", "AMERICAN FOOTBALL")
 
+
+def is_upcoming_fixture(item):
+    ko = str(item.get("kickoff") or item.get("commence_time") or "").strip()
+    if not ko or not ko[0].isdigit():
+        return True
+    try:
+        dt = datetime.fromisoformat(ko.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt >= (datetime.now(timezone.utc) - timedelta(hours=3))
+    except Exception:
+        return True
+
 def is_football_only(item):
     sk = str(item.get("sport_key", "")).lower()
     if sk and not sk.startswith("soccer_"):
@@ -272,7 +290,7 @@ def build_calibrated_feed():
             raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
             if isinstance(rows, list):
-                raw_matches.extend([r for r in rows if isinstance(r, dict) and is_football_only(r)])
+                raw_matches.extend([r for r in rows if isinstance(r, dict) and is_football_only(r) and is_upcoming_fixture(r)])
         except Exception:
             pass
     if len(raw_matches) < 38:
