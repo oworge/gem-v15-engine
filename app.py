@@ -222,8 +222,26 @@ def api_gem_feed():
     lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:6]
     ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:6]
     acca = sorted(en, key=lambda z: (z["prob"] / max(1.15, z["odds"])), reverse=True)[:10]
+    by_day = {}
+    for x in en:
+        kr = str(x.get("kickoff", ""))
+        dk = kr[:10] if len(kr) >= 10 else "Upcoming"
+        by_day.setdefault(dk, []).append({
+            "k": f"{x['league']} | {kr[11:16] or '19:45'} UTC",
+            "p": f"{x['prob']:.0f}%",
+            "b": f"+{x['ev']:.1f}% EV | Live Slate",
+            "f": x["fixture"],
+            "m": f"{x['league']} | {kr}",
+            "pk": x["pick"],
+            "o": f"Odds {x['odds']:.2f} vs Fair {x['fair']:.2f} | EV +{x['ev']:.1f}%",
+            "n": f"Proj xG {x['xg_sum']} | Top CS {x['top_cs']} | Kelly {x['kelly']:.2f}u"
+        })
+    days_list = [{"label": f"{d} ({len(by_day[d])})", "picks": by_day[d]} for d in sorted(by_day)[:5]]
+    if not days_list:
+        days_list = [{"label": "Upcoming (0)", "picks": []}]
     return jsonify({
         "live": True,
+        "days": days_list,
         "upd": data["updated"],
         "weights": data["weights"],
         "matches": data.get("enriched", []),
@@ -418,8 +436,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=109"><script src="/static/gem_data.js?v=109"></script><script src="/static/gem_polish.js?v=109"></script>'
-            if "gem_polish.js?v=109" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=110"><script src="/static/gem_data.js?v=110"></script><script src="/static/gem_polish.js?v=110"></script>'
+            if "gem_polish.js?v=110" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
