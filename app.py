@@ -475,18 +475,33 @@ def _gem_v139_unified_guard(response):
                 m_ev = re.search(r"EV\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_txt)
                 base_ev = float(m_ev.group(1)) if m_ev else 5.0
 
-                # Compute exact Poisson P(Over 2.5) and P(BTTS Yes) from projected total xG
-                p_o25 = 1.0 - _math.exp(-xg) * (1.0 + xg + (xg ** 2) / 2.0)
-                lam_h, lam_a = xg * 0.54, xg * 0.46
-                p_btts = (1.0 - _math.exp(-lam_h)) * (1.0 - _math.exp(-lam_a))
+                # Exact 8x8 Dixon-Coles Joint Bivariate Matrix with league-specific low-score rho
+                lg_txt = str(it.get("m", "")).upper()
+                rho = -0.14 if any(x in lg_txt for x in ("SERIE A", "LIGUE 1", "LA LIGA", "SEGUNDA")) else (
+                      -0.08 if any(x in lg_txt for x in ("BUNDESLIGA", "EREDIVISIE", "CHAMPIONS")) else -0.11)
+                lam_h, lam_a = max(0.25, xg * 0.54), max(0.20, xg * 0.46)
+                p_o25 = 0.0
+                p_btts = 0.0
+                for gh in range(8):
+                    ph = _math.exp(-lam_h) * (lam_h ** gh) / _math.factorial(gh)
+                    for ga in range(8):
+                        pa = _math.exp(-lam_a) * (lam_a ** ga) / _math.factorial(ga)
+                        tau = (1.0 - lam_h * lam_a * rho) if (gh == 0 and ga == 0) else (
+                              (1.0 + lam_h * rho) if (gh == 0 and ga == 1) else (
+                              (1.0 + lam_a * rho) if (gh == 1 and ga == 0) else (
+                              (1.0 - rho) if (gh == 1 and ga == 1) else 1.0)))
+                        cell = max(0.0, ph * pa * tau)
+                        if gh + ga >= 3:
+                            p_o25 += cell
+                        if gh >= 1 and ga >= 1:
+                            p_btts += cell
 
-                # Only upgrade label when the bivariate probability strictly supports a sharper market
                 if ("1X" in pk or "X2" in pk) and base_ev >= 8.5 and ("Win" not in pk):
                     winner = teams[-1] if "X2" in pk else teams[0]
                     it["pk"] = f"{winner} Win (1X2)"
-                elif p_o25 >= 0.58 and xg >= 2.85 and "Under" not in pk and "Win" not in pk:
+                elif p_o25 >= 0.575 and xg >= 2.82 and "Under" not in pk and "Win" not in pk:
                     it["pk"] = f"Over 2.5 Match Goals (Proj xG {xg:.2f})"
-                elif p_btts >= 0.56 and xg >= 2.70 and "Under" not in pk and "Win" not in pk and "Over 2.5" not in pk:
+                elif p_btts >= 0.555 and xg >= 2.68 and "Under" not in pk and "Win" not in pk and "Over 2.5" not in pk:
                     it["pk"] = f"Both Teams to Score - Yes (Proj xG {xg:.2f})"
 
         # Cap repeated archetypes in Most Likely

@@ -1,11 +1,11 @@
 {
-  "dc_weight": 0.42,
-  "market_weight": 0.58,
-  "min_ev_pct": 4.5,
+  "dc_weight": 0.465,
+  "market_weight": 0.535,
+  "min_ev_pct": 4.2,
   "platt": {
     "1X2": {
-      "a": 0.92,
-      "b": -0.04
+      "a": 0.95,
+      "b": 0.25
     },
     "COMBO": {
       "a": 0.94,
@@ -31,5 +31,9 @@
     "CS"
   ],
   "max_ev_pct": 14.5,
-  "enforce_global_ev_floor": true
+  "enforce_global_ev_floor": true,
+  "last_brier": 0.1499,
+  "last_logloss": 0.4882,
+  "last_sample": 4,
+  "realized_hit_rate": 1.0
 }

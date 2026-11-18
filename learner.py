@@ -60,24 +60,36 @@ def audit_and_calibrate():
                     outcomes.append((min(0.95, max(0.05, p)), y, fam))
         c.close()
 
-    if len(outcomes) >= 8:
+    if len(outcomes) >= 4:
         brier = sum((p - y) ** 2 for p, y, _ in outcomes) / len(outcomes)
+        logloss = -sum(y * math.log(max(1e-6, p)) + (1.0 - y) * math.log(max(1e-6, 1.0 - p)) for p, y, _ in outcomes) / len(outcomes)
         avg_pred = sum(p for p, _, _ in outcomes) / len(outcomes)
         avg_hit = sum(y for _, y, _ in outcomes) / len(outcomes)
         w["last_brier"] = round(brier, 4)
+        w["last_logloss"] = round(logloss, 4)
         w["last_sample"] = len(outcomes)
+        w["realized_hit_rate"] = round(avg_hit, 4)
+
+        # Bidirectional calibration: penalize overconfidence, reward verified outperformance
         if (avg_pred - avg_hit) > 0.04 or brier > 0.225:
             w["market_weight"] = round(min(0.78, w["market_weight"] + 0.025), 3)
             w["dc_weight"] = round(1.0 - w["market_weight"], 3)
-            w["min_ev_pct"] = round(min(5.2, w["min_ev_pct"] + 0.2), 2)
+            w["min_ev_pct"] = round(min(5.5, w["min_ev_pct"] + 0.2), 2)
+        elif (avg_hit - avg_pred) > 0.05 and brier < 0.215:
+            w["market_weight"] = round(max(0.48, w["market_weight"] - 0.015), 3)
+            w["dc_weight"] = round(1.0 - w["market_weight"], 3)
+            w["min_ev_pct"] = round(max(4.0, w["min_ev_pct"] - 0.1), 2)
+
         for fam in ("1X2", "COMBO", "TOTALS", "BTTS"):
             sub = [(p, y) for p, y, f in outcomes if f == fam]
-            if len(sub) >= 5:
+            if len(sub) >= 3:
                 err = (sum(y for _, y in sub) / len(sub)) - (sum(p for p, _ in sub) / len(sub))
                 cur = w["platt"].get(fam, {"a": 0.93, "b": -0.03})
-                cur["b"] = round(max(-0.35, min(0.25, cur["b"] + err * 0.4)), 4)
+                cur["b"] = round(max(-0.35, min(0.25, cur["b"] + err * 0.35)), 4)
                 if err < -0.05:
                     cur["a"] = round(max(0.75, cur["a"] - 0.02), 4)
+                elif err > 0.06:
+                    cur["a"] = round(min(1.04, cur["a"] + 0.01), 4)
                 w["platt"][fam] = cur
         save_weights(w)
     return w
