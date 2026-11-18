@@ -236,10 +236,10 @@ def fetch_live_daily_fixtures(force=False):
                 if (str(sp.get("key", "")).startswith("soccer_") or str(sp.get("group", "")).lower() == "soccer")
                 and sp.get("active")
             ]
-            active_leagues = soccer_keys[:20]
+            active_leagues = soccer_keys
             seen_ids = set()
             for sk in active_leagues:
-                url = f"https://api.the-odds-api.com/v4/sports/{sk}/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu&markets=h2h&oddsFormat=decimal"
+                url = f"https://api.the-odds-api.com/v4/sports/{sk}/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu,us&markets=h2h&oddsFormat=decimal"
                 try:
                     with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "EdgeMETRIX-PRO-26/95.0"}), timeout=15) as resp:
                         events = json.loads(resp.read().decode("utf-8"))
@@ -274,7 +274,7 @@ def fetch_live_daily_fixtures(force=False):
                         }
                         if is_football_only(item) and is_upcoming_fixture(item):
                             fetched.append(item)
-                if len(fetched) >= 60:
+                if len(fetched) >= 120:
                     break
         except Exception as exc:
             diag_error = str(exc)
@@ -314,7 +314,7 @@ def fetch_live_daily_fixtures(force=False):
         "date": today_str, "count": 0,
         "has_odds_key": bool(odds_key), "has_af_key": bool(af_key),
         "detected_env_names": env_key_names,
-        "error": diag_error or "No live soccer fixtures returned"
+        "error": diag_error or f"Checked {len(active_leagues)} active soccer keys, 0 upcoming events matched"
     }, open(meta_file, "w", encoding="utf-8"))
     return False
 
