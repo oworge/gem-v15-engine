@@ -441,7 +441,7 @@ def build_calibrated_feed():
             "kickoff": ko,
             "day_offset": day_off,
             "day_label": day_tag,
-            "pick": f"{hm} Win (1X2)" if use_main else combo_pick,
+            "pick": best_pick,
             "combo_pick": combo_pick,
             "odds": best_odds,
             "fair": fair,
