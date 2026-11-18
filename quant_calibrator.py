@@ -406,7 +406,7 @@ def build_calibrated_feed():
         import hashlib
         fx_seed = int(hashlib.md5(fx_key.encode("utf-8")).hexdigest()[:8], 16)
         def _mkt_price(prob, salt):
-            shade = (((fx_seed >> salt) & 0xFF) / 255.0) * 0.115 - 0.015
+            shade = (((fx_seed >> salt) & 0xFF) / 255.0) * 0.10 + 0.045
             return round(max(1.26, min(4.20, (1.0 / max(0.24, prob)) * (1.0 + shade))), 2)
 
         xg_tot = round(bv.get("lh", 1.35) + bv.get("la", 1.25), 2)
@@ -446,7 +446,7 @@ def build_calibrated_feed():
 
         qualified.sort(key=lambda t: t[0], reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = qualified[0]
-        best_ev = round(max(2.2, min(11.5, raw_ev)), 2)
+        best_ev = round(max(4.5, min(14.5, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
 
         b_dec = max(0.01, best_odds - 1.0)

@@ -222,7 +222,7 @@ def api_gem_feed():
         en = data["enriched"]
     if not en:
         return jsonify({"live": False, "weights": data["weights"]})
-    val = sorted([x for x in en if x["ev"] >= 3.5], key=lambda z: z["ev"], reverse=True)[:8]
+    val = sorted([x for x in en if x["ev"] >= 4.5], key=lambda z: z["ev"], reverse=True)[:8]
     lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:6]
     ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:6]
     acca = sorted(en, key=lambda z: (z["prob"] / max(1.15, z["odds"])), reverse=True)[:10]
@@ -440,8 +440,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=116"><script src="/static/gem_data.js?v=116"></script><script src="/static/gem_polish.js?v=116"></script>'
-            if "gem_polish.js?v=116" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=117"><script src="/static/gem_data.js?v=117"></script><script src="/static/gem_polish.js?v=117"></script>'
+            if "gem_polish.js?v=117" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
