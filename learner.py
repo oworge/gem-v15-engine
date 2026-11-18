@@ -91,5 +91,6 @@ def audit_and_calibrate():
                 elif err > 0.06:
                     cur["a"] = round(min(1.04, cur["a"] + 0.01), 4)
                 w["platt"][fam] = cur
+        w.setdefault("dc_by_market", {"1X2": w["dc_weight"], "COMBO": w["dc_weight"], "TOTALS": round(min(0.55, w["dc_weight"] + 0.04), 3), "BTTS": round(min(0.55, w["dc_weight"] + 0.03), 3)})
         save_weights(w)
     return w

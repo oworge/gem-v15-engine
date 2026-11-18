@@ -425,44 +425,46 @@ def build_calibrated_feed():
             return round(max(1.26, min(4.20, (1.0 / max(0.24, prob)) * (1.0 + shade))), 2)
 
         fd_lh, fd_la, has_fd = get_fixture_xg(hm, aw, bv.get("lh", 1.38), bv.get("la", 1.18))
-        if has_fd:
-            import math as _m
-            _ph = _pd = _pa = _po25 = _pbtts = 0.0
-            _cells = []
-            for _i in range(7):
-                _pi = (_m.exp(-fd_lh) * (fd_lh ** _i)) / _m.factorial(_i)
-                for _j in range(7):
-                    _pj = (_m.exp(-fd_la) * (fd_la ** _j)) / _m.factorial(_j)
-                    _p = _pi * _pj
-                    if _i == 0 and _j == 0: _p *= 1.08
-                    elif _i == 1 and _j == 1: _p *= 1.05
-                    if _i > _j: _ph += _p
-                    elif _i == _j: _pd += _p
-                    else: _pa += _p
-                    if (_i + _j) >= 3: _po25 += _p
-                    if _i >= 1 and _j >= 1: _pbtts += _p
-                    _cells.append((_p, f"{_i}-{_j}"))
-            _tot = max(1e-6, _ph + _pd + _pa)
-            _cells.sort(reverse=True)
-            _best_sc = _cells[0][1]
-            _cluster = "/".join(sc for _, sc in _cells[:3])
-            _cluster_prob = round(sum(p for p, _ in _cells[:3]) / _tot, 4)
-            bv.update({
-                "lh": fd_lh, "la": fd_la,
-                "p_home": round(_ph / _tot, 4), "p_draw": round(_pd / _tot, 4), "p_away": round(_pa / _tot, 4),
-                "p_o25": round(min(0.92, _po25 / _tot), 4), "p_u25": round(max(0.08, 1.0 - (_po25 / _tot)), 4),
-                "p_btts_y": round(min(0.90, _pbtts / _tot), 4), "p_btts_n": round(max(0.10, 1.0 - (_pbtts / _tot)), 4),
-                "cs": _best_sc, "top_cs": _best_sc,
-                "cs_cluster": _cluster, "cs_cluster_prob": _cluster_prob
-            })
+        _lg_up = str(lg).upper()
+        _hfa_mult = 1.065 if any(k in _lg_up for k in ("BRAZIL", "SERIE A", "TURK", "LIBERTADORES", "ARGENT")) else (1.015 if any(k in _lg_up for k in ("CHAMPIONS", "EUROPA", "NATIONS")) else 1.032)
+        _rho = -0.14 if any(k in _lg_up for k in ("SERIE A", "LIGUE 1", "LA LIGA", "SEGUNDA")) else (-0.08 if any(k in _lg_up for k in ("BUNDESLIGA", "EREDIVISIE", "CHAMPIONS")) else -0.11)
+        fd_lh = round(max(0.25, fd_lh * _hfa_mult), 4)
+        fd_la = round(max(0.20, fd_la), 4)
+        import math as _m
+        _asym = abs(fd_lh - fd_la)
+        _disp = min(0.14, max(0.0, (_asym - 1.10) * 0.08))
+        _ph = _pd = _pa = _po25 = _pbtts = 0.0
+        _cells = []
+        for _i in range(8):
+            _pi = (_m.exp(-fd_lh) * (fd_lh ** _i)) / _m.factorial(_i)
+            if _disp > 0 and (_i == 0 or _i >= 4): _pi *= (1.0 + _disp)
+            for _j in range(8):
+                _pj = (_m.exp(-fd_la) * (fd_la ** _j)) / _m.factorial(_j)
+                if _disp > 0 and (_j == 0 or _j >= 4): _pj *= (1.0 + _disp)
+                _tau = (1.0 - fd_lh * fd_la * _rho) if (_i == 0 and _j == 0) else ((1.0 + fd_lh * _rho) if (_i == 0 and _j == 1) else ((1.0 + fd_la * _rho) if (_i == 1 and _j == 0) else ((1.0 - _rho) if (_i == 1 and _j == 1) else 1.0)))
+                _p = max(0.0, _pi * _pj * _tau)
+                if _i > _j: _ph += _p
+                elif _i == _j: _pd += _p
+                else: _pa += _p
+                if (_i + _j) >= 3: _po25 += _p
+                if _i >= 1 and _j >= 1: _pbtts += _p
+                _cells.append((_p, f"{_i}-{_j}"))
+        _tot = max(1e-6, _ph + _pd + _pa)
+        _cells.sort(reverse=True)
+        _best_sc = _cells[0][1]
+        _cluster = "/".join(sc for _, sc in _cells[:3])
+        _cluster_prob = round(sum(p for p, _ in _cells[:3]) / _tot, 4)
+        bv.update({"lh": fd_lh, "la": fd_la, "home": round(_ph / _tot, 4), "draw": round(_pd / _tot, 4), "away": round(_pa / _tot, 4), "p_home": round(_ph / _tot, 4), "p_draw": round(_pd / _tot, 4), "p_away": round(_pa / _tot, 4), "p_o25": round(min(0.92, _po25 / _tot), 4), "p_u25": round(max(0.08, 1.0 - (_po25 / _tot)), 4), "p_btts_y": round(min(0.90, _pbtts / _tot), 4), "p_btts_n": round(max(0.10, 1.0 - (_pbtts / _tot)), 4), "cs": _best_sc, "top_cs": _best_sc, "cs_cluster": _cluster, "cs_cluster_prob": _cluster_prob})
         xg_tot = round(fd_lh + fd_la, 2)
-        p_home = max(0.24, min(0.84, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
-        p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("draw", 0.26), "1X2", w)))
-        p_away = max(0.22, min(0.82, platt_calibrate(bv.get("away", max(0.15, 1.0 - p_home - p_draw)), "1X2", w)))
-        p_o25  = max(0.28, min(0.82, platt_calibrate(bv.get("o25", 0.52), "OU", w)))
-        p_u25  = max(0.28, min(0.82, platt_calibrate(1.0 - bv.get("o25", 0.52), "OU", w)))
-        p_btts_y = max(0.28, min(0.80, platt_calibrate(bv.get("btts", 0.50), "BTTS", w)))
-        p_btts_n = max(0.28, min(0.80, platt_calibrate(1.0 - bv.get("btts", 0.50), "BTTS", w)))
+        p_home = max(0.24, min(0.84, platt_calibrate(bv.get("p_home", res["true_prob"]), "1X2", w)))
+        p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("p_draw", 0.26), "1X2", w)))
+        p_away = max(0.22, min(0.82, platt_calibrate(bv.get("p_away", max(0.15, 1.0 - p_home - p_draw)), "1X2", w)))
+        _raw_o25 = bv.get("p_o25", bv.get("o25", 0.52))
+        _raw_btts = bv.get("p_btts_y", bv.get("btts", 0.50))
+        p_o25  = max(0.26, min(0.84, platt_calibrate(_raw_o25, "OU", w)))
+        p_u25  = max(0.26, min(0.84, platt_calibrate(1.0 - _raw_o25, "OU", w)))
+        p_btts_y = max(0.26, min(0.82, platt_calibrate(_raw_btts, "BTTS", w)))
+        p_btts_n = max(0.26, min(0.82, platt_calibrate(1.0 - _raw_btts, "BTTS", w)))
         p_dnb_h = max(0.35, min(0.88, p_home / max(0.35, p_home + p_away)))
         p_dnb_a = max(0.35, min(0.88, p_away / max(0.35, p_home + p_away)))
         combo_cal = max(0.48, min(0.85, platt_calibrate(combo_pooled, "COMBO", w)))

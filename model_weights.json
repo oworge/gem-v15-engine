@@ -4,7 +4,7 @@
   "min_ev_pct": 4.0,
   "platt": {
     "1X2": {
-      "a": 1.01,
+      "a": 1.04,
       "b": 0.25
     },
     "COMBO": {
@@ -35,5 +35,11 @@
   "last_brier": 0.1499,
   "last_logloss": 0.4882,
   "last_sample": 4,
-  "realized_hit_rate": 1.0
+  "realized_hit_rate": 1.0,
+  "dc_by_market": {
+    "1X2": 0.52,
+    "COMBO": 0.52,
+    "TOTALS": 0.55,
+    "BTTS": 0.55
+  }
 }
