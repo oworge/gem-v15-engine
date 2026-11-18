@@ -236,7 +236,7 @@ function setView(next){
 }
 
 function syncAll(){
-  fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){p1Bets=d.bets||[];renderP1();if(page==="app")renderDesk();}).catch(function(){});
+  fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){p1Bets=d.bets||[];renderP1();renderDesk();}).catch(function(){});
   fetch("/api/gem-feed").then(function(r){return r.json();}).then(function(live){
     p1Feed=live;
     if(live&&live.live&&window.GEM_DATA){
@@ -248,7 +248,7 @@ function syncAll(){
       if(live.arbs&&live.arbs.length)window.GEM_DATA.arbs=live.arbs;
       if(live.acca10&&live.acca10.length>=10)window.GEM_DATA.acca10=live.acca10;
     }
-    renderP1();if(page==="app")renderDesk();
+    renderP1();renderDesk();
   }).catch(function(){});
 }
 
@@ -299,7 +299,7 @@ function mount(){
   parent.insertBefore(panel,anchor);
   document.getElementById("gp-back-p1").onclick=function(){setView("overview");};
 
-  setView(window.location.hash==="#app"?"app":"overview");
+  setView(window.location.hash==="#overview"?"overview":"app");
   syncAll();
 }
 
