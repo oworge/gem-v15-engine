@@ -318,6 +318,64 @@ def fetch_live_daily_fixtures(force=False):
         except Exception as exc:
             diag_error = str(exc)
 
+    if not fetched:
+        # Secondary live football-only feed when ODDS_API_KEY returns 401/quota limit
+        espn_leagues = [
+            ("eng.1", "Premier League"), ("eng.2", "EFL Championship"),
+            ("eng.3", "EFL League One"), ("eng.4", "EFL League Two"),
+            ("uefa.champions", "UEFA Champions League"), ("uefa.wchampions", "UEFA Women's Champions League"),
+            ("esp.1", "La Liga"), ("esp.copa_del_rey", "Copa del Rey"),
+            ("ita.1", "Serie A"), ("ger.1", "Bundesliga"), ("fra.1", "Ligue 1"),
+            ("bra.1", "Brazilian Serie A"), ("fifa.worldq.uefa", "UEFA World Cup Qualifiers"),
+            ("uefa.nations", "UEFA Nations League"), ("fifa.friendly", "International Friendly")
+        ]
+        ymd = today_str.replace("-", "")
+        seen_e = set()
+        for slug, lg_name in espn_leagues:
+            e_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={ymd}"
+            try:
+                with urllib.request.urlopen(urllib.request.Request(e_url, headers={"User-Agent": "EdgeMETRIX-PRO-26/99.0"}), timeout=10) as er:
+                    edata = json.loads(er.read().decode("utf-8"))
+                for ev in edata.get("events", []):
+                    comp = (ev.get("competitions") or [{}])[0]
+                    comps = comp.get("competitors") or []
+                    if len(comps) < 2:
+                        continue
+                    home_c = next((c for c in comps if c.get("homeAway") == "home"), comps[0])
+                    away_c = next((c for c in comps if c.get("homeAway") == "away"), comps[1])
+                    h_team = home_c.get("team", {}).get("displayName", "")
+                    a_team = away_c.get("team", {}).get("displayName", "")
+                    ko = ev.get("date", f"{today_str}T19:45:00Z")
+                    eid = f"{h_team}_{a_team}_{ko[:10]}"
+                    if not h_team or not a_team or eid in seen_e:
+                        continue
+                    seen_e.add(eid)
+                    odds_blk = (comp.get("odds") or [{}])[0]
+                    ml = odds_blk.get("moneyline") or {}
+                    def _am_to_dec(val, default):
+                        try:
+                            v = float(str(val).replace("+", ""))
+                            return round(1.0 + (v / 100.0 if v > 0 else 100.0 / abs(v)), 2)
+                        except Exception:
+                            return default
+                    h_od = _am_to_dec((ml.get("home") or {}).get("close", {}).get("odds"), 2.05)
+                    a_od = _am_to_dec((ml.get("away") or {}).get("close", {}).get("odds"), 3.45)
+                    d_od = _am_to_dec((ml.get("draw") or {}).get("close", {}).get("odds"), 3.40)
+                    item = {
+                        "sport_key": f"soccer_{slug}",
+                        "home_team": h_team, "away_team": a_team, "league": lg_name,
+                        "kickoff": ko, "home_odds": h_od, "draw_odds": d_od, "away_odds": a_od,
+                        "over_25_odds": 1.85, "under_25_odds": 1.95,
+                        "xg_home": round(max(0.75, 2.65 / max(1.15, h_od)), 2),
+                        "xg_away": round(max(0.65, 2.65 / max(1.15, a_od)), 2)
+                    }
+                    if is_football_only(item) and is_upcoming_fixture(item):
+                        fetched.append(item)
+                        if lg_name not in active_leagues:
+                            active_leagues.append(lg_name)
+            except Exception:
+                continue
+
     env_key_names = [k for k in os.environ.keys() if any(w in k.upper() for w in ("KEY", "API", "TOKEN", "ODDS", "FOOTBALL", "SPORT"))]
     if fetched:
         json.dump(fetched, open("global_odds_cache.json", "w", encoding="utf-8"), indent=2)
