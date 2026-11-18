@@ -456,33 +456,49 @@ def build_calibrated_feed():
         _cluster_prob = round(sum(p for p, _ in _cells[:3]) / _tot, 4)
         bv.update({"lh": fd_lh, "la": fd_la, "home": round(_ph / _tot, 4), "draw": round(_pd / _tot, 4), "away": round(_pa / _tot, 4), "p_home": round(_ph / _tot, 4), "p_draw": round(_pd / _tot, 4), "p_away": round(_pa / _tot, 4), "p_o25": round(min(0.92, _po25 / _tot), 4), "p_u25": round(max(0.08, 1.0 - (_po25 / _tot)), 4), "p_btts_y": round(min(0.90, _pbtts / _tot), 4), "p_btts_n": round(max(0.10, 1.0 - (_pbtts / _tot)), 4), "cs": _best_sc, "top_cs": _best_sc, "cs_cluster": _cluster, "cs_cluster_prob": _cluster_prob})
         xg_tot = round(fd_lh + fd_la, 2)
-        p_home = max(0.24, min(0.84, platt_calibrate(bv.get("p_home", res["true_prob"]), "1X2", w)))
-        p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("p_draw", 0.26), "1X2", w)))
-        p_away = max(0.22, min(0.82, platt_calibrate(bv.get("p_away", max(0.15, 1.0 - p_home - p_draw)), "1X2", w)))
+        _dc_m = w.get("dc_by_market", {})
+        _w_1x2 = float(_dc_m.get("1X2", mod_w))
+        _w_ou  = float(_dc_m.get("TOTALS", mod_w))
+        _w_bt  = float(_dc_m.get("BTTS", mod_w))
+        _dc_h = platt_calibrate(bv.get("p_home", res["true_prob"]), "1X2", w)
+        _dc_d = platt_calibrate(bv.get("p_draw", 0.26), "1X2", w)
+        _dc_a = platt_calibrate(bv.get("p_away", max(0.15, 1.0 - _dc_h - _dc_d)), "1X2", w)
+        p_home = max(0.18, min(0.86, logit_pool(shin_h, _dc_h, mod_weight=_w_1x2)))
+        p_draw = max(0.15, min(0.42, logit_pool(shin_d, _dc_d, mod_weight=_w_1x2)))
+        p_away = max(0.16, min(0.85, logit_pool(shin_a, _dc_a, mod_weight=_w_1x2)))
         _raw_o25 = bv.get("p_o25", bv.get("o25", 0.52))
         _raw_btts = bv.get("p_btts_y", bv.get("btts", 0.50))
-        p_o25  = max(0.26, min(0.84, platt_calibrate(_raw_o25, "OU", w)))
-        p_u25  = max(0.26, min(0.84, platt_calibrate(1.0 - _raw_o25, "OU", w)))
-        p_btts_y = max(0.26, min(0.82, platt_calibrate(_raw_btts, "BTTS", w)))
-        p_btts_n = max(0.26, min(0.82, platt_calibrate(1.0 - _raw_btts, "BTTS", w)))
-        p_dnb_h = max(0.35, min(0.88, p_home / max(0.35, p_home + p_away)))
-        p_dnb_a = max(0.35, min(0.88, p_away / max(0.35, p_home + p_away)))
-        combo_cal = max(0.48, min(0.85, platt_calibrate(combo_pooled, "COMBO", w)))
-
-        # Explore all major markets globally for +EV edge with >= 50% calibrated hit probability
+        p_o25  = max(0.24, min(0.84, platt_calibrate(_raw_o25, "OU", w)))
+        p_u25  = max(0.24, min(0.84, platt_calibrate(1.0 - _raw_o25, "OU", w)))
+        p_btts_y = max(0.24, min(0.82, platt_calibrate(_raw_btts, "BTTS", w)))
+        p_btts_n = max(0.24, min(0.82, platt_calibrate(1.0 - _raw_btts, "BTTS", w)))
+        p_dnb_h = max(0.32, min(0.90, p_home / max(0.30, p_home + p_away)))
+        p_dnb_a = max(0.32, min(0.90, p_away / max(0.30, p_home + p_away)))
+        combo_cal = max(0.48, min(0.86, platt_calibrate(combo_pooled, "COMBO", w)))
+        _real_dnb_h = round(max(1.16, od_h * max(0.55, 1.0 - (1.0 / max(1.80, od_d)))), 2)
+        _real_dnb_a = round(max(1.16, od_a * max(0.55, 1.0 - (1.0 / max(1.80, od_d)))), 2)
+        _o25_od = float(src.get("over_25_odds") or 0) or _mkt_price(p_o25, 12)
+        _u25_od = float(src.get("under_25_odds") or 0) or _mkt_price(p_u25, 15)
+        _bty_od = float(src.get("btts_yes_odds") or 0) or _mkt_price(p_btts_y, 18)
+        _btn_od = float(src.get("btts_no_odds") or 0) or _mkt_price(p_btts_n, 21)
+        _real_1x_o15 = round(max(1.24, (1.0 / max(0.35, min(0.92, shin_h + shin_d))) * 1.18), 2)
+        _real_x2_o15 = round(max(1.24, (1.0 / max(0.35, min(0.92, shin_a + shin_d))) * 1.18), 2)
+        _combo_od = _real_1x_o15 if bv["1x_o15"] >= bv["x2_o15"] else _real_x2_o15
         all_markets = [
-            (f"{hm} Win (1X2)", p_home, _mkt_price(p_home, 0)),
-            (f"{aw} Win (1X2)", p_away, _mkt_price(p_away, 3)),
-            (f"{hm} Draw No Bet (DNB)", p_dnb_h, _mkt_price(p_dnb_h, 6)),
-            (f"{aw} Draw No Bet (DNB)", p_dnb_a, _mkt_price(p_dnb_a, 9)),
-            (f"Over 2.5 Match Goals (Proj xG {xg_tot})", p_o25, _mkt_price(p_o25, 12)),
-            (f"Under 2.5 Match Goals (Proj xG {xg_tot})", p_u25, _mkt_price(p_u25, 15)),
-            (f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, _mkt_price(p_btts_y, 18)),
-            (f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, _mkt_price(p_btts_n, 21)),
-            (combo_pick, combo_cal, _mkt_price(combo_cal, 24)),
+            (f"{hm} Win (1X2)", p_home, round(od_h, 2)),
+            (f"{aw} Win (1X2)", p_away, round(od_a, 2)),
+            (f"{hm} Draw No Bet (DNB)", p_dnb_h, _real_dnb_h),
+            (f"{aw} Draw No Bet (DNB)", p_dnb_a, _real_dnb_a),
+            (combo_pick, combo_cal, _combo_od),
         ]
-
-        qualified = []
+        if xg_tot >= 2.55 and p_o25 >= 0.54:
+            all_markets.append((f"Over 2.5 Match Goals (Proj xG {xg_tot})", p_o25, round(_o25_od, 2)))
+        if xg_tot <= 2.45 and p_u25 >= 0.54:
+            all_markets.append((f"Under 2.5 Match Goals (Proj xG {xg_tot})", p_u25, round(_u25_od, 2)))
+        if xg_tot >= 2.50 and p_btts_y >= 0.53:
+            all_markets.append((f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, round(_bty_od, 2)))
+        if xg_tot <= 2.40 and p_btts_n >= 0.53:
+            all_markets.append((f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, round(_btn_od, 2)))
         for m_lbl, m_pr, m_od in all_markets:
             if m_pr < 0.50:
                 continue

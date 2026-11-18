@@ -94,3 +94,21 @@ def audit_and_calibrate():
         w.setdefault("dc_by_market", {"1X2": w["dc_weight"], "COMBO": w["dc_weight"], "TOTALS": round(min(0.55, w["dc_weight"] + 0.04), 3), "BTTS": round(min(0.55, w["dc_weight"] + 0.03), 3)})
         save_weights(w)
     return w
+
+
+def track_line_velocity(fixture, market, current_odds):
+    try:
+        c = sqlite3.connect("syndicate_ledger.db")
+        c.execute("CREATE TABLE IF NOT EXISTS odds_snapshots (fixture TEXT, market TEXT, open_odds REAL, last_odds REAL, updated_at TEXT, PRIMARY KEY (fixture, market))")
+        row = c.execute("SELECT open_odds FROM odds_snapshots WHERE fixture=? AND market=?", (fixture, market)).fetchone()
+        now_s = datetime.now(timezone.utc).isoformat() if "datetime" in globals() else ""
+        if not row:
+            c.execute("INSERT INTO odds_snapshots VALUES (?, ?, ?, ?, ?)", (fixture, market, float(current_odds), float(current_odds), now_s))
+            c.commit(); c.close()
+            return 0.0
+        open_od = float(row[0])
+        c.execute("UPDATE odds_snapshots SET last_odds=?, updated_at=? WHERE fixture=? AND market=?", (float(current_odds), now_s, fixture, market))
+        c.commit(); c.close()
+        return round(((1.0 / max(1.02, float(current_odds))) - (1.0 / max(1.02, open_od))) * 100.0, 2)
+    except Exception:
+        return 0.0
