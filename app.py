@@ -215,7 +215,7 @@ def api_gem_feed():
     from flask import jsonify
     from quant_calibrator import build_calibrated_feed, fetch_live_daily_fixtures
     data = build_calibrated_feed()
-    en = data["enriched"]
+    en = [x for x in data["enriched"] if float(x.get("ev", 0)) >= 4.5]
     if not en:
         fetch_live_daily_fixtures(force=True)
         data = build_calibrated_feed()
@@ -440,8 +440,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=117"><script src="/static/gem_data.js?v=117"></script><script src="/static/gem_polish.js?v=117"></script>'
-            if "gem_polish.js?v=117" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=118"><script src="/static/gem_data.js?v=118"></script><script src="/static/gem_polish.js?v=118"></script>'
+            if "gem_polish.js?v=118" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
