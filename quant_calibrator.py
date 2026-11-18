@@ -189,11 +189,11 @@ def fetch_live_daily_fixtures(force=False):
 
     if odds_key:
         try:
-            url = f"https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu&markets=h2h,totals&oddsFormat=decimal"
+            url = f"https://api.the-odds-api.com/v4/sports/upcoming/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu&markets=h2h&oddsFormat=decimal"
             req = urllib.request.Request(url, headers={"User-Agent": "EdgeMETRIX-PRO-26/89.0"})
             with urllib.request.urlopen(req, timeout=20) as resp:
                 events = json.loads(resp.read().decode("utf-8"))
-            for ev in events[:60]:
+            for ev in [e for e in events if str(e.get("sport_key","")).startswith("soccer_")][:60]:
                 h_team = ev.get("home_team", "")
                 a_team = ev.get("away_team", "")
                 lg = ev.get("sport_title", "Global Football")
