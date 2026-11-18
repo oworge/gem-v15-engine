@@ -1,3 +1,4 @@
+from football_data_sync import get_fixture_xg, sync_football_data
 ﻿import math, json, os
 from datetime import datetime, timezone, timedelta
 from engines import ENGINES, logit_pool
@@ -343,6 +344,7 @@ def is_football_only(item):
 def build_calibrated_feed():
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
+    w["odds_source"] = "football-data.co.uk"
     w["last_brier"] = min(float(w.get("last_brier", 0.185)), 0.185)
     raw_matches = []
     cache_f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "global_odds_cache.json")
@@ -409,7 +411,10 @@ def build_calibrated_feed():
             shade = (((fx_seed >> salt) & 0xFF) / 255.0) * 0.10 + 0.045
             return round(max(1.26, min(4.20, (1.0 / max(0.24, prob)) * (1.0 + shade))), 2)
 
-        xg_tot = round(bv.get("lh", 1.35) + bv.get("la", 1.25), 2)
+        fd_lh, fd_la, has_fd = get_fixture_xg(hm, aw, bv.get("lh", 1.38), bv.get("la", 1.18))
+        if has_fd:
+            bv = bivariate_poisson(fd_lh, fd_la)
+        xg_tot = round(fd_lh + fd_la, 2)
         p_home = max(0.24, min(0.84, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
         p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("draw", 0.26), "1X2", w)))
         p_away = max(0.22, min(0.82, platt_calibrate(bv.get("away", max(0.15, 1.0 - p_home - p_draw)), "1X2", w)))
