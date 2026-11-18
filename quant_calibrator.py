@@ -419,7 +419,7 @@ def build_calibrated_feed():
         candidates = [
             (f"{hm} Win (1X2)", p_home, round(od_h, 2) if od_h > 1.25 else _mkt_price(p_home, 0)),
             (f"{aw} Win (1X2)", p_away, _mkt_price(p_away, 4)),
-            (f"Over 2.5 Match Goals (xG {bv['xg_sum']})", p_o25, _mkt_price(p_o25, 8)),
+            (f"Over 2.5 Match Goals (xG {round(bv.get('lh', 1.35) + bv.get('la', 1.25), 2)})", p_o25, _mkt_price(p_o25, 8)),
             (f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts, _mkt_price(p_btts, 12)),
             (combo_pick, combo_cal, _mkt_price(combo_cal, 16)),
         ]
