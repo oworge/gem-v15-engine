@@ -1,0 +1,35 @@
+{
+  "dc_weight": 0.42,
+  "market_weight": 0.58,
+  "min_ev_pct": 4.5,
+  "platt": {
+    "1X2": {
+      "a": 0.92,
+      "b": -0.04
+    },
+    "COMBO": {
+      "a": 0.94,
+      "b": -0.03
+    },
+    "TOTALS": {
+      "a": 0.91,
+      "b": -0.02
+    },
+    "BTTS": {
+      "a": 0.9,
+      "b": -0.03
+    }
+  },
+  "global_multi_market_scan": true,
+  "min_hit_prob": 0.5,
+  "markets_scanned": [
+    "1X2",
+    "DNB",
+    "OU_2.5",
+    "BTTS",
+    "DC_O1.5",
+    "CS"
+  ],
+  "max_ev_pct": 14.5,
+  "enforce_global_ev_floor": true
+}
