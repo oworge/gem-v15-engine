@@ -224,20 +224,26 @@ def fetch_live_daily_fixtures(force=False):
             pass
 
     espn_leagues = [
-        ("eng.1", "Premier League"), ("eng.2", "EFL Championship"),
-        ("eng.3", "EFL League One"), ("eng.4", "EFL League Two"),
-        ("uefa.champions", "UEFA Champions League"), ("uefa.wchampions", "UEFA Women's Champions League"),
-        ("uefa.europa", "UEFA Europa League"), ("esp.1", "La Liga"),
-        ("esp.copa_del_rey", "Copa del Rey"), ("ita.1", "Serie A"),
-        ("ger.1", "Bundesliga"), ("fra.1", "Ligue 1"),
-        ("bra.1", "Brazilian Serie A"), ("fifa.worldq.uefa", "UEFA World Cup Qualifiers"),
-        ("uefa.nations", "UEFA Nations League"), ("fifa.friendly", "International Friendly"),
+        ("all", "Global Football Slate"),
+        ("eng.1", "Premier League"),
+        ("eng.2", "EFL Championship"),
+        ("eng.3", "EFL League One"),
+        ("eng.4", "EFL League Two"),
+        ("uefa.champions", "UEFA Champions League"),
+        ("uefa.wchampions", "UEFA Women's Champions League"),
+        ("uefa.europa", "UEFA Europa League"),
+        ("esp.1", "La Liga"),
+        ("ita.1", "Serie A"),
+        ("ger.1", "Bundesliga"),
+        ("fra.1", "Ligue 1"),
+        ("bra.1", "Brazilian Serie A"),
+        ("fifa.worldq.uefa", "UEFA World Cup Qualifiers"),
+        ("uefa.nations", "UEFA Nations League"),
     ]
 
     fetched = []
     active_leagues = []
     seen_e = set()
-    date_list = [(now_utc + timedelta(days=d)).strftime("%Y%m%d") for d in range(5)]
 
     def _am_to_dec(val, default):
         try:
@@ -246,45 +252,56 @@ def fetch_live_daily_fixtures(force=False):
         except Exception:
             return default
 
-    for slug, lg_name in espn_leagues:
-        for d_str in date_list:
-            e_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={d_str}"
-            try:
-                with urllib.request.urlopen(urllib.request.Request(e_url, headers={"User-Agent": "Mozilla/5.0"}), timeout=8) as er:
-                    edata = json.loads(er.read().decode("utf-8"))
-                for ev in edata.get("events", []):
-                    comp = (ev.get("competitions") or [{}])[0]
-                    comps = comp.get("competitors") or []
-                    if len(comps) < 2:
-                        continue
-                    home_c = next((c for c in comps if c.get("homeAway") == "home"), comps[0])
-                    away_c = next((c for c in comps if c.get("homeAway") == "away"), comps[1])
-                    h_team = home_c.get("team", {}).get("displayName", "")
-                    a_team = away_c.get("team", {}).get("displayName", "")
-                    ko = ev.get("date", f"{today_str}T19:45:00Z")
-                    eid = f"{h_team}_{a_team}_{ko[:10]}"
-                    if not h_team or not a_team or eid in seen_e:
-                        continue
-                    seen_e.add(eid)
-                    odds_blk = (comp.get("odds") or [{}])[0]
-                    ml = odds_blk.get("moneyline") or {}
-                    h_od = _am_to_dec((ml.get("home") or {}).get("close", {}).get("odds"), 2.05)
-                    a_od = _am_to_dec((ml.get("away") or {}).get("close", {}).get("odds"), 3.45)
-                    d_od = _am_to_dec((ml.get("draw") or {}).get("close", {}).get("odds"), 3.40)
-                    item = {
-                        "sport_key": f"soccer_{slug}",
-                        "home_team": h_team, "away_team": a_team, "league": lg_name,
-                        "kickoff": ko, "home_odds": h_od, "draw_odds": d_od, "away_odds": a_od,
-                        "over_25_odds": 1.85, "under_25_odds": 1.95,
-                        "xg_home": round(max(0.75, 2.65 / max(1.15, h_od)), 2),
-                        "xg_away": round(max(0.65, 2.65 / max(1.15, a_od)), 2),
-                    }
-                    if is_football_only(item) and is_upcoming_fixture(item):
-                        fetched.append(item)
-                        if lg_name not in active_leagues:
-                            active_leagues.append(lg_name)
-            except Exception:
-                continue
+    for slug, default_lg in espn_leagues:
+        e_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard"
+        try:
+            req = urllib.request.Request(
+                e_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as er:
+                edata = json.loads(er.read().decode("utf-8"))
+            lg_header = ((edata.get("leagues") or [{}])[0]).get("name") or default_lg
+            for ev in edata.get("events", []):
+                comp = (ev.get("competitions") or [{}])[0]
+                comps = comp.get("competitors") or []
+                if len(comps) < 2:
+                    continue
+                home_c = next((c for c in comps if c.get("homeAway") == "home"), comps[0])
+                away_c = next((c for c in comps if c.get("homeAway") == "away"), comps[1])
+                h_team = home_c.get("team", {}).get("displayName", "")
+                a_team = away_c.get("team", {}).get("displayName", "")
+                ko = ev.get("date", f"{today_str}T19:45:00Z")
+                lg_name = (ev.get("league") or {}).get("name") or (lg_header if slug != "all" else default_lg)
+                eid = f"{h_team}_{a_team}_{ko[:10]}"
+                if not h_team or not a_team or eid in seen_e:
+                    continue
+                seen_e.add(eid)
+                odds_blk = (comp.get("odds") or [{}])[0]
+                ml = odds_blk.get("moneyline") or {}
+                h_od = _am_to_dec((ml.get("home") or {}).get("close", {}).get("odds"), 2.05)
+                a_od = _am_to_dec((ml.get("away") or {}).get("close", {}).get("odds"), 3.45)
+                d_od = _am_to_dec((ml.get("draw") or {}).get("close", {}).get("odds"), 3.40)
+                item = {
+                    "sport_key": f"soccer_{slug}",
+                    "home_team": h_team,
+                    "away_team": a_team,
+                    "league": lg_name,
+                    "kickoff": ko,
+                    "home_odds": h_od,
+                    "draw_odds": d_od,
+                    "away_odds": a_od,
+                    "over_25_odds": 1.85,
+                    "under_25_odds": 1.95,
+                    "xg_home": round(max(0.75, 2.65 / max(1.15, h_od)), 2),
+                    "xg_away": round(max(0.65, 2.65 / max(1.15, a_od)), 2),
+                }
+                if is_football_only(item) and is_upcoming_fixture(item):
+                    fetched.append(item)
+                    if lg_name not in active_leagues:
+                        active_leagues.append(lg_name)
+        except Exception:
+            continue
 
     fetched.sort(key=lambda x: str(x.get("kickoff", "")))
     meta_out = {
@@ -306,7 +323,8 @@ def is_upcoming_fixture(item):
     if not ko or not ko[0].isdigit():
         return True
     try:
-        dt = datetime.fromisoformat(ko.replace("Z", "+00:00"))
+        ko_norm = re.sub(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z$", r"\1:00Z", ko)
+        dt = datetime.fromisoformat(ko_norm.replace("Z", "+00:00"))
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
         return dt >= datetime.now(timezone.utc)
