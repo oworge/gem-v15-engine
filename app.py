@@ -11,7 +11,7 @@ def get_perfect_value_alerts(picks):
         p for p in picks
         if any(t in str(p.get("pick", "")) for t in ["ELITE BUSTER", "STRONG VALUE", "+5.", "+6.", "+7.", "+8.", "+9.", "+10.", "+11.", "+12.", "+13.", "+14.", "+15."])
     ]
-    return hits[:6] if hits else picks[:5]
+    return hits[:18] if hits else picks[:15]
 
 def _build_dynamic_tabs(picks):
     btts = [
@@ -21,7 +21,7 @@ def _build_dynamic_tabs(picks):
             "pick": f"BTTS Yes & Over 2.5 Goals ({p.get('pick', '')})",
             "odds": p.get("odds", "1.85"),
         }
-        for p in picks[:6]
+        for p in picks[:18]
     ]
     def _build_5leg_sgm(p):
         m = p.get("match", "")
@@ -50,7 +50,7 @@ def _build_dynamic_tabs(picks):
             "odds": sgm_odds,
         }
 
-    builders = [_build_5leg_sgm(p) for p in picks[:6]]
+    builders = [_build_5leg_sgm(p) for p in picks[:18]]
     correct_scores = [
         {
             "match": p.get("match", ""),
@@ -58,9 +58,9 @@ def _build_dynamic_tabs(picks):
             "pick": f"Correct Score: 2 - 1 / 1 - 1 ({p.get('pick', '')})",
             "odds": "7.50",
         }
-        for p in picks[:6]
+        for p in picks[:18]
     ]
-    true_clv = dg.get_live_steam_clv() if hasattr(dg, "get_live_steam_clv") else picks[:6]
+    true_clv = dg.get_live_steam_clv() if hasattr(dg, "get_live_steam_clv") else picks[:18]
     tactical = [
         {
             "match": p.get("match", "NegBin & Monte Carlo"),
@@ -68,7 +68,7 @@ def _build_dynamic_tabs(picks):
             "pick": f"TACTICAL PASS — {p.get('pick', 'Zero Fatigue Flags')}",
             "odds": p.get("odds", "PASS"),
         }
-        for p in picks[:6]
+        for p in picks[:18]
     ]
     return {
         "daily_picks": picks,
@@ -223,10 +223,10 @@ def api_gem_feed():
         en = data["enriched"]
     if not en:
         return jsonify({"live": False, "weights": data["weights"]})
-    val = sorted([x for x in en if x["ev"] >= 4.5], key=lambda z: z["ev"], reverse=True)[:8]
-    lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:6]
-    ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:6]
-    acca = sorted(en, key=lambda z: (z["prob"] / max(1.15, z["odds"])), reverse=True)[:10]
+    val = sorted([x for x in en if x["ev"] >= 4.0], key=lambda z: z["ev"], reverse=True)[:28]
+    lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:20]
+    ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:20]
+    acca = sorted(en, key=lambda z: (z["prob"] / max(1.15, z["odds"])), reverse=True)[:24]
     by_day = {}
     for x in en:
         kr = str(x.get("kickoff", ""))
@@ -454,7 +454,7 @@ def _gem_v139_unified_guard(response):
             if clean:
                 data[k] = clean
             elif k in ("todaysValue", "acca10", "likely", "ai") and isinstance(data.get("matches"), list) and data["matches"]:
-                data[k] = data["matches"][:8]
+                data[k] = data["matches"][:24]
 
         # True Argmax-EV Market Selector: keep genuine highest-EV market from Dixon-Coles matrix
         import math as _math

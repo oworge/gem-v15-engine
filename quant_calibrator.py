@@ -274,7 +274,7 @@ def fetch_live_daily_fixtures(force=False):
                 a_team = away_c.get("team", {}).get("displayName", "")
                 ko = ev.get("date", f"{today_str}T19:45:00Z")
                 lg_name = (ev.get("league") or {}).get("name") or (lg_header if slug != "all" else default_lg)
-                eid = f"{h_team}_{a_team}_{ko[:10]}"
+                eid = f"{h_team}_{a_team}_{ko[:24]}"
                 if not h_team or not a_team or eid in seen_e:
                     continue
                 seen_e.add(eid)
@@ -419,7 +419,7 @@ def build_calibrated_feed():
             base_sharp = p_x2_sharp
 
         import hashlib
-        fx_seed = int(hashlib.md5(fx_key.encode("utf-8")).hexdigest()[:8], 16)
+        fx_seed = int(hashlib.md5(fx_key.encode("utf-8")).hexdigest()[:24], 16)
         def _mkt_price(prob, salt):
             shade = (((fx_seed >> salt) & 0xFF) / 255.0) * 0.10 + 0.045
             return round(max(1.26, min(4.20, (1.0 / max(0.24, prob)) * (1.0 + shade))), 2)

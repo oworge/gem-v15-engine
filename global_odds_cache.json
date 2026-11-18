@@ -5,13 +5,13 @@
     "away_team": "Santos",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-18T22:30Z",
-    "home_odds": 3.5,
+    "home_odds": 3.65,
     "draw_odds": 3.6,
-    "away_odds": 2.0,
+    "away_odds": 1.95,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.76,
-    "xg_away": 1.32
+    "xg_home": 0.75,
+    "xg_away": 1.36
   },
   {
     "sport_key": "soccer_bra.1",
