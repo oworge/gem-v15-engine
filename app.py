@@ -440,8 +440,8 @@ def _inject_gem_polish_v40(resp):
     try:
         if "text/html" in resp.headers.get("Content-Type",""):
             html=resp.get_data(as_text=True)
-            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=135"><script src="/static/gem_data.js?v=135"></script><script src="/static/gem_polish.js?v=135"></script>'
-            if "gem_polish.js?v=135" not in html:
+            tag='<link rel="stylesheet" href="/static/gem_polish.css?v=136"><script src="/static/gem_data.js?v=136"></script><script src="/static/gem_polish.js?v=136"></script>'
+            if "gem_polish.js?v=136" not in html:
                 html=html.replace("</body>",tag+"</body>") if "</body>" in html else (html+tag)
                 resp.set_data(html)
     except Exception:
@@ -496,6 +496,28 @@ def _gem_v134_feed_guard(response):
                         clean.append(it)
                     if clean:
                         data[k] = clean
+
+                # Promote straight Wins, BTTS - Yes, and Over 2.5 across high-qualifying fixtures
+                for _tab in ("likely", "ai", "matches"):
+                    _lst = data.get(_tab)
+                    if not isinstance(_lst, list):
+                        continue
+                    for _idx, _it in enumerate(_lst):
+                        if not isinstance(_it, dict):
+                            continue
+                        _pk = str(_it.get("pk", ""))
+                        _n = str(_it.get("n", ""))
+                        _f = str(_it.get("f", ""))
+                        _teams = [t.strip() for t in _f.split(" v ")] if " v " in _f else [_f, "Away"]
+                        _m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", _n)
+                        _xg = float(_m_xg.group(1)) if _m_xg else 2.50
+                        if _idx % 4 == 1 and _xg >= 2.75 and "Over 2.5" not in _pk:
+                            _it["pk"] = f"Over 2.5 Match Goals (Proj xG {_xg:.2f})"
+                        elif _idx % 4 == 2 and _xg >= 2.65 and "Both Teams" not in _pk:
+                            _it["pk"] = f"Both Teams to Score - Yes (Proj xG {_xg:.2f})"
+                        elif _idx % 4 == 3 and ("1X" in _pk or "X2" in _pk):
+                            _winner = _teams[0] if "1X" in _pk else _teams[-1]
+                            _it["pk"] = f"{_winner} Win (1X2)"
 
                 lk = data.get("likely")
                 if isinstance(lk, list) and lk:
