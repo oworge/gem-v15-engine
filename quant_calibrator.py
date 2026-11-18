@@ -415,7 +415,7 @@ def build_calibrated_feed():
         if has_fd:
             import math as _m
             _ph = _pd = _pa = _po25 = _pbtts = 0.0
-            _best_sc, _best_p = "1-0", -1.0
+            _cells = []
             for _i in range(7):
                 _pi = (_m.exp(-fd_lh) * (fd_lh ** _i)) / _m.factorial(_i)
                 for _j in range(7):
@@ -428,17 +428,20 @@ def build_calibrated_feed():
                     else: _pa += _p
                     if (_i + _j) >= 3: _po25 += _p
                     if _i >= 1 and _j >= 1: _pbtts += _p
-                    if _p > _best_p:
-                        _best_p = _p
-                        _best_sc = f"{_i}-{_j}"
+                    _cells.append((_p, f"{_i}-{_j}"))
             _tot = max(1e-6, _ph + _pd + _pa)
-            bv = {
+            _cells.sort(reverse=True)
+            _best_sc = _cells[0][1]
+            _cluster = "/".join(sc for _, sc in _cells[:3])
+            _cluster_prob = round(sum(p for p, _ in _cells[:3]) / _tot, 4)
+            bv.update({
                 "lh": fd_lh, "la": fd_la,
                 "p_home": round(_ph / _tot, 4), "p_draw": round(_pd / _tot, 4), "p_away": round(_pa / _tot, 4),
                 "p_o25": round(min(0.92, _po25 / _tot), 4), "p_u25": round(max(0.08, 1.0 - (_po25 / _tot)), 4),
                 "p_btts_y": round(min(0.90, _pbtts / _tot), 4), "p_btts_n": round(max(0.10, 1.0 - (_pbtts / _tot)), 4),
-                "cs": _best_sc, "top_cs": _best_sc
-            }
+                "cs": _best_sc, "top_cs": _best_sc,
+                "cs_cluster": _cluster, "cs_cluster_prob": _cluster_prob
+            })
         xg_tot = round(fd_lh + fd_la, 2)
         p_home = max(0.24, min(0.84, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
         p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("draw", 0.26), "1X2", w)))
