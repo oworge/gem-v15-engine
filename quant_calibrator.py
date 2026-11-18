@@ -341,6 +341,19 @@ def is_football_only(item):
     blob = f"{item.get('league','')} {item.get('sport_title','')} {item.get('home_team','')} {item.get('away_team','')}".upper()
     return not any(t in blob for t in NON_FOOTBALL_TERMS)
 
+
+def _sync_pick_xg_label(item):
+    n_txt = str(item.get("n", ""))
+    pk_txt = str(item.get("pk", ""))
+    m_xg = re.search(r"Proj xG\s*([0-9]+(?:\.[0-9]+)?)", n_txt)
+    if m_xg:
+        true_xg = float(m_xg.group(1))
+        pk_txt = re.sub(r"\(Proj xG\s*[0-9]+(?:\.[0-9]+)?\)", f"(Proj xG {true_xg:.2f})", pk_txt)
+        if "Under 2.5" in pk_txt and true_xg >= 2.60:
+            pk_txt = f"Over 2.5 Match Goals (Proj xG {true_xg:.2f})"
+        item["pk"] = pk_txt
+    return item
+
 def build_calibrated_feed():
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
@@ -516,4 +529,9 @@ def build_calibrated_feed():
             if arb:
                 arbs.append(arb)
 
+    for _k in ("matches", "todaysValue", "acca10", "ai", "likely", "live"):
+        if isinstance(locals().get(_k), list):
+            for _item in locals()[_k]:
+                if isinstance(_item, dict):
+                    _sync_pick_xg_label(_item)
     return {"weights": w, "enriched": enriched, "arbs": arbs, "sharpness_score": 9.9, "updated": datetime.now(timezone.utc).strftime("%a %d %b, %H:%M UTC")}
