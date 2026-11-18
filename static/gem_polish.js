@@ -1,3 +1,20 @@
+
+// Permanent daily BET & Perfect Value reset on new UTC day
+(function() {
+  try {
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const lastDay = localStorage.getItem("gem_bet_tab_date");
+    if (lastDay !== todayKey) {
+      Object.keys(localStorage).forEach(k => {
+        if (/slip|bet|acca|legs|cart|value/i.test(k) && k !== "gem_bet_tab_date") {
+          localStorage.removeItem(k);
+        }
+      });
+      localStorage.setItem("gem_bet_tab_date", todayKey);
+    }
+  } catch (e) {}
+})();
+
 ﻿(function(){
 var page="overview",p1Cur="trends",mode="matches",activeDay=0,accMode="10fold";
 var pvCache=[],p1Bets=[],p1Feed=null;
