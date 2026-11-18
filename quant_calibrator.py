@@ -345,9 +345,11 @@ def build_calibrated_feed():
     w["sharpness_score"] = 9.9
     w["last_brier"] = min(float(w.get("last_brier", 0.185)), 0.185)
     raw_matches = []
-    if os.path.exists("global_odds_cache.json"):
+    if not os.path.exists(CACHE_PATH):
+        fetch_live_daily_fixtures(force=True)
+    if os.path.exists(CACHE_PATH):
         try:
-            raw = json.load(open("global_odds_cache.json", encoding="utf-8"))
+            raw = json.load(open(CACHE_PATH, encoding="utf-8"))
             rows = raw if isinstance(raw, list) else raw.get("matches", raw.get("data", []))
             if isinstance(rows, list):
                 raw_matches.extend([r for r in rows if isinstance(r, dict) and is_football_only(r) and is_upcoming_fixture(r)])

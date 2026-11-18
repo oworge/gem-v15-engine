@@ -241,6 +241,7 @@ function syncAll(){
     p1Feed=live;
     if(live&&live.live&&window.GEM_DATA){
       if(live.upd)window.GEM_DATA.upd=live.upd;
+      if(live.matches&&live.matches.length)window.GEM_DATA.matches=live.matches;
       if(live.todaysValue&&live.todaysValue.length)window.GEM_DATA.todaysValue=live.todaysValue;
       if(live.likely&&live.likely.length)window.GEM_DATA.likely=live.likely;
       if(live.ai&&live.ai.length)window.GEM_DATA.ai=live.ai;
