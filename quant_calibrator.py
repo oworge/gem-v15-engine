@@ -236,14 +236,27 @@ def fetch_live_daily_fixtures(force=False):
                 if (str(sp.get("key", "")).startswith("soccer_") or str(sp.get("group", "")).lower() == "soccer")
                 and sp.get("active")
             ]
-            active_leagues = soccer_keys
+            priority_keys = [
+                "upcoming",
+                "soccer_epl", "soccer_efl_champ", "soccer_england_league1", "soccer_england_league2",
+                "soccer_uefa_champs_league", "soccer_uefa_champs_league_women",
+                "soccer_spain_la_liga", "soccer_spain_copa_del_rey",
+                "soccer_italy_serie_a", "soccer_germany_bundesliga",
+                "soccer_france_ligue_one", "soccer_brazil_campeonato"
+            ]
+            # Merge priority keys with active soccer keys returned by /v4/sports/
+            active_leagues = priority_keys + [k for k in soccer_keys if k not in priority_keys][:12]
             seen_ids = set()
+            http_errors = []
             for sk in active_leagues:
                 url = f"https://api.the-odds-api.com/v4/sports/{sk}/odds/?apiKey={urllib.parse.quote(odds_key)}&regions=uk,eu,us&markets=h2h&oddsFormat=decimal"
                 try:
-                    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "EdgeMETRIX-PRO-26/95.0"}), timeout=15) as resp:
+                    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "EdgeMETRIX-PRO-26/98.0"}), timeout=15) as resp:
                         events = json.loads(resp.read().decode("utf-8"))
-                except Exception:
+                except Exception as req_exc:
+                    http_errors.append(f"{sk}:{req_exc}")
+                    if "401" in str(req_exc) or "429" in str(req_exc):
+                        break
                     continue
                 for ev in events:
                     if not str(ev.get("sport_key", "")).startswith("soccer_"):
@@ -314,7 +327,7 @@ def fetch_live_daily_fixtures(force=False):
         "date": today_str, "count": 0,
         "has_odds_key": bool(odds_key), "has_af_key": bool(af_key),
         "detected_env_names": env_key_names,
-        "error": diag_error or f"Checked {len(active_leagues)} active soccer keys, 0 upcoming events matched"
+        "error": diag_error or f"Checked {len(active_leagues)} keys, 0 matched | sample_err={http_errors[:2]}"
     }, open(meta_file, "w", encoding="utf-8"))
     return False
 
