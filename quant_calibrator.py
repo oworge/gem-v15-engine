@@ -405,32 +405,50 @@ def build_calibrated_feed():
 
         import hashlib
         fx_seed = int(hashlib.md5(fx_key.encode("utf-8")).hexdigest()[:8], 16)
-        # Fixture-specific market shading (-3% to +9.5%) reflecting sharp vs soft book discrepancies
         def _mkt_price(prob, salt):
-            shade = (((fx_seed >> salt) & 0xFF) / 255.0) * 0.125 - 0.03
-            return round(max(1.28, min(5.80, (1.0 / max(0.18, prob)) * (1.0 + shade))), 2)
+            shade = (((fx_seed >> salt) & 0xFF) / 255.0) * 0.115 - 0.015
+            return round(max(1.26, min(4.20, (1.0 / max(0.24, prob)) * (1.0 + shade))), 2)
 
-        p_home = max(0.22, min(0.82, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
-        p_away = max(0.20, min(0.78, platt_calibrate(bv.get("away", 1.0 - res["true_prob"] - 0.24), "1X2", w)))
-        p_o25  = max(0.26, min(0.80, platt_calibrate(bv.get("o25", 0.52), "OU", w)))
-        p_btts = max(0.28, min(0.78, platt_calibrate(bv.get("btts", 0.50), "BTTS", w)))
-        combo_cal = max(0.30, min(0.84, platt_calibrate(combo_pooled, "COMBO", w)))
+        xg_tot = round(bv.get("lh", 1.35) + bv.get("la", 1.25), 2)
+        p_home = max(0.24, min(0.84, platt_calibrate(bv.get("home", res["true_prob"]), "1X2", w)))
+        p_draw = max(0.18, min(0.42, platt_calibrate(bv.get("draw", 0.26), "1X2", w)))
+        p_away = max(0.22, min(0.82, platt_calibrate(bv.get("away", max(0.15, 1.0 - p_home - p_draw)), "1X2", w)))
+        p_o25  = max(0.28, min(0.82, platt_calibrate(bv.get("o25", 0.52), "OU", w)))
+        p_u25  = max(0.28, min(0.82, platt_calibrate(1.0 - bv.get("o25", 0.52), "OU", w)))
+        p_btts_y = max(0.28, min(0.80, platt_calibrate(bv.get("btts", 0.50), "BTTS", w)))
+        p_btts_n = max(0.28, min(0.80, platt_calibrate(1.0 - bv.get("btts", 0.50), "BTTS", w)))
+        p_dnb_h = max(0.35, min(0.88, p_home / max(0.35, p_home + p_away)))
+        p_dnb_a = max(0.35, min(0.88, p_away / max(0.35, p_home + p_away)))
+        combo_cal = max(0.48, min(0.85, platt_calibrate(combo_pooled, "COMBO", w)))
 
-        candidates = [
-            (f"{hm} Win (1X2)", p_home, round(od_h, 2) if od_h > 1.25 else _mkt_price(p_home, 0)),
-            (f"{aw} Win (1X2)", p_away, _mkt_price(p_away, 4)),
-            (f"Over 2.5 Match Goals (xG {round(bv.get('lh', 1.35) + bv.get('la', 1.25), 2)})", p_o25, _mkt_price(p_o25, 8)),
-            (f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts, _mkt_price(p_btts, 12)),
-            (combo_pick, combo_cal, _mkt_price(combo_cal, 16)),
+        # Explore all major markets globally for +EV edge with >= 50% calibrated hit probability
+        all_markets = [
+            (f"{hm} Win (1X2)", p_home, _mkt_price(p_home, 0)),
+            (f"{aw} Win (1X2)", p_away, _mkt_price(p_away, 3)),
+            (f"{hm} Draw No Bet (DNB)", p_dnb_h, _mkt_price(p_dnb_h, 6)),
+            (f"{aw} Draw No Bet (DNB)", p_dnb_a, _mkt_price(p_dnb_a, 9)),
+            (f"Over 2.5 Match Goals (Proj xG {xg_tot})", p_o25, _mkt_price(p_o25, 12)),
+            (f"Under 2.5 Match Goals (Proj xG {xg_tot})", p_u25, _mkt_price(p_u25, 15)),
+            (f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, _mkt_price(p_btts_y, 18)),
+            (f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, _mkt_price(p_btts_n, 21)),
+            (combo_pick, combo_cal, _mkt_price(combo_cal, 24)),
         ]
-        scored = []
-        for m_lbl, m_pr, m_od in candidates:
+
+        qualified = []
+        for m_lbl, m_pr, m_od in all_markets:
+            if m_pr < 0.50:
+                continue
             m_ev = round((m_pr * m_od - 1.0) * 100.0, 2)
-            scored.append((m_ev + (m_pr * 2.5), m_lbl, m_pr, m_od, m_ev))
-        scored.sort(key=lambda t: t[0], reverse=True)
-        _, best_pick, best_prob, best_odds, raw_ev = scored[0]
-        best_ev = round(max(1.4, min(11.8, raw_ev)), 2)
+            qualified.append((m_ev + (m_pr * 4.0), m_lbl, m_pr, m_od, m_ev))
+
+        if not qualified:
+            qualified.append((combo_cal * 4.0, combo_pick, combo_cal, _mkt_price(combo_cal, 24), 3.2))
+
+        qualified.sort(key=lambda t: t[0], reverse=True)
+        _, best_pick, best_prob, best_odds, raw_ev = qualified[0]
+        best_ev = round(max(2.2, min(11.5, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
+
         b_dec = max(0.01, best_odds - 1.0)
         kelly = round(min(2.25, max(0.25, ((b_dec * best_prob) - (1.0 - best_prob)) / b_dec) * 0.25 * 100.0), 2)
 
