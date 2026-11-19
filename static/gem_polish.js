@@ -1142,7 +1142,7 @@ setInterval(injectRegionToggle,900);
         const k = btn.getAttribute("data-v208");
         if (currentKey === k) {
           currentKey = null;
-          panel.style.display = "none";
+          panel.style.setProperty("display", "none", "important");
           ensureBarAndPanel();
         } else {
           currentKey = k;
@@ -1205,7 +1205,7 @@ setInterval(injectRegionToggle,900);
     const { panel } = ensureBarAndPanel();
     const tab = TABS.find(t => t.key === key) || { key, label: key };
 
-    panel.style.display = "block";
+    panel.style.setProperty("display", "block", "important");
     panel.innerHTML = `<div style="color:#94a3b8;font-size:12px;">Loading engine-calibrated picks for ${tab.label}...</div>`;
 
     let payload = null;
@@ -1285,7 +1285,7 @@ setInterval(injectRegionToggle,900);
     if (hideBtn) {
       hideBtn.onclick = () => {
         currentKey = null;
-        panel.style.display = "none";
+        panel.style.setProperty("display", "none", "important");
         ensureBarAndPanel();
       };
     }
