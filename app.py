@@ -809,19 +809,32 @@ def api_tab_picks():
     rejected = []
     raw_items = []
 
-    try:
-        with app.test_client() as client:
-            resp = client.get("/api/gem-feed?refresh=1")
-            if resp.status_code == 200:
-                feed = resp.get_json(silent=True) or {}
-                if isinstance(feed, dict):
-                    for k in ("all_picks", "todaysValue", "uk_picks", "global_picks", "matches", "value", "acca10"):
-                        if isinstance(feed.get(k), list):
-                            raw_items.extend(feed[k])
-                elif isinstance(feed, list):
-                    raw_items.extend(feed)
-    except Exception:
-        pass
+    feed = None
+    for fn_name in ("build_gem_feed", "get_gem_feed", "generate_feed", "get_cached_feed"):
+        fn = globals().get(fn_name)
+        if callable(fn):
+            try:
+                feed = fn()
+                if feed:
+                    break
+            except Exception:
+                feed = None
+
+    if feed is None:
+        try:
+            with app.test_client() as client:
+                resp = client.get("/api/gem-feed")
+                if resp.status_code == 200:
+                    feed = resp.get_json(silent=True) or {}
+        except Exception:
+            feed = {}
+
+    if isinstance(feed, dict):
+        for k in ("all_picks", "todaysValue", "uk_picks", "global_picks", "matches", "value", "acca10"):
+            if isinstance(feed.get(k), list):
+                raw_items.extend(feed[k])
+    elif isinstance(feed, list):
+        raw_items.extend(feed)
 
     def to_prob(val):
         if val is None or val == "":
@@ -830,7 +843,7 @@ def api_tab_picks():
             x = float(val)
         except (TypeError, ValueError):
             return None
-        if x > 1.0 and x <= 100.0:
+        if 1.0 < x <= 100.0:
             return x / 100.0
         if 0.0 < x < 1.0:
             return x
@@ -847,7 +860,6 @@ def api_tab_picks():
             return x
         if 1.0 < x <= 100.0:
             return x / 100.0
-        # If fair is decimal fair odds (> 1.01), implied fair probability is 1 / fair
         if x > 1.01:
             return 1.0 / x
         return None
@@ -885,21 +897,8 @@ def api_tab_picks():
             item.get("p_mkt") if item.get("p_mkt") is not None else item.get("fair")
         )
         devig_prob = fair_to_prob(raw_devig)
-        if devig_prob is None and raw_devig is not None:
-            try:
-                f_val = float(raw_devig)
-                if f_val > 1.01:
-                    devig_prob = 1.0 / f_val
-            except (TypeError, ValueError):
-                devig_prob = None
 
-        calibrated = (
-            model_prob is not None
-            and devig_prob is not None
-            and 0.0 < model_prob < 1.0
-            and 0.0 < devig_prob < 1.0
-        )
-        if not calibrated:
+        if not (model_prob and devig_prob and 0.0 < model_prob < 1.0 and 0.0 < devig_prob < 1.0):
             rejected.append({"f": fixture, "pk": pick, "reason": "missing_calibration"})
             continue
 
@@ -933,7 +932,7 @@ def api_tab_picks():
         })
 
     return jsonify({
-        "version": "v222",
+        "version": "v223",
         "min_ev": min_ev,
         "verified_count": len(verified),
         "rejected_count": len(rejected),
