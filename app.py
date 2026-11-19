@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v168", "clv": summary}
+    return {"ok": True, "version": "v169", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -605,14 +605,41 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_acca10_all_markets_v168(response):
-    # AFTER_REQUEST_ACCA10_V168: guarantee acca10 uses full multi-market Argmax-EV selections, never (1X)/(X2) & Over 1.5
-    try:
-        if request.path == "/api/gem-feed" and response.is_json:
-            payload = response.get_json(silent=True)
-            if isinstance(payload, dict) and ("acca10" in payload or "todaysValue" in payload):
-                payload = _sanitize_acca10_all_markets_v167(payload)
-                response.set_data(json.dumps(payload))
-    except Exception:
-        pass
+def _enforce_acca10_all_markets_v169(response):
+    from flask import request as _req
+    import json as _json
+    if _req.path == "/api/gem-feed" and response.is_json:
+        payload = response.get_json(silent=True)
+        if isinstance(payload, dict):
+            tv_map = {}
+            for src_key in ("todaysValue", "ai", "likely"):
+                for item in (payload.get(src_key) or []):
+                    fk = str(item.get("f") or "").strip()
+                    pk = str(item.get("pk") or "").strip()
+                    if fk and pk and "&" not in pk and fk not in tv_map:
+                        tv_map[fk] = dict(item)
+            new_acca = []
+            seen = set()
+            for leg in (payload.get("acca10") or []):
+                fk = str(leg.get("f") or "").strip()
+                if not fk or fk in seen:
+                    continue
+                pk = str(leg.get("pk") or "").strip()
+                if "&" in pk and fk in tv_map:
+                    new_acca.append(tv_map[fk])
+                    seen.add(fk)
+                elif "&" not in pk:
+                    new_acca.append(leg)
+                    seen.add(fk)
+            for item in (payload.get("todaysValue") or []):
+                if len(new_acca) >= 10:
+                    break
+                fk = str(item.get("f") or "").strip()
+                pk = str(item.get("pk") or "").strip()
+                if fk and fk not in seen and "&" not in pk:
+                    new_acca.append(dict(item))
+                    seen.add(fk)
+            if new_acca:
+                payload["acca10"] = new_acca
+                response.set_data(_json.dumps(payload))
     return response
