@@ -151,3 +151,11 @@ body.gp-view-p2 #gp-p1-wrap { display: none !important; }
 #gem-slip-hdr { background:#1e293b; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-weight:700; font-size:13px; }
 #gem-slip-body { padding:10px 14px; max-height:300px; overflow-y:auto; font-size:12px; }
 .gem-slip-row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding:6px 0; gap:8px; }
+
+
+/* v190 Daily-Win Bankroll & Fractional Kelly Drawer */
+.gem-kb-box { background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:8px; margin:8px 0; font-size:11px; color:#e2e8f0; }
+.gem-kb-row { display:flex; gap:6px; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.gem-kb-inp { width:84px; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:6px; padding:3px 6px; font-size:11px; }
+.gem-kb-sel { background:#1e293b; color:#10b981; border:1px solid #475569; border-radius:6px; padding:3px 6px; font-size:11px; font-weight:700; }
+.gem-kelly-out { background:#064e3b; color:#6ee7b7; border:1px solid #059669; border-radius:8px; padding:6px 8px; font-weight:700; font-size:12px; margin-top:6px; }

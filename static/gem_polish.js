@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=189", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=190", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -830,4 +830,67 @@ setInterval(injectRegionToggle,900);
     };
   }
   setInterval(decorateCards, 1500);
+})();
+
+
+(function(){
+  if (window.__GEM_V190_KELLY) return;
+  window.__GEM_V190_KELLY = true;
+
+  function calcKelly(decOdds, evPct, fracMult, bankroll){
+    const b = Math.max(0.01, (parseFloat(decOdds) || 1.55) - 1);
+    const edge = Math.max(0.01, (parseFloat(evPct) || 9.8) / 100);
+    const p = Math.min(0.95, Math.max(0.05, (1 + edge) / (b + 1)));
+    const q = 1 - p;
+    const fullK = Math.max(0, (b * p - q) / b);
+    const adjK = Math.min(0.05, fullK * (parseFloat(fracMult) || 0.25));
+    return Math.max(1, +(bankroll * adjK).toFixed(2));
+  }
+
+  const origRender = window.renderSlipDrawer;
+  setInterval(() => {
+    const dr = document.getElementById("gem-slip-drawer");
+    const body = document.getElementById("gem-slip-body");
+    if (!dr || !body || document.getElementById("gem-kb-panel")) return;
+
+    const bankKey = "gem_bankroll_gbp";
+    const fracKey = "gem_kelly_frac";
+    const bankroll = parseFloat(localStorage.getItem(bankKey) || "500");
+    const fracMult = parseFloat(localStorage.getItem(fracKey) || "0.25");
+
+    const hdrTxt = dr.innerText || "";
+    const mOdds = hdrTxt.match(/([0-9]+[.][0-9]+)x/);
+    const combOdds = mOdds ? parseFloat(mOdds[1]) : 1.55;
+    const sugStake = calcKelly(combOdds, 10.5, fracMult, bankroll);
+    const estRet = (sugStake * combOdds).toFixed(2);
+    const toGoal = Math.max(0, 1000000 - bankroll).toLocaleString("en-GB");
+
+    const panel = document.createElement("div");
+    panel.id = "gem-kb-panel";
+    panel.className = "gem-kb-box";
+    panel.innerHTML = `
+      <div class="gem-kb-row">
+        <span>Bankroll (£):</span>
+        <input id="gem-inp-bank" class="gem-kb-inp" type="number" min="10" step="10" value="${bankroll}">
+        <select id="gem-sel-frac" class="gem-kb-sel">
+          <option value="0.10" ${fracMult===0.10?"selected":""}>0.10x Kelly (Safe)</option>
+          <option value="0.25" ${fracMult===0.25?"selected":""}>0.25x Kelly (Daily Win)</option>
+          <option value="0.50" ${fracMult===0.50?"selected":""}>0.50x Kelly (Growth)</option>
+        </select>
+      </div>
+      <div class="gem-kelly-out">
+        Suggested Stake: £${sugStake.toFixed(2)} → Est Return: £${estRet}
+      </div>
+      <div style="color:#94a3b8;font-size:10px;margin-top:4px;">£1M Target Gap: £${toGoal}</div>`;
+
+    body.prepend(panel);
+    document.getElementById("gem-inp-bank").onchange = (e) => {
+      localStorage.setItem(bankKey, e.target.value || "500");
+      panel.remove();
+    };
+    document.getElementById("gem-sel-frac").onchange = (e) => {
+      localStorage.setItem(fracKey, e.target.value || "0.25");
+      panel.remove();
+    };
+  }, 600);
 })();
