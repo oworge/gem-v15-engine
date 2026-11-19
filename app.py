@@ -809,7 +809,6 @@ def api_tab_picks():
     rejected = []
     raw_items = []
 
-    # 1. Pull live items directly from the app's own /api/gem-feed endpoint
     try:
         with app.test_client() as client:
             resp = client.get("/api/gem-feed?refresh=1")
@@ -823,92 +822,6 @@ def api_tab_picks():
                     raw_items.extend(feed)
     except Exception:
         pass
-
-    # 2. Import engine calibration helpers if available
-    shin_fn = None
-    bivar_fn = None
-    try:
-        import quant_calibrator as qc
-        shin_fn = getattr(qc, "shin_devig", None)
-        bivar_fn = getattr(qc, "bivariate_matrix", None)
-    except Exception:
-        pass
-    shin_fn = shin_fn or globals().get("shin_devig")
-    bivar_fn = bivar_fn or globals().get("bivariate_matrix")
-
-    # 3. Verified weekend fixture candidates (Nov 20-22, 2026) evaluated through the engine gate
-    weekend_candidates = [
-        {"f": "Manchester City v Fulham", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "12:30", "mkt": "1X2", "pk": "Manchester City Win (1)", "odds": 1.44, "frac": "4/9", "xg_h": 2.35, "xg_a": 0.85},
-        {"f": "Bournemouth v Nottingham Forest", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "15:00", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.78, "frac": "4/5", "xg_h": 1.55, "xg_a": 1.35},
-        {"f": "Coventry City v Crystal Palace", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "15:00", "mkt": "DNB", "pk": "Crystal Palace Draw No Bet (DNB)", "odds": 1.72, "frac": "8/11", "xg_h": 1.05, "xg_a": 1.52},
-        {"f": "Tottenham Hotspur v Ipswich Town", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "15:00", "mkt": "1X2", "pk": "Tottenham Hotspur Win (1)", "odds": 1.50, "frac": "1/2", "xg_h": 2.15, "xg_a": 0.92},
-        {"f": "Chelsea v Leeds United", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "15:00", "mkt": "DNB", "pk": "Chelsea Draw No Bet (DNB)", "odds": 1.53, "frac": "8/15", "xg_h": 1.95, "xg_a": 1.05},
-        {"f": "Aston Villa v Sunderland", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "15:00", "mkt": "1X2", "pk": "Aston Villa Win (1)", "odds": 1.57, "frac": "4/7", "xg_h": 2.02, "xg_a": 0.95},
-        {"f": "Newcastle United v Arsenal", "lg": "Premier League", "fixture_date": "2026-11-21", "ko": "17:30", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.75, "frac": "3/4", "xg_h": 1.48, "xg_a": 1.62},
-        {"f": "Hull City v Brighton & Hove Albion", "lg": "Premier League", "fixture_date": "2026-11-22", "ko": "14:00", "mkt": "DNB", "pk": "Brighton Draw No Bet (DNB)", "odds": 1.62, "frac": "8/13", "xg_h": 0.98, "xg_a": 1.68},
-        {"f": "Liverpool v Manchester United", "lg": "Premier League", "fixture_date": "2026-11-22", "ko": "16:30", "mkt": "O/U 2.5", "pk": "Over 2.5 Match Goals", "odds": 1.67, "frac": "2/3", "xg_h": 2.05, "xg_a": 1.38},
-        {"f": "Bayern Munich v 1. FC Koln", "lg": "Bundesliga", "fixture_date": "2026-11-20", "ko": "19:30", "mkt": "1X2", "pk": "Bayern Munich Win (1)", "odds": 1.33, "frac": "1/3", "xg_h": 2.75, "xg_a": 0.78},
-        {"f": "Borussia Monchengladbach v Borussia Dortmund", "lg": "Bundesliga", "fixture_date": "2026-11-21", "ko": "14:30", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.67, "frac": "2/3", "xg_h": 1.58, "xg_a": 1.78},
-        {"f": "Bayer Leverkusen v Paderborn", "lg": "Bundesliga", "fixture_date": "2026-11-21", "ko": "14:30", "mkt": "1X2", "pk": "Bayer Leverkusen Win (1)", "odds": 1.44, "frac": "4/9", "xg_h": 2.30, "xg_a": 0.88},
-        {"f": "Eintracht Frankfurt v Hoffenheim", "lg": "Bundesliga", "fixture_date": "2026-11-21", "ko": "14:30", "mkt": "O/U 2.5", "pk": "Over 2.5 Match Goals", "odds": 1.65, "frac": "13/20", "xg_h": 1.92, "xg_a": 1.45},
-        {"f": "Elversberg v Freiburg", "lg": "Bundesliga", "fixture_date": "2026-11-21", "ko": "14:30", "mkt": "DNB", "pk": "Freiburg Draw No Bet (DNB)", "odds": 1.60, "frac": "3/5", "xg_h": 1.02, "xg_a": 1.65},
-        {"f": "Union Berlin v RB Leipzig", "lg": "Bundesliga", "fixture_date": "2026-11-21", "ko": "14:30", "mkt": "DNB", "pk": "RB Leipzig Draw No Bet (DNB)", "odds": 1.65, "frac": "13/20", "xg_h": 1.12, "xg_a": 1.72},
-        {"f": "Schalke v Stuttgart", "lg": "Bundesliga", "fixture_date": "2026-11-21", "ko": "17:30", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.75, "frac": "3/4", "xg_h": 1.38, "xg_a": 1.66},
-        {"f": "Augsburg v Mainz", "lg": "Bundesliga", "fixture_date": "2026-11-22", "ko": "14:30", "mkt": "U/2.5", "pk": "Under 2.5 Match Goals", "odds": 1.72, "frac": "8/11", "xg_h": 1.08, "xg_a": 1.02},
-        {"f": "Werder Bremen v Hamburger SV", "lg": "Bundesliga", "fixture_date": "2026-11-22", "ko": "16:30", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.73, "frac": "8/11", "xg_h": 1.56, "xg_a": 1.48},
-        {"f": "Athletic Club v Espanyol", "lg": "LaLiga", "fixture_date": "2026-11-20", "ko": "20:00", "mkt": "1X2", "pk": "Athletic Club Win (1)", "odds": 1.50, "frac": "1/2", "xg_h": 2.05, "xg_a": 0.85},
-        {"f": "Deportivo Alaves v Deportivo La Coruna", "lg": "LaLiga", "fixture_date": "2026-11-21", "ko": "13:00", "mkt": "U/2.5", "pk": "Under 2.5 Match Goals", "odds": 1.62, "frac": "8/13", "xg_h": 1.02, "xg_a": 0.96},
-        {"f": "Rayo Vallecano v Valencia", "lg": "LaLiga", "fixture_date": "2026-11-21", "ko": "15:15", "mkt": "DNB", "pk": "Rayo Vallecano Draw No Bet (DNB)", "odds": 1.67, "frac": "2/3", "xg_h": 1.54, "xg_a": 1.04},
-        {"f": "Sevilla v Real Betis", "lg": "LaLiga", "fixture_date": "2026-11-21", "ko": "17:30", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.80, "frac": "4/5", "xg_h": 1.42, "xg_a": 1.44},
-        {"f": "Real Madrid v Celta de Vigo", "lg": "LaLiga", "fixture_date": "2026-11-21", "ko": "20:00", "mkt": "1X2", "pk": "Real Madrid Win (1)", "odds": 1.36, "frac": "4/11", "xg_h": 2.58, "xg_a": 0.82},
-        {"f": "Barcelona v Villarreal", "lg": "LaLiga", "fixture_date": "2026-11-22", "ko": "13:00", "mkt": "O/U 2.5", "pk": "Over 2.5 Match Goals", "odds": 1.50, "frac": "1/2", "xg_h": 2.35, "xg_a": 1.32},
-        {"f": "Real Racing Club v Real Sociedad", "lg": "LaLiga", "fixture_date": "2026-11-22", "ko": "15:15", "mkt": "DNB", "pk": "Real Sociedad Draw No Bet (DNB)", "odds": 1.72, "frac": "8/11", "xg_h": 1.01, "xg_a": 1.58},
-        {"f": "Osasuna v Malaga", "lg": "LaLiga", "fixture_date": "2026-11-22", "ko": "17:30", "mkt": "1X2", "pk": "Osasuna Win (1)", "odds": 1.67, "frac": "2/3", "xg_h": 1.78, "xg_a": 0.92},
-        {"f": "Getafe v Atletico Madrid", "lg": "LaLiga", "fixture_date": "2026-11-22", "ko": "20:00", "mkt": "U/2.5", "pk": "Under 2.5 Match Goals", "odds": 1.65, "frac": "13/20", "xg_h": 0.88, "xg_a": 1.15},
-        {"f": "Como v Cagliari", "lg": "Serie A", "fixture_date": "2026-11-21", "ko": "14:00", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.80, "frac": "4/5", "xg_h": 1.44, "xg_a": 1.38},
-        {"f": "Lazio v Lecce", "lg": "Serie A", "fixture_date": "2026-11-21", "ko": "14:00", "mkt": "1X2", "pk": "Lazio Win (1)", "odds": 1.53, "frac": "8/15", "xg_h": 1.98, "xg_a": 0.88},
-        {"f": "Parma v Roma", "lg": "Serie A", "fixture_date": "2026-11-21", "ko": "17:00", "mkt": "DNB", "pk": "Roma Draw No Bet (DNB)", "odds": 1.62, "frac": "8/13", "xg_h": 1.04, "xg_a": 1.66},
-        {"f": "Napoli v Torino", "lg": "Serie A", "fixture_date": "2026-11-21", "ko": "19:45", "mkt": "1X2", "pk": "Napoli Win (1)", "odds": 1.62, "frac": "8/13", "xg_h": 1.92, "xg_a": 0.86},
-        {"f": "Juventus v Venezia", "lg": "Serie A", "fixture_date": "2026-11-22", "ko": "11:30", "mkt": "1X2", "pk": "Juventus Win (1)", "odds": 1.40, "frac": "2/5", "xg_h": 2.22, "xg_a": 0.75},
-        {"f": "Sassuolo v Genoa", "lg": "Serie A", "fixture_date": "2026-11-22", "ko": "14:00", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.83, "frac": "5/6", "xg_h": 1.45, "xg_a": 1.36},
-        {"f": "Bologna v Udinese", "lg": "Serie A", "fixture_date": "2026-11-22", "ko": "14:00", "mkt": "DNB", "pk": "Bologna Draw No Bet (DNB)", "odds": 1.57, "frac": "4/7", "xg_h": 1.68, "xg_a": 0.98},
-        {"f": "AC Milan v Frosinone", "lg": "Serie A", "fixture_date": "2026-11-22", "ko": "17:00", "mkt": "1X2", "pk": "AC Milan Win (1)", "odds": 1.44, "frac": "4/9", "xg_h": 2.25, "xg_a": 0.84},
-        {"f": "Atalanta v Inter Milan", "lg": "Serie A", "fixture_date": "2026-11-22", "ko": "19:45", "mkt": "O/U 2.5", "pk": "Over 2.5 Match Goals", "odds": 1.85, "frac": "17/20", "xg_h": 1.62, "xg_a": 1.74},
-        {"f": "Nice v PSG", "lg": "Ligue 1", "fixture_date": "2026-11-21", "ko": "16:15", "mkt": "DNB", "pk": "PSG Draw No Bet (DNB)", "odds": 1.45, "frac": "9/20", "xg_h": 1.05, "xg_a": 1.98},
-        {"f": "Lille v Lyon", "lg": "Ligue 1", "fixture_date": "2026-11-21", "ko": "19:45", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.78, "frac": "4/5", "xg_h": 1.52, "xg_a": 1.44},
-        {"f": "Monaco v Auxerre", "lg": "Ligue 1", "fixture_date": "2026-11-21", "ko": "19:45", "mkt": "1X2", "pk": "Monaco Win (1)", "odds": 1.55, "frac": "11/20", "xg_h": 2.02, "xg_a": 0.90},
-        {"f": "Marseille v Le Mans", "lg": "Ligue 1", "fixture_date": "2026-11-22", "ko": "19:45", "mkt": "O/U 2.5", "pk": "Over 2.5 Match Goals", "odds": 1.70, "frac": "7/10", "xg_h": 2.05, "xg_a": 1.15},
-        {"f": "Sao Paulo v Fluminense", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-20", "ko": "00:30", "mkt": "1X2", "pk": "Sao Paulo Win (1)", "odds": 2.20, "frac": "6/5", "xg_h": 1.58, "xg_a": 1.02},
-        {"f": "Palmeiras v Flamengo", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-21", "ko": "19:30", "mkt": "BTTS", "pk": "Both Teams to Score (BTTS - Yes)", "odds": 1.85, "frac": "17/20", "xg_h": 1.44, "xg_a": 1.40},
-        {"f": "Bahia v Coritiba", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-21", "ko": "20:30", "mkt": "1X2", "pk": "Bahia Win (1)", "odds": 1.75, "frac": "3/4", "xg_h": 1.74, "xg_a": 0.94},
-        {"f": "Chapecoense v Cruzeiro", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-22", "ko": "00:00", "mkt": "DNB", "pk": "Cruzeiro Draw No Bet (DNB)", "odds": 1.60, "frac": "3/5", "xg_h": 0.96, "xg_a": 1.64},
-        {"f": "Athletico Paranaense v Remo", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-22", "ko": "19:00", "mkt": "1X2", "pk": "Athletico Paranaense Win (1)", "odds": 1.70, "frac": "7/10", "xg_h": 1.78, "xg_a": 0.92},
-        {"f": "Fluminense v Mirassol", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-22", "ko": "21:30", "mkt": "O/U 2.5", "pk": "Over 2.5 Match Goals", "odds": 1.90, "frac": "9/10", "xg_h": 1.68, "xg_a": 1.38},
-        {"f": "Red Bull Bragantino v Vasco da Gama", "lg": "Campeonato Brasileiro Serie A", "fixture_date": "2026-11-22", "ko": "22:30", "mkt": "U/2.5", "pk": "Under 2.5 Match Goals", "odds": 1.75, "frac": "3/4", "xg_h": 1.02, "xg_a": 0.95}
-    ]
-    raw_items.extend(weekend_candidates)
-
-    import math
-    def poisson_probs(lh, la):
-        p_h = p_d = p_a = p_btts = p_o25 = 0.0
-        for h in range(9):
-            ph = (lh ** h) * math.exp(-lh) / math.factorial(h)
-            for a in range(9):
-                pa = (la ** a) * math.exp(-la) / math.factorial(a)
-                p = ph * pa
-                if h > a:
-                    p_h += p
-                elif h == a:
-                    p_d += p
-                else:
-                    p_a += p
-                if h >= 1 and a >= 1:
-                    p_btts += p
-                if (h + a) >= 3:
-                    p_o25 += p
-        p_dnb_h = p_h / max(1e-6, (p_h + p_a))
-        p_dnb_a = p_a / max(1e-6, (p_h + p_a))
-        return {"1": p_h, "X": p_d, "2": p_a, "DNB_H": p_dnb_h, "DNB_A": p_dnb_a, "BTTS": p_btts, "O25": p_o25, "U25": max(0.0, 1.0 - p_o25)}
 
     seen = set()
     for item in raw_items:
@@ -931,44 +844,45 @@ def api_tab_picks():
             rejected.append({"f": fixture, "pk": pick, "reason": "invalid_odds"})
             continue
 
-        # Devig implied probability (removing ~5% bookmaker overround)
-        raw_imp = 1.0 / odds
-        devig_prob = round(raw_imp * 0.95, 4)
+        raw_model = item.get("model_prob") if item.get("model_prob") is not None else (
+            item.get("prob") if item.get("prob") is not None else item.get("p_model")
+        )
+        raw_devig = item.get("devig_prob") if item.get("devig_prob") is not None else item.get("p_mkt")
 
-        # Model probability from engine fields or bivariate Poisson xG gate
-        model_prob = item.get("model_prob") or item.get("prob") or item.get("p_model")
-        if model_prob is not None:
-            try:
-                model_prob = float(model_prob)
-                if model_prob > 1.0:
-                    model_prob /= 100.0
-            except (TypeError, ValueError):
-                model_prob = None
+        try:
+            model_prob = float(raw_model) if raw_model is not None else None
+            if model_prob is not None and model_prob > 1.0:
+                model_prob /= 100.0
+        except (TypeError, ValueError):
+            model_prob = None
 
-        if model_prob is None:
-            xg_h = float(item.get("xg_h", 1.55))
-            xg_a = float(item.get("xg_a", 1.25))
-            probs = poisson_probs(xg_h, xg_a)
-            pk_low = pick.lower()
-            home_name = fixture.split(" v ")[0].strip().lower() if " v " in fixture else ""
-            if "btts" in pk_low or "both teams" in pk_low:
-                model_prob = probs["BTTS"]
-            elif "over 2.5" in pk_low:
-                model_prob = probs["O25"]
-            elif "under 2.5" in pk_low:
-                model_prob = probs["U25"]
-            elif "dnb" in pk_low or "draw no bet" in pk_low:
-                model_prob = probs["DNB_H"] if (home_name and home_name in pk_low) else probs["DNB_A"]
-            elif "(2)" in pk_low:
-                model_prob = probs["2"]
-            else:
-                model_prob = probs["1"]
+        try:
+            devig_prob = float(raw_devig) if raw_devig is not None else None
+            if devig_prob is not None and devig_prob > 1.0:
+                devig_prob /= 100.0
+        except (TypeError, ValueError):
+            devig_prob = None
+
+        xg_gate_passed = bool(item.get("xg_gate_passed", False))
+        calibrated = (
+            model_prob is not None
+            and devig_prob is not None
+            and 0.0 < model_prob < 1.0
+            and 0.0 < devig_prob < 1.0
+        )
+
+        if not calibrated:
+            rejected.append({"f": fixture, "pk": pick, "reason": "missing_calibration"})
+            continue
 
         ev_pct = round(((model_prob * odds) - 1.0) * 100.0, 2)
-        xg_ok = bool(item.get("xg_gate_passed", True))
-        passed = bool(xg_ok and ev_pct >= min_ev and model_prob > devig_prob)
+        vetted = bool(xg_gate_passed and (model_prob > devig_prob) and (ev_pct >= min_ev))
 
-        enriched = {
+        if not vetted:
+            rejected.append({"f": fixture, "pk": pick, "ev": ev_pct, "reason": "failed_engine_threshold"})
+            continue
+
+        verified.append({
             **item,
             "f": fixture,
             "pk": pick,
@@ -976,20 +890,16 @@ def api_tab_picks():
             "ev": ev_pct,
             "model_prob": round(model_prob * 100.0, 1),
             "devig_prob": round(devig_prob * 100.0, 1),
-            "threshold_passed": passed,
-        }
-
-        if passed:
-            verified.append(enriched)
-        else:
-            rejected.append({"f": fixture, "pk": pick, "ev": ev_pct, "reason": "below_ev_threshold"})
+            "xg_gate_passed": True,
+            "threshold_passed": True,
+        })
 
     return jsonify({
-        "version": "v219",
+        "version": "v220",
         "min_ev": min_ev,
         "verified_count": len(verified),
         "rejected_count": len(rejected),
         "picks": verified,
-        "rejected": rejected[:50]
+        "rejected": rejected[:50],
     })
 
