@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=195", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=198", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1030,7 +1030,7 @@ setInterval(injectRegionToggle,900);
       return window.__LAST_GEM_FEED;
     }
     try {
-      const r = await fetch("/api/gem-feed?refresh=1&v=195", {cache:"no-store"});
+      const r = await fetch("/api/gem-feed?refresh=1&v=198", {cache:"no-store"});
       const j = await r.json();
       window.__LAST_GEM_FEED = j;
       return j;
@@ -1165,4 +1165,121 @@ setInterval(injectRegionToggle,900);
     });
   }
   setInterval(stampAll, 1200);
+})();
+
+
+(function(){
+  if (window.__GEM_V198_TAB_ONLY) return;
+  window.__GEM_V198_TAB_ONLY = true;
+  let activeTabScope = null;
+
+  function detectTabScope(txt){
+    const t = String(txt || "").toLowerCase().replace(/\s+/g, " ").trim();
+    if (t === "uk leagues" || t.startsWith("uk leagues")) return "uk";
+    if (t === "global leagues" || t.startsWith("global leagues")) return "global";
+    if (t === "all uk + global" || t.startsWith("all uk + global")) return "all";
+    return null;
+  }
+
+  function matchesScope(item, scope){
+    if (scope === "all") return true;
+    const sc = String(item.scope || "").toLowerCase();
+    if (sc === scope) return true;
+    const blob = `${item.f || ""} ${item.lg || ""} ${item.league || ""} ${item.m || ""}`.toLowerCase();
+    const isUk = /england|scotland|wales|premier league|championship|league one|league two|fa cup|efl|arsenal|chelsea|liverpool|manchester|tottenham|west ham|newcastle|aston villa|brighton|fulham|bournemouth|brentford|crystal palace|everton|wolves|nottingham|leicester|ipswich|southampton|sunderland|leeds|burnley|sheffield|wrexham|lincoln|preston|celtic|rangers/.test(blob);
+    return scope === "uk" ? isUk : !isUk;
+  }
+
+  function findTabBarAnchor(clickedEl){
+    if (clickedEl && clickedEl.parentElement) return clickedEl.parentElement;
+    const allEls = Array.from(document.querySelectorAll("button, a, div, span, label"));
+    const match = allEls.find(el => /^(uk leagues|global leagues|all uk \+ global)$/i.test((el.innerText || "").trim()));
+    return (match && match.parentElement) || null;
+  }
+
+  function hideTabPanel(){
+    const box = document.getElementById("gem-v198-tab-panel");
+    if (box) box.style.display = "none";
+  }
+
+  async function renderInTabOnly(scope, clickedEl){
+    if (!scope) { hideTabPanel(); return; }
+    let feed = window.__LAST_GEM_FEED;
+    if (!feed || !Array.isArray(feed.todaysValue)) {
+      try {
+        const r = await fetch("/api/gem-feed?refresh=1&v=198", {cache:"no-store"});
+        feed = await r.json();
+        window.__LAST_GEM_FEED = feed;
+      } catch(e){ return; }
+    }
+
+    const baseAll = (Array.isArray(feed.all_picks) && feed.all_picks.length)
+      ? feed.all_picks
+      : (feed.todaysValue || []);
+    let rows = baseAll.filter(x => matchesScope(x, scope));
+    if (!rows.length && scope === "uk" && Array.isArray(feed.uk_picks) && feed.uk_picks.length) rows = feed.uk_picks;
+    if (!rows.length && scope === "global" && Array.isArray(feed.global_picks) && feed.global_picks.length) rows = feed.global_picks;
+    if (!rows.length) rows = baseAll;
+
+    const anchor = findTabBarAnchor(clickedEl);
+    if (!anchor || !anchor.parentElement) return;
+
+    let box = document.getElementById("gem-v198-tab-panel");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "gem-v198-tab-panel";
+      box.style.cssText = "background:#0b1120;border:1px solid #334155;border-radius:12px;padding:12px;margin:8px 0 14px;color:#f8fafc;";
+    }
+    anchor.insertAdjacentElement("afterend", box);
+    box.style.display = "block";
+
+    const titles = {
+      all: "All UK + Global Selections",
+      uk: "UK Leagues Selections",
+      global: "Global Leagues Selections"
+    };
+    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500");
+    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25");
+
+    box.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:700;color:#ffffff;">${titles[scope]} (${rows.length})</span>
+        <button id="gem-v198-close-tab" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Hide Tab</button>
+      </div>` + rows.map((x, i) => {
+        const od = parseFloat(x.odds) || 1.55;
+        const ev = parseFloat(x.ev) || 9.8;
+        const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
+        const fDate = x.fixture_date || feed.feed_date || "2026-11-19";
+        return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
+          <div>
+            <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">Date: ${fDate}</span>
+            <span style="color:#94a3b8;">[${x.ko || "Today"}]</span>
+            <b>#${i + 1} ${x.f || ""}</b> — <span style="color:#34d399;font-weight:700;">${x.pk || ""}</span>
+            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg || "Global"} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
+          </div>
+          <div style="text-align:right;white-space:nowrap;">
+            <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
+          </div>
+        </div>`;
+      }).join("");
+
+    const closeBtn = document.getElementById("gem-v198-close-tab");
+    if (closeBtn) closeBtn.onclick = () => { activeTabScope = null; hideTabPanel(); };
+  }
+
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("button, a, div, span, label");
+    if (!el || (el.innerText || "").length > 40) return;
+    const sc = detectTabScope(el.innerText);
+    if (!sc) return;
+    if (activeTabScope === sc) {
+      activeTabScope = null;
+      hideTabPanel();
+    } else {
+      activeTabScope = sc;
+      setTimeout(() => renderInTabOnly(sc, el), 30);
+    }
+  }, true);
+
+  setTimeout(hideTabPanel, 100);
 })();
