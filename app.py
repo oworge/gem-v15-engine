@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v184(response):
+def _enforce_v185(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json, re as _re
@@ -616,30 +616,35 @@ def _enforce_v184(response):
         return response
     t_iso = _dt.now(_tz.utc).date().isoformat()
 
+    def _clean_fk(raw):
+        return _re.sub(r"^[0-9]+[.)][ ]*", "", str(raw or "").strip()).strip()
+
     def _fk(o):
         if not isinstance(o, dict): return ""
-        v = str(o.get("f") or o.get("match") or o.get("fixture") or "").strip()
+        v = _clean_fk(o.get("f") or o.get("match") or o.get("fixture") or "")
         if v and (" v " in v.lower() or " vs " in v.lower()): return v
-        h, a = str(o.get("h") or o.get("home") or "").strip(), str(o.get("a") or o.get("away") or "").strip()
+        h, a = _clean_fk(o.get("h") or o.get("home") or ""), _clean_fk(o.get("a") or o.get("away") or "")
         return f"{h} v {a}" if (h and a) else ""
 
     def _tms(fk):
         pts = _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)
-        return [pts[0].strip().lower(), pts[1].strip().lower()] if len(pts) == 2 else []
+        return [_clean_fk(pts[0]).lower(), _clean_fk(pts[1]).lower()] if len(pts) == 2 else []
 
     def _item_date(o):
         blob = " | ".join(str(v) for k, v in o.items() if k not in ("pk", "o", "f", "h", "a", "n") and v is not None)
         m = _re.search(r"([0-9]{4}-[0-9]{2}-[0-9]{2})", blob)
         return m.group(1) if m else ""
 
-    def _synth_pick(it, fk):
+    def _synth_pick(it, fk, allow_fallback=True):
         pk = str(it.get("pk") or it.get("best_pick") or it.get("pick") or "").strip()
         ostr = str(it.get("o") or it.get("odds_str") or "").strip()
         if pk and ostr and "&" not in pk:
             return pk, ostr
+        if not allow_fallback:
+            return "", ""
         pts = _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)
         if len(pts) != 2: return "", ""
-        hp, ap = pts[0].strip(), pts[1].strip()
+        hp, ap = _clean_fk(pts[0]), _clean_fk(pts[1])
         od = it.get("odds") if isinstance(it.get("odds"), dict) else it
         oh = float(od.get("od_h") or od.get("home_odds") or od.get("home") or od.get("1") or 0)
         oa = float(od.get("od_a") or od.get("away_odds") or od.get("away") or od.get("2") or 0)
@@ -662,7 +667,7 @@ def _enforce_v184(response):
         if (_item_date(it) or date_by_fk.get(fk, "")) != t_iso: continue
         tms = _tms(fk)
         if any(t in stm for t in tms): continue
-        pk, ostr = _synth_pick(it, fk)
+        pk, ostr = _synth_pick(it, fk, allow_fallback=True)
         if not pk or not ostr or "&" in pk: continue
         m = _re.search(r"(?:EV|Edge)[ ]*[+]?([0-9]+(?:[.][0-9]+)?)%", ostr, _re.I)
         evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 0.0)
@@ -673,16 +678,17 @@ def _enforce_v184(response):
     p["todaysValue"] = [x[1] for x in cands]
 
     acca, af, at = [], set(), set()
-    for it in (p["todaysValue"] + (p.get("acca10") or []) + pool):
-        if len(acca) >= 10: break
-        fk = _fk(it)
-        if not fk or fk in af: continue
-        tms = _tms(fk)
-        if any(t in at for t in tms): continue
-        pk, ostr = _synth_pick(it, fk)
-        if pk and ostr and "&" not in pk:
-            cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
-            acca.append(cp); af.add(fk); at.update(tms)
+    for allow_fb in (False, True):
+        for it in (p["todaysValue"] + (p.get("acca10") or []) + pool):
+            if len(acca) >= 10: break
+            fk = _fk(it)
+            if not fk or fk in af: continue
+            tms = _tms(fk)
+            if any(t in at for t in tms): continue
+            pk, ostr = _synth_pick(it, fk, allow_fallback=allow_fb)
+            if pk and ostr and "&" not in pk:
+                cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
+                acca.append(cp); af.add(fk); at.update(tms)
     if acca: p["acca10"] = acca[:10]
     response.set_data(_json.dumps(p))
     return response
