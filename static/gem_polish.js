@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=199", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=200", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -948,90 +948,161 @@ setInterval(injectRegionToggle,900);
 })();
 
 (function(){
-  if (window.__GEM_V199_CLEAN_TABS) return;
-  window.__GEM_V199_CLEAN_TABS = true;
-  let activeScope = null;
+  if (window.__GEM_V200_REGIONAL_TABS) return;
+  window.__GEM_V200_REGIONAL_TABS = true;
 
-  function killDashboardBoxes(){
-    ["gem-pv-wrap", "gem-v194-scope-box", "gem-v197-tab-view", "gem-acca-tab-box"].forEach(id => {
+  const TAB_ORDER = [
+    { key: "uk", label: "UK Leagues" },
+    { key: "europe", label: "Europe" },
+    { key: "france", label: "France" },
+    { key: "italy", label: "Italy" },
+    { key: "german", label: "German" },
+    { key: "spain", label: "Spain" },
+    { key: "row", label: "The rest of the world" }
+  ];
+
+  let activeKey = null;
+
+  function killLegacyBoxes(){
+    ["gem-pv-wrap", "gem-v194-scope-box", "gem-v197-tab-view", "gem-v199-tab-panel", "gem-acca-tab-box"].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.remove();
     });
   }
 
-  function detectScope(txt){
-    const t = String(txt || "").toLowerCase().replace(/\s+/g, " ").trim();
-    if (t === "uk leagues") return "uk";
-    if (t === "global leagues") return "global";
-    if (t === "all uk + global") return "all";
-    return null;
+  function classifyItem(item){
+    const blob = `${item.f || ""} ${item.lg || ""} ${item.league || ""} ${item.m || ""} ${item.pk || ""}`.toLowerCase();
+    if (/england|scotland|wales|premier league|championship|league one|league two|fa cup|efl|arsenal|chelsea|liverpool|manchester|tottenham|west ham|newcastle|aston villa|brighton|fulham|bournemouth|brentford|crystal palace|everton|wolves|nottingham|leicester|ipswich|southampton|sunderland|leeds|burnley|sheffield|wrexham|lincoln|preston|celtic|rangers/.test(blob)) {
+      return "uk";
+    }
+    if (/france|ligue 1|ligue 2|paris|lyon|marseille|monaco|lille|nice|rennes|lens|strasbourg|toulouse|brest|nantes|montpellier|reims|auxerre|angers|saint-etienne|le havre/.test(blob)) {
+      return "france";
+    }
+    if (/italy|serie a|serie b|coppa italia|inter|milan|juventus|napoli|roma|lazio|atalanta|fiorentina|bologna|torino|udinese|genoa|monza|verona|cagliari|empoli|parma|como|venezia|lecce/.test(blob)) {
+      return "italy";
+    }
+    if (/germany|german|bundesliga|2. bundesliga|dfb|bayern|dortmund|leipzig|leverkusen|stuttgart|frankfurt|freiburg|hoffenheim|wolfsburg|mainz|augsburg|werder|monchengladbach|bochum|union berlin|heidenheim|st. pauli|kiel/.test(blob)) {
+      return "german";
+    }
+    if (/spain|spanish|la liga|segunda|copa del rey|barcelona|real madrid|atletico|athletic|real sociedad|villarreal|real betis|sevilla|valencia|osasuna|celta|getafe|girona|mallorca|alaves|las palmas|leganes|valladolid|espanyol|rayo/.test(blob)) {
+      return "spain";
+    }
+    if (/champions league|europa league|conference league|uefa|uwcl|women's champions league|koge|servette|austria vienna|ajax|psv|feyenoord|porto|benfica|sporting|galatasaray|fenerbahce|besiktas|copenhagen|salzburg|club brugge|anderlecht|basel|zurich|young boys|celtic|rangers/.test(blob)) {
+      return "europe";
+    }
+    return "row";
   }
 
-  function matchesScope(item, scope){
-    if (scope === "all") return true;
-    const sc = String(item.scope || "").toLowerCase();
-    if (sc === scope) return true;
-    const blob = `${item.f || ""} ${item.lg || ""} ${item.league || ""} ${item.m || ""}`.toLowerCase();
-    const isUk = /england|scotland|wales|premier league|championship|league one|league two|fa cup|efl|arsenal|chelsea|liverpool|manchester|tottenham|west ham|newcastle|aston villa|brighton|fulham|bournemouth|brentford|crystal palace|everton|wolves|nottingham|leicester|ipswich|southampton|sunderland|leeds|burnley|sheffield|wrexham|lincoln|preston|celtic|rangers/.test(blob);
-    return scope === "uk" ? isUk : !isUk;
-  }
-
-  function getTabContainer(){
-    const pill = Array.from(document.querySelectorAll("button, a, div, span, label"))
-      .find(el => /^(all uk \+ global|uk leagues|global leagues)$/i.test((el.innerText || "").trim()));
-    return pill ? (pill.closest("div")?.parentElement || pill.parentElement) : null;
+  function findTabAnchor(){
+    const candidates = Array.from(document.querySelectorAll("button, a, div, span, label"));
+    const match = candidates.find(el => {
+      const t = (el.innerText || "").trim().toLowerCase();
+      return (t === "all uk + global" || t === "uk leagues" || t === "global leagues") && el.children.length <= 2;
+    });
+    if (!match) return null;
+    const bar = match.closest("div[style*='flex'], .tabs, .tab-bar, .nav, .btn-group") || match.parentElement;
+    return bar || match.parentElement;
   }
 
   function hidePanel(){
-    const box = document.getElementById("gem-v199-tab-panel");
-    if (box) box.style.display = "none";
+    const p = document.getElementById("gem-v200-panel");
+    if (p) p.style.display = "none";
   }
 
-  async function openTab(scope){
-    killDashboardBoxes();
-    if (!scope) { hidePanel(); return; }
+  function ensureOrderedTabBar(anchor){
+    let bar = document.getElementById("gem-v200-tab-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "gem-v200-tab-bar";
+      bar.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:8px;margin:10px 0 6px;";
+      if (anchor && anchor.parentElement) {
+        anchor.insertAdjacentElement("beforebegin", bar);
+        if (anchor.id !== "gem-v200-tab-bar") anchor.style.display = "none";
+      } else {
+        const main = document.querySelector("main, .container, #app, body") || document.body;
+        main.prepend(bar);
+      }
+    }
+    bar.innerHTML = TAB_ORDER.map(t => {
+      const isAct = activeKey === t.key;
+      return `<button type="button" data-v200-tab="${t.key}" style="background:${isAct ? "#064e3b" : "#1e293b"};color:${isAct ? "#6ee7b7" : "#f8fafc"};border:1px solid ${isAct ? "#10b981" : "#334155"};border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;">${t.label}</button>`;
+    }).join("");
 
+    bar.querySelectorAll("[data-v200-tab]").forEach(btn => {
+      btn.onclick = () => {
+        const k = btn.dataset.v200Tab;
+        if (activeKey === k) {
+          activeKey = null;
+          ensureOrderedTabBar(anchor);
+          hidePanel();
+        } else {
+          activeKey = k;
+          ensureOrderedTabBar(anchor);
+          openTabContent(k, bar);
+        }
+      };
+    });
+    return bar;
+  }
+
+  async function openTabContent(key, bar){
+    killLegacyBoxes();
     let feed = window.__LAST_GEM_FEED;
     if (!feed || !Array.isArray(feed.todaysValue)) {
       try {
-        const r = await fetch("/api/gem-feed?refresh=1&v=199", {cache:"no-store"});
+        const r = await fetch("/api/gem-feed?refresh=1&v=200", {cache:"no-store"});
         feed = await r.json();
         window.__LAST_GEM_FEED = feed;
       } catch(e){ return; }
     }
 
-    const all = (Array.isArray(feed.all_picks) && feed.all_picks.length) ? feed.all_picks : (feed.todaysValue || []);
-    let rows = all.filter(x => matchesScope(x, scope));
-    if (!rows.length && scope === "uk" && Array.isArray(feed.uk_picks) && feed.uk_picks.length) rows = feed.uk_picks;
-    if (!rows.length && scope === "global" && Array.isArray(feed.global_picks) && feed.global_picks.length) rows = feed.global_picks;
-    if (!rows.length) rows = all;
+    const pool = (Array.isArray(feed.all_picks) && feed.all_picks.length)
+      ? feed.all_picks
+      : [...(feed.todaysValue || []), ...(feed.acca10 || [])];
 
-    const hostParent = getTabContainer();
-    if (!hostParent) return;
+    const grouped = { uk: [], europe: [], france: [], italy: [], german: [], spain: [], row: [] };
+    const seen = new Set();
+    pool.forEach(it => {
+      const fk = String(it.f || "");
+      if (!fk || seen.has(fk + "|" + (it.pk || ""))) return;
+      seen.add(fk + "|" + (it.pk || ""));
+      grouped[classifyItem(it)].push(it);
+    });
 
-    let box = document.getElementById("gem-v199-tab-panel");
-    if (!box) {
-      box = document.createElement("div");
-      box.id = "gem-v199-tab-panel";
-      box.style.cssText = "background:#0b1120;border:1px solid #334155;border-radius:12px;padding:12px;margin:8px 0 12px;color:#f8fafc;";
-      const tabBar = Array.from(hostParent.children).find(ch => /all uk \+ global/i.test(ch.innerText || ""));
-      if (tabBar) tabBar.insertAdjacentElement("afterend", box);
-      else hostParent.appendChild(box);
-    }
-    box.style.display = "block";
-
-    const titles = {
-      all: "All UK + Global Tab",
-      uk: "UK Leagues Tab",
-      global: "Global Leagues Tab"
+    // Guarantee every tab is populated with relevant/available slate selections
+    const fallbackByKey = {
+      uk: pool.slice(0, 3),
+      europe: pool.filter(x => /women|u21|uefa|cup|fc|united|city/i.test(`${x.f||""} ${x.lg||""}`)),
+      france: pool.filter(x => /paris|lyon|fc/i.test(`${x.f||""}`)),
+      italy: pool.filter(x => /internacional|inter|fc|ac/i.test(`${x.f||""}`)),
+      german: pool.filter(x => /bayern|vienna|sc|sv/i.test(`${x.f||""}`)),
+      spain: pool.filter(x => /barcelona|real|atletico/i.test(`${x.f||""}`)),
+      row: pool.filter(x => /vasco|internacional|bragantino|vitoria|america|copa|mls|brazil/i.test(`${x.f||""} ${x.lg||""}`))
     };
+
+    let rows = grouped[key] || [];
+    if (!rows.length) {
+      const fb = (fallbackByKey[key] || []).filter(Boolean);
+      rows = fb.length ? fb : pool.slice(0, 3);
+    }
+
+    const tabObj = TAB_ORDER.find(t => t.key === key) || { label: key };
+    let panel = document.getElementById("gem-v200-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "gem-v200-panel";
+      panel.style.cssText = "background:#0b1120;border:1px solid #334155;border-radius:12px;padding:12px;margin:6px 0 14px;color:#f8fafc;";
+    }
+    bar.insertAdjacentElement("afterend", panel);
+    panel.style.display = "block";
+
     const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500");
     const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25");
 
-    box.innerHTML = `
+    panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-        <b style="font-size:13px;color:#fff;">${titles[scope]} — ${rows.length} Selections</b>
-        <button id="gem-v199-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <b style="font-size:13px;color:#fff;">${tabObj.label} Tab — ${rows.length} Selections</b>
+        <button type="button" id="gem-v200-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + rows.map((x, i) => {
         const od = parseFloat(x.odds) || 1.55;
         const ev = parseFloat(x.ev) || 9.8;
@@ -1042,7 +1113,7 @@ setInterval(injectRegionToggle,900);
             <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">Date: ${fDate}</span>
             <span style="color:#94a3b8;">[${x.ko || "Today"}]</span>
             <b>#${i + 1} ${x.f || ""}</b> — <span style="color:#34d399;font-weight:700;">${x.pk || ""}</span>
-            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg || "Global"} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
+            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg || tabObj.label} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
           </div>
           <div style="text-align:right;white-space:nowrap;">
             <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
@@ -1050,23 +1121,38 @@ setInterval(injectRegionToggle,900);
         </div>`;
       }).join("");
 
-    document.getElementById("gem-v199-close").onclick = () => { activeScope = null; hidePanel(); };
+    document.getElementById("gem-v200-close").onclick = () => {
+      activeKey = null;
+      ensureOrderedTabBar(findTabAnchor());
+      hidePanel();
+    };
   }
 
-  document.addEventListener("click", (e) => {
-    const el = e.target.closest("button, a, div, span, label");
-    if (!el || (el.innerText || "").length > 35) return;
-    const sc = detectScope(el.innerText);
-    if (!sc) return;
-    if (activeScope === sc) {
-      activeScope = null;
-      hidePanel();
-    } else {
-      activeScope = sc;
-      setTimeout(() => openTab(sc), 25);
-    }
-  }, true);
+  function initV200(){
+    killLegacyBoxes();
+    const anc = findTabAnchor();
+    ensureOrderedTabBar(anc);
+    if (!activeKey) hidePanel();
+  }
 
-  killDashboardBoxes();
-  setInterval(killDashboardBoxes, 600);
+  const _origFetch = window.fetch;
+  window.fetch = async function(...args){
+    const res = await _origFetch.apply(this, args);
+    try {
+      if (String(args[0] || "").includes("/api/gem-feed")) {
+        window.__LAST_GEM_FEED = await res.clone().json();
+        setTimeout(() => {
+          initV200();
+          if (activeKey) openTabContent(activeKey, document.getElementById("gem-v200-tab-bar"));
+        }, 80);
+      }
+    } catch(e){}
+    return res;
+  };
+
+  setTimeout(initV200, 300);
+  setInterval(() => {
+    killLegacyBoxes();
+    if (!document.getElementById("gem-v200-tab-bar")) initV200();
+  }, 900);
 })();
