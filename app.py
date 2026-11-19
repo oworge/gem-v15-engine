@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v189(response):
+def _enforce_v192(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     from fractions import Fraction as _Frac
@@ -619,6 +619,8 @@ def _enforce_v189(response):
     t_iso = now_utc.date().isoformat()
     p["feed_date"] = t_iso
     p["generated_utc"] = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    uk_tokens = ("england", "scotland", "wales", "premier league", "championship", "league one", "league two", "fa cup", "efl", "arsenal", "chelsea", "liverpool", "manchester", "tottenham", "west ham", "newcastle", "aston villa", "brighton", "fulham", "bournemouth", "brentford", "crystal palace", "everton", "wolves", "nottingham", "leicester", "ipswich", "southampton", "sunderland", "leeds", "burnley", "sheffield", "wrexham", "lincoln", "preston", "celtic", "rangers")
 
     def _to_frac(dec):
         try:
@@ -660,6 +662,10 @@ def _enforce_v189(response):
                     mk = _re.search(r"([0-2][0-9]:[0-5][0-9])", s)
                     if mk: ko_out = mk.group(1)
         return d_out, ko_out
+
+    def _is_uk(item):
+        blob = f"{item.get('f','')} {item.get('lg','')} {item.get('league','')} {item.get('m','')}".lower()
+        return any(tok in blob for tok in uk_tokens)
 
     def _pick_leg(it, fk, idx_seed=0, allow_dnb=True):
         pk = str(it.get("pk") or it.get("best_pick") or it.get("pick") or "").strip()
@@ -727,10 +733,25 @@ def _enforce_v189(response):
             cp["odds"], cp["frac"] = round(od_n, 2), _to_frac(od_n)
         elif is_dnb: dnb_cnt += 1
         cands.append(cp); stm.update(tms)
+
     p["todaysValue"] = cands
+    uk_list = [x for x in cands if _is_uk(x)]
+    gl_list = [x for x in cands if not _is_uk(x)]
+    if not uk_list: uk_list = cands[:max(1, min(3, len(cands)))]
+    if not gl_list: gl_list = cands
+    for x in uk_list: x["scope"] = "uk"
+    for x in gl_list: x["scope"] = "global"
+    p["all_picks"] = cands
+    p["uk_picks"] = uk_list
+    p["global_picks"] = gl_list
+    p["uk"] = uk_list
+    p["global"] = gl_list
+    if not (p.get("ai") or []): p["ai"] = cands
+    if not (p.get("likely") or []): p["likely"] = cands
+    if not (p.get("matches") or []): p["matches"] = cands
 
     acca, af, at, a_dnb = [], set(), set(), 0
-    for idx, it in enumerate(p["todaysValue"] + (p.get("acca10") or []) + pool):
+    for idx, it in enumerate(cands + (p.get("acca10") or []) + pool):
         if len(acca) >= 10: break
         fk = _fk(it)
         if not fk or fk in af: continue
