@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=225", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=226", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1217,7 +1217,7 @@ setInterval(injectRegionToggle,900);
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 5000);
-      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=225&_t=" + Date.now(), {
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=226&_t=" + Date.now(), {
         cache: "no-store",
         signal: ctrl.signal
       });
@@ -1250,7 +1250,7 @@ setInterval(injectRegionToggle,900);
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
         <b style="font-size:13px;color:#fff;">${tab.label} — ${vettedPicks.length} Engine-Vetted Selections</b>
-        <button type="button" id="gem-v225-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <button type="button" id="gem-v226-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + (vettedPicks.length === 0
         ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">0 selections cleared full engine vetting (model_prob > devig_prob, xG gate, and EV >= 2.5%) for ${tab.label}. Rejected candidates: ${rejectedCount}.${statusNote ? " " + statusNote : ""}</div>`
         : vettedPicks.map((x, i) => {
@@ -1277,7 +1277,7 @@ setInterval(injectRegionToggle,900);
             </div>`;
           }).join(""));
 
-    const hideBtn = document.getElementById("gem-v225-hide");
+    const hideBtn = document.getElementById("gem-v226-hide");
     if (hideBtn) {
       hideBtn.onclick = () => {
         currentKey = null;
