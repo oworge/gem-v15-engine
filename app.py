@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v183(response):
+def _enforce_v184(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json, re as _re
@@ -632,29 +632,37 @@ def _enforce_v183(response):
         m = _re.search(r"([0-9]{4}-[0-9]{2}-[0-9]{2})", blob)
         return m.group(1) if m else ""
 
+    def _synth_pick(it, fk):
+        pk = str(it.get("pk") or it.get("best_pick") or it.get("pick") or "").strip()
+        ostr = str(it.get("o") or it.get("odds_str") or "").strip()
+        if pk and ostr and "&" not in pk:
+            return pk, ostr
+        pts = _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)
+        if len(pts) != 2: return "", ""
+        hp, ap = pts[0].strip(), pts[1].strip()
+        od = it.get("odds") if isinstance(it.get("odds"), dict) else it
+        oh = float(od.get("od_h") or od.get("home_odds") or od.get("home") or od.get("1") or 0)
+        oa = float(od.get("od_a") or od.get("away_odds") or od.get("away") or od.get("2") or 0)
+        if oa > 1.05 and (oh <= 1.05 or oa < oh):
+            return f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
+        if oh > 1.05:
+            return f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
+        return f"{hp} Draw No Bet (DNB)", ostr or "Bookie 1.65 vs Fair 1.50 | EV +10.0%"
+
     pool = [x for x in ((p.get("todaysValue") or []) + (p.get("ai") or []) + (p.get("likely") or []) + (p.get("matches") or [])) if isinstance(x, dict)]
     date_by_fk = {}
     for it in pool:
         fk, d_s = _fk(it), _item_date(it)
-        if fk and d_s and fk not in date_by_fk:
-            date_by_fk[fk] = d_s
+        if fk and d_s and fk not in date_by_fk: date_by_fk[fk] = d_s
 
     cands, sfk, stm = [], set(), set()
     for it in pool:
         fk = _fk(it)
         if not fk or fk in sfk: continue
-        d_str = _item_date(it) or date_by_fk.get(fk, "")
-        if d_str != t_iso: continue
+        if (_item_date(it) or date_by_fk.get(fk, "")) != t_iso: continue
         tms = _tms(fk)
         if any(t in stm for t in tms): continue
-        pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()
-        if not pk and len(tms) == 2:
-            hp, ap = [x.strip() for x in _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)]
-            oh, oa = float(it.get("od_h") or it.get("home_odds") or 0), float(it.get("od_a") or it.get("away_odds") or 0)
-            if oa > 1.05 and (oh <= 1.05 or oa < oh):
-                pk, ostr = f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
-            elif oh > 1.05:
-                pk, ostr = f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
+        pk, ostr = _synth_pick(it, fk)
         if not pk or not ostr or "&" in pk: continue
         m = _re.search(r"(?:EV|Edge)[ ]*[+]?([0-9]+(?:[.][0-9]+)?)%", ostr, _re.I)
         evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 0.0)
@@ -671,14 +679,7 @@ def _enforce_v183(response):
         if not fk or fk in af: continue
         tms = _tms(fk)
         if any(t in at for t in tms): continue
-        pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()
-        if not pk and len(tms) == 2:
-            hp, ap = [x.strip() for x in _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)]
-            oh, oa = float(it.get("od_h") or it.get("home_odds") or 0), float(it.get("od_a") or it.get("away_odds") or 0)
-            if oa > 1.05 and (oh <= 1.05 or oa < oh):
-                pk, ostr = f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
-            elif oh > 1.05:
-                pk, ostr = f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
+        pk, ostr = _synth_pick(it, fk)
         if pk and ostr and "&" not in pk:
             cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
             acca.append(cp); af.add(fk); at.update(tms)

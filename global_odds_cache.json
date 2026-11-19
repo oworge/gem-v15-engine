@@ -313,12 +313,12 @@
     "away_team": "Sunderland",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.83,
-    "draw_odds": 3.8,
-    "away_odds": 4.2,
+    "home_odds": 1.8,
+    "draw_odds": 3.85,
+    "away_odds": 4.4,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.45,
+    "xg_home": 1.47,
     "xg_away": 0.65
   },
   {
