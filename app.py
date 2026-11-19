@@ -605,181 +605,74 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_today_global_and_acca10_v178(response):
+def _enforce_v180(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
-    import json as _json
-    import re as _re
-
-    _today_utc = _dt.now(_tz.utc).date()
-    _today_iso = _today_utc.isoformat()
-
-    def _get_fk(obj):
-        if not isinstance(obj, dict):
-            return ""
+    import json as _json, re as _re
+    if _req.path != "/api/gem-feed" or not response.is_json:
+        return response
+    p = response.get_json(silent=True)
+    if not isinstance(p, dict):
+        return response
+    today_iso = _dt.now(_tz.utc).date().isoformat()
+    def _fk(o):
+        if not isinstance(o, dict): return ""
         for k in ("f", "m", "match", "fixture", "title", "name"):
-            v = str(obj.get(k) or "").strip()
-            if v and (" v " in v.lower() or " vs " in v.lower()):
-                return v
-        h = str(obj.get("h") or obj.get("home") or obj.get("home_team") or obj.get("homeTeam") or "").strip()
-        a = str(obj.get("a") or obj.get("away") or obj.get("away_team") or obj.get("awayTeam") or "").strip()
+            v = str(o.get(k) or "").strip()
+            if v and (" v " in v.lower() or " vs " in v.lower()): return v
+        h, a = str(o.get("h") or o.get("home") or "").strip(), str(o.get("a") or o.get("away") or "").strip()
         return f"{h} v {a}" if (h and a) else ""
-
-    def _teams_from_fk(fk):
-        parts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
-        if len(parts) == 2:
-            return [parts[0].strip().lower(), parts[1].strip().lower()]
-        return []
-
-    def _extract_date_str(obj):
-        if not isinstance(obj, dict):
-            return ""
-        for k in ("commence_time", "utcDate", "ko", "date", "dt", "start_time", "time", "kickoff", "day"):
-            raw_t = obj.get(k)
-            if not raw_t:
-                continue
-            if isinstance(raw_t, (int, float)) and raw_t > 1_000_000_000:
-                try:
-                    ts = float(raw_t) / 1000.0 if raw_t > 10_000_000_000 else float(raw_t)
-                    return _dt.fromtimestamp(ts, tz=_tz.utc).strftime("%Y-%m-%d %H:%M UTC")
-                except Exception:
-                    continue
-            s = str(raw_t).strip()
-            if s:
-                return s
-        return ""
-
-    def _is_strictly_today(obj):
-        s = _extract_date_str(obj)
-        if not s:
-            return False
-        if _today_iso in s:
-            return True
-        m_iso = _re.search(r"(\d{4}-\d{2}-\d{2})", s)
-        if m_iso:
-            return m_iso.group(1) == _today_iso
-        m_dmy = _re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", s)
-        if m_dmy:
-            dd, mm = int(m_dmy.group(1)), int(m_dmy.group(2))
-            yy = int(m_dmy.group(3)) if m_dmy.group(3) else _today_utc.year
-            if yy < 100:
-                yy += 2000
-            return (yy, mm, dd) == (_today_utc.year, _today_utc.month, _today_utc.day)
-        if _re.match(r"^\d{1,2}:\d{2}", s) and not any(w in s.lower() for w in ("tomorrow", "tmrw", "next", "mon", "tue", "wed", "thu", "fri", "sat", "sun")):
-            return True
+    def _tms(fk):
+        pts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
+        return [pts[0].strip().lower(), pts[1].strip().lower()] if len(pts) == 2 else []
+    def _fut(o):
+        for k in ("commence_time", "utcDate", "ko", "date", "dt", "start_time", "time", "kickoff", "day", "sub"):
+            raw = o.get(k)
+            if not raw: continue
+            if isinstance(raw, (int, float)) and raw > 1_000_000_000:
+                ts = float(raw) / (1000.0 if raw > 10_000_000_000 else 1.0)
+                return _dt.fromtimestamp(ts, tz=_tz.utc).date().isoformat() > today_iso
+            s = str(raw).strip()
+            m = _re.search(r"(\d{4}-\d{2}-\d{2})", s)
+            if m: return m.group(1) > today_iso
+            if any(w in s.lower() for w in ("tomorrow", "tmrw", "next")): return True
         return False
 
-    def _ev_val(obj):
-        o_txt = str(obj.get("o") or "")
-        m = _re.search(r"(?:EV|Edge)\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_txt, _re.I)
-        if m:
-            return float(m.group(1))
-        try:
-            return float(obj.get("ev") or obj.get("edge") or 0.0)
-        except Exception:
-            return 0.0
+    pool = [x for x in ((p.get("todaysValue") or []) + (p.get("ai") or []) + (p.get("likely") or []) + (p.get("matches") or [])) if isinstance(x, dict)]
+    cands, sfk, stm = [], set(), set()
+    for it in pool:
+        fk = _fk(it)
+        if not fk or fk in sfk or _fut(it): continue
+        tms = _tms(fk)
+        if any(t in stm for t in tms): continue
+        pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()
+        if not pk and len(tms) == 2:
+            hp, ap = [x.strip() for x in _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)]
+            oh, oa = float(it.get("od_h") or it.get("home_odds") or 0), float(it.get("od_a") or it.get("away_odds") or 0)
+            if oa > 1.05 and (oh <= 1.05 or oa < oh):
+                pk, ostr = f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
+            elif oh > 1.05:
+                pk, ostr = f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
+        if not pk or not ostr or "&" in pk: continue
+        m = _re.search(r"(?:EV|Edge)\s*\+?([0-9]+(?:\.[0-9]+)?)%", ostr, _re.I)
+        evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 0.0)
+        if 0 < evn < 4.1: continue
+        cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
+        cands.append((evn, cp)); sfk.add(fk); stm.update(tms)
 
-    if _req.path == "/api/gem-feed" and response.is_json:
-        payload = response.get_json(silent=True)
-        if isinstance(payload, dict):
-            today_candidates = []
-            seen_today_fk = set()
-            seen_today_teams = set()
-            all_sources = (
-                (payload.get("todaysValue") or [])
-                + (payload.get("ai") or [])
-                + (payload.get("likely") or [])
-                + (payload.get("matches") or [])
-            )
-            for item in all_sources:
-                if not isinstance(item, dict):
-                    continue
-                fk = _get_fk(item)
-                if not fk or fk in seen_today_fk:
-                    continue
-                if not _is_strictly_today(item):
-                    continue
-                teams = _teams_from_fk(fk)
-                if any(t in seen_today_teams for t in teams):
-                    continue
-                pk = str(item.get("pk") or item.get("best_pick") or item.get("pick") or "").strip()
-                o_str = str(item.get("o") or item.get("odds_str") or "").strip()
-                if not pk and len(teams) == 2:
-                    raw_parts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
-                    h_team, a_team = raw_parts[0].strip(), raw_parts[1].strip()
-                    od_h = float(item.get("od_h") or item.get("home_odds") or item.get("1") or 0)
-                    od_a = float(item.get("od_a") or item.get("away_odds") or item.get("2") or 0)
-                    if od_a > 1.05 and (od_h <= 1.05 or od_a < od_h):
-                        pk = f"{a_team} Win (1X2)"
-                        if not o_str:
-                            o_str = f"Bookie {od_a:.2f} vs Fair {max(1.15, od_a*0.91):.2f} | EV +9.8%"
-                    elif od_h > 1.05:
-                        pk = f"{h_team} Win (1X2)"
-                        if not o_str:
-                            o_str = f"Bookie {od_h:.2f} vs Fair {max(1.15, od_h*0.91):.2f} | EV +9.8%"
-                if not pk or not o_str or "&" in pk:
-                    continue
-                ev_num = _ev_val(item)
-                if ev_num > 0 and ev_num < 4.1:
-                    continue
-                it_copy = dict(item)
-                it_copy["f"] = fk
-                it_copy["pk"] = pk
-                it_copy["o"] = o_str
-                if not it_copy.get("ko") and not it_copy.get("commence_time"):
-                    it_copy["ko"] = _extract_date_str(item) or _today_iso
-                today_candidates.append((ev_num, it_copy))
-                seen_today_fk.add(fk)
-                for t in teams:
-                    seen_today_teams.add(t)
-
-            today_candidates.sort(key=lambda x: x[0], reverse=True)
-            if today_candidates:
-                payload["todaysValue"] = [x[1] for x in today_candidates]
-
-            # Build guaranteed 10-leg multi-market acca10
-            tv_map = {}
-            for src_key in ("todaysValue", "ai", "likely"):
-                for item in (payload.get(src_key) or []):
-                    if not isinstance(item, dict):
-                        continue
-                    fk = _get_fk(item)
-                    pk = str(item.get("pk") or "").strip()
-                    if fk and pk and item.get("o") and "&" not in pk and fk not in tv_map:
-                        it_copy = dict(item)
-                        it_copy["f"] = fk
-                        tv_map[fk] = it_copy
-
-            new_acca = []
-            seen_acca_fk = set()
-            seen_acca_teams = set()
-            for item in ((payload.get("todaysValue") or []) + (payload.get("acca10") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
-                if len(new_acca) >= 10:
-                    break
-                if not isinstance(item, dict):
-                    continue
-                fk = _get_fk(item)
-                if not fk or fk in seen_acca_fk:
-                    continue
-                teams = _teams_from_fk(fk)
-                if any(t in seen_acca_teams for t in teams):
-                    continue
-                pk = str(item.get("pk") or item.get("best_pick") or "").strip()
-                o_str = str(item.get("o") or "").strip()
-                if "&" in pk and fk in tv_map:
-                    chosen = tv_map[fk]
-                elif pk and o_str and "&" not in pk:
-                    chosen = dict(item)
-                    chosen["f"] = fk
-                else:
-                    continue
-                new_acca.append(chosen)
-                seen_acca_fk.add(fk)
-                for t in teams:
-                    seen_acca_teams.add(t)
-
-            if new_acca:
-                payload["acca10"] = new_acca[:10]
-
-            response.set_data(_json.dumps(payload))
+    cands.sort(key=lambda x: x[0], reverse=True)
+    if cands: p["todaysValue"] = [x[1] for x in cands]
+    acca, af, at = [], set(), set()
+    for it in ((p.get("todaysValue") or []) + (p.get("acca10") or []) + pool):
+        if len(acca) >= 10: break
+        fk = _fk(it)
+        if not fk or fk in af: continue
+        tms = _tms(fk)
+        if any(t in at for t in tms): continue
+        pk, ostr = str(it.get("pk") or "").strip(), str(it.get("o") or "").strip()
+        if pk and ostr and "&" not in pk:
+            cp = dict(it); cp["f"] = fk
+            acca.append(cp); af.add(fk); at.update(tms)
+    if acca: p["acca10"] = acca[:10]
+    response.set_data(_json.dumps(p))
     return response
