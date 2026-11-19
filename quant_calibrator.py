@@ -1,11 +1,11 @@
 
+
 import os as _os
 from pathlib import Path as _Path
 DATA_DIR = _Path(_os.environ.get("GEM_DATA_DIR", "/var/data" if _os.path.isdir("/var/data") else "."))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-DB_PATH = str(DATA_DIR / DB_PATH)
-WEIGHTS_PATH = str(DATA_DIR / WEIGHTS_PATH)
-
+DB_PATH = str(DATA_DIR / "syndicate_ledger.db")
+WEIGHTS_PATH = str(DATA_DIR / "model_weights.json")
 from football_data_sync import get_fixture_xg, sync_football_data
 import math, json, os
 from datetime import datetime, timezone, timedelta
