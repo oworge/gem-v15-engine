@@ -359,13 +359,15 @@ def _sync_pick_xg_label(item):
         pk_txt = re.sub(r"\(Proj xG\s*[0-9]+(?:\.[0-9]+)?\)", f"(Proj xG {true_xg:.2f})", pk_txt)
         if "Under 2.5" in pk_txt and true_xg >= 2.60:
             pk_txt = f"Over 2.5 Match Goals (Proj xG {true_xg:.2f})"
+        if "Over 2.5" in pk_txt and true_xg < 2.55:
+            return None
         item["pk"] = pk_txt
     return item
 
 
 def _is_within_24h_v161(item):
     # FILTER_TODAY_24H_V161: keep todaysValue strictly inside [0h, +24h] while matches/acca10 retain full 72h slate
-    raw_ts = item.get("commence_time") or item.get("ko_iso") or item.get("ts") or ""
+    raw_ts = re.sub(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z$", r"\1:00Z", str(item.get("kickoff") or item.get("commence_time") or "").strip())
     if not raw_ts:
         return True
     try:

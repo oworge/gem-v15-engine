@@ -219,6 +219,12 @@ def gem_api_history():
     return jsonify({"items": items})
 
 
+@app.route("/api/clv-audit", methods=["GET"])
+def api_clv_audit():
+    import learner
+    summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
+    return jsonify({"ok": True, "version": "v162", "clv": summary})
+
 @app.route("/api/gem-feed")
 def api_gem_feed():
     from flask import jsonify
