@@ -895,7 +895,7 @@ def api_tab_picks():
         })
 
     return jsonify({
-        "version": "v220",
+        "version": "v221",
         "min_ev": min_ev,
         "verified_count": len(verified),
         "rejected_count": len(rejected),
