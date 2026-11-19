@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v180(response):
+def _enforce_v181(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json, re as _re
@@ -614,7 +614,10 @@ def _enforce_v180(response):
     p = response.get_json(silent=True)
     if not isinstance(p, dict):
         return response
-    today_iso = _dt.now(_tz.utc).date().isoformat()
+    now_u = _dt.now(_tz.utc)
+    t_iso = now_u.date().isoformat()
+    t_dd, t_mm, t_mon = f"{now_u.day:02d}", f"{now_u.month:02d}", now_u.strftime("%b").lower()
+
     def _fk(o):
         if not isinstance(o, dict): return ""
         for k in ("f", "m", "match", "fixture", "title", "name"):
@@ -622,27 +625,49 @@ def _enforce_v180(response):
             if v and (" v " in v.lower() or " vs " in v.lower()): return v
         h, a = str(o.get("h") or o.get("home") or "").strip(), str(o.get("a") or o.get("away") or "").strip()
         return f"{h} v {a}" if (h and a) else ""
+
     def _tms(fk):
         pts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
         return [pts[0].strip().lower(), pts[1].strip().lower()] if len(pts) == 2 else []
-    def _fut(o):
-        for k in ("commence_time", "utcDate", "ko", "date", "dt", "start_time", "time", "kickoff", "day", "sub"):
-            raw = o.get(k)
-            if not raw: continue
-            if isinstance(raw, (int, float)) and raw > 1_000_000_000:
-                ts = float(raw) / (1000.0 if raw > 10_000_000_000 else 1.0)
-                return _dt.fromtimestamp(ts, tz=_tz.utc).date().isoformat() > today_iso
-            s = str(raw).strip()
-            m = _re.search(r"(\d{4}-\d{2}-\d{2})", s)
-            if m: return m.group(1) > today_iso
-            if any(w in s.lower() for w in ("tomorrow", "tmrw", "next")): return True
-        return False
+
+    def _date_status(o):
+        blob_parts = []
+        for k, v in o.items():
+            if k in ("pk", "o", "f", "h", "a", "home", "away", "rationale", "reason"): continue
+            if isinstance(v, (int, float)) and v > 1_000_000_000:
+                ts = float(v) / (1000.0 if v > 10_000_000_000 else 1.0)
+                return "TODAY" if _dt.fromtimestamp(ts, tz=_tz.utc).date().isoformat() == t_iso else "OTHER"
+            if v is not None:
+                blob_parts.append(str(v))
+        blob = " | ".join(blob_parts)
+        m_iso = _re.search(r"(\d{4}-\d{2}-\d{2})", blob)
+        if m_iso:
+            return "TODAY" if m_iso.group(1) == t_iso else "OTHER"
+        m_mon = _re.search(r"\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})\b", blob, _re.I)
+        if m_mon:
+            d_val = int(m_mon.group(1) or m_mon.group(4))
+            m_val = (m_mon.group(2) or m_mon.group(3)).lower()
+            return "TODAY" if (d_val == now_u.day and m_val == t_mon) else "OTHER"
+        m_num = _re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?\b", blob)
+        if m_num:
+            a_n, b_n = int(m_num.group(1)), int(m_num.group(2))
+            return "TODAY" if ((a_n == now_u.day and b_n == now_u.month) or (a_n == now_u.month and b_n == now_u.day)) else "OTHER"
+        if "today" in blob.lower():
+            return "TODAY"
+        if any(w in blob.lower() for w in ("tomorrow", "tmrw", "next")):
+            return "OTHER"
+        if _re.search(r"\b\d{1,2}:\d{2}\b", blob):
+            return "TODAY"
+        return "NONE"
 
     pool = [x for x in ((p.get("todaysValue") or []) + (p.get("ai") or []) + (p.get("likely") or []) + (p.get("matches") or [])) if isinstance(x, dict)]
+    has_explicit_dates = any(_date_status(x) in ("TODAY", "OTHER") for x in pool)
     cands, sfk, stm = [], set(), set()
     for it in pool:
         fk = _fk(it)
-        if not fk or fk in sfk or _fut(it): continue
+        if not fk or fk in sfk: continue
+        ds = _date_status(it)
+        if ds == "OTHER" or (has_explicit_dates and ds != "TODAY"): continue
         tms = _tms(fk)
         if any(t in stm for t in tms): continue
         pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()

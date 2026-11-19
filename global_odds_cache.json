@@ -33,13 +33,13 @@
     "away_team": "OL Lyonnes",
     "league": "Global Football Slate",
     "kickoff": "2026-11-19T20:00Z",
-    "home_odds": 4.6,
-    "draw_odds": 4.2,
-    "away_odds": 1.67,
+    "home_odds": 4.7,
+    "draw_odds": 4.4,
+    "away_odds": 1.62,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.59
+    "xg_away": 1.64
   },
   {
     "sport_key": "soccer_all",
@@ -61,12 +61,12 @@
     "away_team": "Internacional",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-19T22:30Z",
-    "home_odds": 1.57,
-    "draw_odds": 4.2,
+    "home_odds": 1.56,
+    "draw_odds": 4.3,
     "away_odds": 5.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.69,
+    "xg_home": 1.7,
     "xg_away": 0.65
   },
   {
@@ -89,13 +89,13 @@
     "away_team": "FC Cincinnati",
     "league": "Global Football Slate",
     "kickoff": "2026-11-20T00:30Z",
-    "home_odds": 2.35,
+    "home_odds": 2.4,
     "draw_odds": 3.75,
-    "away_odds": 2.55,
+    "away_odds": 2.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.13,
-    "xg_away": 1.04
+    "xg_home": 1.1,
+    "xg_away": 1.06
   },
   {
     "sport_key": "soccer_bra.1",
