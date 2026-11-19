@@ -385,6 +385,34 @@ def _is_within_24h_v161(item):
         return True
 
 
+# SYNDICATE_V164_ENGINE: League-Tier Dynamic Weighting & Pre-Kickoff Steam-Shock Lambda Adjustment
+_TIER1_LEAGUES_V164 = (
+    "champions league", "premier league", "la liga", "bundesliga",
+    "serie a", "ligue 1", "europa league", "world cup", "euro"
+)
+
+def get_dynamic_pool_weights_v164(league_name="", hours_to_ko=12.0):
+    lg = str(league_name or "").lower()
+    is_tier1 = any(t in lg for t in _TIER1_LEAGUES_V164)
+    # Tier-1 sharp liquid markets trust market consensus more; secondary leagues give model higher weight
+    base_model_w = 0.40 if is_tier1 else 0.62
+    if hours_to_ko is not None and 0.0 <= float(hours_to_ko) <= 2.0:
+        base_model_w = max(0.32, base_model_w - 0.08)
+    elif hours_to_ko is not None and float(hours_to_ko) >= 24.0:
+        base_model_w = min(0.68, base_model_w + 0.05)
+    return round(base_model_w, 3), round(1.0 - base_model_w, 3)
+
+def apply_steam_shock_v164(lam_h, lam_a, steam_pct=0.0):
+    # Adjust expected goals lambdas when sharp steam velocity >= 3.5% signals late team news/injury shock
+    try:
+        st = float(steam_pct or 0.0)
+    except Exception:
+        st = 0.0
+    if abs(st) < 3.5:
+        return lam_h, lam_a
+    shock = min(0.12, max(-0.12, (st / 100.0) * 1.6))
+    return round(max(0.25, lam_h * (1.0 + shock)), 4), round(max(0.25, lam_a * (1.0 - shock * 0.75)), 4)
+
 def build_calibrated_feed():
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
