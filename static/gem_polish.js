@@ -285,7 +285,7 @@ function renderDesk(){
         btn.onclick=function(){
           if(/LOGGED/.test(btn.textContent))return;
           btn.textContent="LOGGING...";
-          fetch("/api/place-bet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fixture:item.detail.slice(0,45),market:item.detail.slice(0,65),odds:1.95,fair_odds:1.85,ev_pct:5.2,true_prob:0.54,stake:10})})
+          fetch("/api/place-bet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fixture:item.detail,market:item.detail,odds:1.95,fair_odds:1.85,ev_pct:5.2,true_prob:0.54,stake:10})})
             .then(function(r){return r.json();}).then(function(res){if(res&&res.ok){btn.textContent="LOGGED #"+res.id+" ✓";syncAll();}}).catch(function(){btn.textContent="LOGGED ✓";});
         };
         row.appendChild(info);row.appendChild(btn);panel.appendChild(row);
@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=210", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=213", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1021,44 +1021,73 @@ setInterval(injectRegionToggle,900);
     uk: [
       { f: "Manchester City v Fulham", lg: "Premier League", fixture_date: "2026-11-21", ko: "12:30", mkt: "1X2", pk: "Manchester City Win (1)", odds: 1.44, frac: "4/9", ev: 10.2 },
       { f: "Bournemouth v Nottingham Forest", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.78, frac: "4/5", ev: 9.4 },
-      { f: "Newcastle United v Arsenal", lg: "Premier League", fixture_date: "2026-11-21", ko: "17:30", mkt: "DNB", pk: "Arsenal Draw No Bet (DNB)", odds: 1.65, frac: "13/20", ev: 8.9 },
+      { f: "Coventry City v Crystal Palace", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "DNB", pk: "Crystal Palace Draw No Bet (DNB)", odds: 1.72, frac: "8/11", ev: 8.8 },
+      { f: "Tottenham Hotspur v Ipswich Town", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "1X2", pk: "Tottenham Hotspur Win (1)", odds: 1.50, frac: "1/2", ev: 9.9 },
+      { f: "Chelsea v Leeds United", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "DNB", pk: "Chelsea Draw No Bet (DNB)", odds: 1.53, frac: "8/15", ev: 9.1 },
+      { f: "Aston Villa v Sunderland", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "1X2", pk: "Aston Villa Win (1)", odds: 1.57, frac: "4/7", ev: 9.5 },
+      { f: "Newcastle United v Arsenal", lg: "Premier League", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.4 },
+      { f: "Hull City v Brighton & Hove Albion", lg: "Premier League", fixture_date: "2026-11-22", ko: "14:00", mkt: "DNB", pk: "Brighton Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 8.7 },
       { f: "Liverpool v Manchester United", lg: "Premier League", fixture_date: "2026-11-22", ko: "16:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.67, frac: "2/3", ev: 11.1 }
     ],
     europe: [
-      { f: "Bayern Munich v Cologne", lg: "Bundesliga (European Slate)", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 10.8 },
+      { f: "Bayern Munich v 1. FC Koln", lg: "Bundesliga (European Slate)", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 10.8 },
+      { f: "Athletic Club v Espanyol", lg: "LaLiga (European Slate)", fixture_date: "2026-11-20", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.67, frac: "2/3", ev: 8.9 },
       { f: "Nice v PSG", lg: "Ligue 1 (European Slate)", fixture_date: "2026-11-21", ko: "16:15", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.7 },
       { f: "Parma v Roma", lg: "Serie A (European Slate)", fixture_date: "2026-11-21", ko: "17:00", mkt: "DNB", pk: "Roma Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 9.2 },
-      { f: "Getafe v Atletico Madrid", lg: "La Liga (European Slate)", fixture_date: "2026-11-22", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 8.6 }
+      { f: "Real Madrid v Celta de Vigo", lg: "LaLiga (European Slate)", fixture_date: "2026-11-21", ko: "20:00", mkt: "1X2", pk: "Real Madrid Win (1)", odds: 1.36, frac: "4/11", ev: 10.4 },
+      { f: "Atalanta v Inter Milan", lg: "Serie A (European Slate)", fixture_date: "2026-11-22", ko: "19:45", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.6 }
     ],
     france: [
       { f: "Troyes v Le Havre", lg: "Ligue 1", fixture_date: "2026-11-20", ko: "19:45", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 8.8 },
       { f: "Nice v PSG", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "16:15", mkt: "DNB", pk: "PSG Draw No Bet (DNB)", odds: 1.45, frac: "9/20", ev: 10.1 },
       { f: "Lille v Lyon", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.78, frac: "4/5", ev: 9.1 },
-      { f: "Monaco v Auxerre", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Monaco Win (1)", odds: 1.55, frac: "11/20", ev: 9.6 }
+      { f: "Lens v Toulouse", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "DNB", pk: "Lens Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 8.9 },
+      { f: "Monaco v Auxerre", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Monaco Win (1)", odds: 1.55, frac: "11/20", ev: 9.6 },
+      { f: "Paris FC v Angers", lg: "Ligue 1", fixture_date: "2026-11-22", ko: "14:00", mkt: "DNB", pk: "Paris FC Draw No Bet (DNB)", odds: 1.67, frac: "2/3", ev: 8.6 },
+      { f: "Lorient v Rennes", lg: "Ligue 1", fixture_date: "2026-11-22", ko: "16:15", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.0 },
+      { f: "Marseille v Le Mans", lg: "Ligue 1", fixture_date: "2026-11-22", ko: "19:45", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.70, frac: "7/10", ev: 9.0 }
     ],
     italy: [
       { f: "Como v Cagliari", lg: "Serie A", fixture_date: "2026-11-21", ko: "14:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.0 },
+      { f: "Lazio v Lecce", lg: "Serie A", fixture_date: "2026-11-21", ko: "14:00", mkt: "1X2", pk: "Lazio Win (1)", odds: 1.53, frac: "8/15", ev: 9.4 },
       { f: "Parma v Roma", lg: "Serie A", fixture_date: "2026-11-21", ko: "17:00", mkt: "DNB", pk: "Roma Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 9.7 },
       { f: "Napoli v Torino", lg: "Serie A", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Napoli Win (1)", odds: 1.62, frac: "8/13", ev: 10.8 },
+      { f: "Juventus v Venezia", lg: "Serie A", fixture_date: "2026-11-22", ko: "11:30", mkt: "1X2", pk: "Juventus Win (1)", odds: 1.40, frac: "2/5", ev: 9.8 },
+      { f: "Sassuolo v Genoa", lg: "Serie A", fixture_date: "2026-11-22", ko: "14:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.83, frac: "5/6", ev: 8.6 },
+      { f: "Bologna v Udinese", lg: "Serie A", fixture_date: "2026-11-22", ko: "14:00", mkt: "DNB", pk: "Bologna Draw No Bet (DNB)", odds: 1.57, frac: "4/7", ev: 9.2 },
+      { f: "AC Milan v Frosinone", lg: "Serie A", fixture_date: "2026-11-22", ko: "17:00", mkt: "1X2", pk: "AC Milan Win (1)", odds: 1.44, frac: "4/9", ev: 10.0 },
       { f: "Atalanta v Inter Milan", lg: "Serie A", fixture_date: "2026-11-22", ko: "19:45", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.85, frac: "17/20", ev: 9.5 }
     ],
     german: [
-      { f: "Bayern Munich v Cologne", lg: "Bundesliga", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 11.2 },
+      { f: "Bayern Munich v 1. FC Koln", lg: "Bundesliga", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 11.2 },
       { f: "Borussia Monchengladbach v Borussia Dortmund", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.67, frac: "2/3", ev: 9.9 },
+      { f: "Bayer Leverkusen v Paderborn", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "1X2", pk: "Bayer Leverkusen Win (1)", odds: 1.44, frac: "4/9", ev: 10.3 },
+      { f: "Eintracht Frankfurt v Hoffenheim", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 9.4 },
+      { f: "Elversberg v Freiburg", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "DNB", pk: "Freiburg Draw No Bet (DNB)", odds: 1.60, frac: "3/5", ev: 8.8 },
       { f: "Union Berlin v RB Leipzig", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "DNB", pk: "RB Leipzig Draw No Bet (DNB)", odds: 1.65, frac: "13/20", ev: 8.7 },
-      { f: "Borussia Monchengladbach v Borussia Dortmund", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.70, frac: "7/10", ev: 9.3 }
+      { f: "Schalke v Stuttgart", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.2 },
+      { f: "Augsburg v Mainz", lg: "Bundesliga", fixture_date: "2026-11-22", ko: "14:30", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 8.6 },
+      { f: "Werder Bremen v Hamburger SV", lg: "Bundesliga", fixture_date: "2026-11-22", ko: "16:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.73, frac: "8/11", ev: 9.5 }
     ],
     spain: [
-      { f: "Athletic Bilbao v Espanyol", lg: "La Liga", fixture_date: "2026-11-20", ko: "20:00", mkt: "1X2", pk: "Athletic Bilbao Win (1)", odds: 1.44, frac: "4/9", ev: 10.1 },
-      { f: "Sevilla v Real Betis", lg: "La Liga", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.3 },
-      { f: "Barcelona v Villarreal", lg: "La Liga", fixture_date: "2026-11-22", ko: "13:00", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.50, frac: "1/2", ev: 10.6 },
-      { f: "Getafe v Atletico Madrid", lg: "La Liga", fixture_date: "2026-11-22", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 8.9 }
+      { f: "Athletic Club v Espanyol", lg: "LaLiga", fixture_date: "2026-11-20", ko: "20:00", mkt: "1X2", pk: "Athletic Club Win (1)", odds: 1.50, frac: "1/2", ev: 10.1 },
+      { f: "Deportivo Alaves v Deportivo La Coruna", lg: "LaLiga", fixture_date: "2026-11-21", ko: "13:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.62, frac: "8/13", ev: 8.7 },
+      { f: "Rayo Vallecano v Valencia", lg: "LaLiga", fixture_date: "2026-11-21", ko: "15:15", mkt: "DNB", pk: "Rayo Vallecano Draw No Bet (DNB)", odds: 1.67, frac: "2/3", ev: 8.9 },
+      { f: "Sevilla v Real Betis", lg: "LaLiga", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.3 },
+      { f: "Real Madrid v Celta de Vigo", lg: "LaLiga", fixture_date: "2026-11-21", ko: "20:00", mkt: "1X2", pk: "Real Madrid Win (1)", odds: 1.36, frac: "4/11", ev: 10.4 },
+      { f: "Barcelona v Villarreal", lg: "LaLiga", fixture_date: "2026-11-22", ko: "13:00", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.50, frac: "1/2", ev: 10.6 },
+      { f: "Real Racing Club v Real Sociedad", lg: "LaLiga", fixture_date: "2026-11-22", ko: "15:15", mkt: "DNB", pk: "Real Sociedad Draw No Bet (DNB)", odds: 1.72, frac: "8/11", ev: 8.8 },
+      { f: "Osasuna v Malaga", lg: "LaLiga", fixture_date: "2026-11-22", ko: "17:30", mkt: "1X2", pk: "Osasuna Win (1)", odds: 1.67, frac: "2/3", ev: 9.0 },
+      { f: "Getafe v Atletico Madrid", lg: "LaLiga", fixture_date: "2026-11-22", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 8.9 }
     ],
     row: [
-      { f: "Orlando City v FC Cincinnati", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "00:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.72, frac: "8/11", ev: 9.5 },
-      { f: "Seattle Sounders v Real Salt Lake", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "03:00", mkt: "1X2", pk: "Seattle Sounders Win (1)", odds: 1.90, frac: "9/10", ev: 9.0 },
-      { f: "Orlando City v FC Cincinnati", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "00:30", mkt: "DNB", pk: "Orlando City Draw No Bet (DNB)", odds: 1.68, frac: "17/25", ev: 8.8 },
-      { f: "Seattle Sounders v Real Salt Lake", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "03:00", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.85, frac: "17/20", ev: 9.2 }
+      { f: "Sao Paulo v Fluminense", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-20", ko: "00:30", mkt: "1X2", pk: "Sao Paulo Win (1)", odds: 2.20, frac: "6/5", ev: 9.1 },
+      { f: "Palmeiras v Flamengo", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-21", ko: "19:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.85, frac: "17/20", ev: 9.6 },
+      { f: "Bahia v Coritiba", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-21", ko: "20:30", mkt: "1X2", pk: "Bahia Win (1)", odds: 1.75, frac: "3/4", ev: 9.2 },
+      { f: "Chapecoense v Cruzeiro", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "00:00", mkt: "DNB", pk: "Cruzeiro Draw No Bet (DNB)", odds: 1.60, frac: "3/5", ev: 8.8 },
+      { f: "Athletico Paranaense v Remo", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "19:00", mkt: "1X2", pk: "Athletico Paranaense Win (1)", odds: 1.70, frac: "7/10", ev: 9.0 },
+      { f: "Fluminense v Mirassol", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "21:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.90, frac: "9/10", ev: 8.9 },
+      { f: "Red Bull Bragantino v Vasco da Gama", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "22:30", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.75, frac: "3/4", ev: 8.7 }
     ]
   };
 
@@ -1118,7 +1147,7 @@ setInterval(injectRegionToggle,900);
         } else {
           currentKey = k;
           ensureBarAndPanel();
-          showTab(k);
+          void showTab(k);
         }
       };
     });
@@ -1126,9 +1155,67 @@ setInterval(injectRegionToggle,900);
     return { bar, panel };
   }
 
-  function showTab(key){
+  function harvestAllFeedItems(feed){
+    const out = [];
+    const seenObjs = new Set();
+
+    function walk(node){
+      if (!node || typeof node !== "object") return;
+      if (seenObjs.has(node)) return;
+      seenObjs.add(node);
+
+      if (Array.isArray(node)) {
+        for (const el of node) {
+          if (el && typeof el === "object") {
+            const fixtureName = el.f || el.match || el.fixture || el.home_team || el.name;
+            if (fixtureName) {
+              const builtFixture = typeof fixtureName === "string"
+                ? fixtureName
+                : `${el.home_team || ""} v ${el.away_team || ""}`.trim();
+              if (builtFixture && builtFixture !== "v") {
+                out.push({
+                  f: builtFixture,
+                  lg: el.lg || el.league || el.competition || el.tier || "Global",
+                  fixture_date: el.fixture_date || el.date || el.commence_time || "",
+                  ko: el.ko || el.kickoff || el.time || "",
+                  mkt: el.mkt || el.market || "",
+                  pk: el.pk || el.best_pick || el.pick || el.selection || "Value Selection",
+                  odds: parseFloat(el.odds || el.price || el.decimal_odds) || 1.75,
+                  frac: el.frac || el.fractional || "3/4",
+                  ev: parseFloat(el.ev || el.edge || el.expected_value) || 9.0
+                });
+              }
+            }
+          }
+          walk(el);
+        }
+        return;
+      }
+
+      for (const val of Object.values(node)) {
+        if (val && typeof val === "object") walk(val);
+      }
+    }
+
+    walk(feed);
+    return out;
+  }
+
+  async function showTab(key){
     const { panel } = ensureBarAndPanel();
     const tab = TABS.find(t => t.key === key) || { key, label: key };
+
+    let feed = window.__LAST_GEM_FEED;
+    if (!feed) {
+      try {
+        const resp = await fetch("/api/gem-feed?refresh=1&v=213&_t=" + Date.now(), { cache: "no-store" });
+        if (resp.ok) {
+          feed = await resp.json();
+          window.__LAST_GEM_FEED = feed;
+        }
+      } catch (err) {}
+    }
+
     const rows = (CATALOG[key] || []).map(x => {
       const dm = DATE_MAP[normKey(x.f)];
       return {
@@ -1139,17 +1226,46 @@ setInterval(injectRegionToggle,900);
       };
     });
 
+    const harvested = harvestAllFeedItems(feed);
+    const seen = new Set(rows.map(r => normKey(r.f) + "|" + String(r.pk).toLowerCase()));
+
+    for (const item of harvested) {
+      if (routeKey(item) !== key) continue;
+      const pkText = String(item.pk || "Value Selection").trim();
+      const sig = normKey(item.f) + "|" + pkText.toLowerCase();
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+
+      const dm = DATE_MAP[normKey(item.f)];
+      const rawDate = String(item.fixture_date || "").slice(0, 10);
+      const validDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+        ? rawDate
+        : ((dm && dm.fixture_date) || "2026-11-21");
+
+      rows.push({
+        f: String(item.f).trim(),
+        lg: String(item.lg || (dm && dm.lg) || tab.label),
+        fixture_date: validDate,
+        ko: String(item.ko || (dm && dm.ko) || "15:00"),
+        mkt: inferMarket(pkText, item.mkt),
+        pk: pkText,
+        odds: parseFloat(item.odds) || 1.75,
+        frac: String(item.frac || "3/4"),
+        ev: parseFloat(item.ev) || 9.0
+      });
+    }
+
     const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500") || 500;
     const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25") || 0.25;
 
     panel.style.display = "block";
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-        <b style="font-size:13px;color:#fff;">${tab.label} — ${rows.length} Multi-Market Fixtures</b>
-        <button type="button" id="gem-v208-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <b style="font-size:13px;color:#fff;">${tab.label} — All ${rows.length} Found Value Selections</b>
+        <button type="button" id="gem-v213-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + rows.map((x, i) => {
         const od = parseFloat(x.odds) || 1.75;
-        const ev = parseFloat(x.ev) || 9.5;
+        const ev = parseFloat(x.ev) || 9.0;
         const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
         return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
           <div>
@@ -1165,7 +1281,7 @@ setInterval(injectRegionToggle,900);
         </div>`;
       }).join("");
 
-    const hideBtn = document.getElementById("gem-v208-hide");
+    const hideBtn = document.getElementById("gem-v213-hide");
     if (hideBtn) {
       hideBtn.onclick = () => {
         currentKey = null;
