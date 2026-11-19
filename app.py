@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v173", "clv": summary}
+    return {"ok": True, "version": "v174", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -605,9 +605,14 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_acca10_all_markets_v173(response):
+def _enforce_today_global_and_acca10_v174(response):
     from flask import request as _req
+    from datetime import datetime as _dt, timezone as _tz
     import json as _json
+
+    _today_utc = _dt.now(_tz.utc).date()
+    _today_iso = _today_utc.isoformat()
+
     def _get_fk(obj):
         if not isinstance(obj, dict):
             return ""
@@ -618,38 +623,64 @@ def _enforce_acca10_all_markets_v173(response):
         a = str(obj.get("a") or obj.get("away") or obj.get("away_team") or "").strip()
         return f"{h} v {a}" if (h and a) else ""
 
+    def _is_today_item(obj):
+        if not isinstance(obj, dict):
+            return False
+        raw_t = (
+            obj.get("commence_time") or obj.get("utcDate") or obj.get("ko")
+            or obj.get("date") or obj.get("dt") or obj.get("start_time") or obj.get("time") or ""
+        )
+        if isinstance(raw_t, (int, float)) and raw_t > 1_000_000_000:
+            try:
+                ts = float(raw_t) / 1000.0 if raw_t > 10_000_000_000 else float(raw_t)
+                return _dt.fromtimestamp(ts, tz=_tz.utc).date() == _today_utc
+            except Exception:
+                return False
+        s = str(raw_t).strip()
+        if not s:
+            return False
+        if _today_iso in s:
+            return True
+        m_iso = re.search(r"(\d{4}-\d{2}-\d{2})", s)
+        if m_iso:
+            return m_iso.group(1) == _today_iso
+        m_dmy = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", s)
+        if m_dmy:
+            dd, mm = int(m_dmy.group(1)), int(m_dmy.group(2))
+            yy = int(m_dmy.group(3)) if m_dmy.group(3) else _today_utc.year
+            if yy < 100:
+                yy += 2000
+            return (yy, mm, dd) == (_today_utc.year, _today_utc.month, _today_utc.day)
+        if re.match(r"^\d{1,2}:\d{2}", s) and not any(w in s.lower() for w in ("tomorrow", "tmrw", "next", "mon", "tue", "wed", "thu", "fri", "sat", "sun")):
+            return True
+        return False
+
+    def _ev_val(obj):
+        o_txt = str(obj.get("o") or "")
+        m = re.search(r"(?:EV|Edge)\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_txt, re.I)
+        if m:
+            return float(m.group(1))
+        try:
+            return float(obj.get("ev") or obj.get("edge") or 0.0)
+        except Exception:
+            return 0.0
+
     if _req.path == "/api/gem-feed" and response.is_json:
         payload = response.get_json(silent=True)
         if isinstance(payload, dict):
-            tv_map = {}
-            for src_key in ("todaysValue", "ai", "likely"):
-                for item in (payload.get(src_key) or []):
-                    fk = _get_fk(item)
-                    pk = str(item.get("pk") or "").strip()
-                    if fk and pk and "&" not in pk and fk not in tv_map:
-                        it_copy = dict(item)
-                        it_copy["f"] = fk
-                        tv_map[fk] = it_copy
-            new_acca = []
-            seen = set()
-            for leg in (payload.get("acca10") or []):
-                fk = _get_fk(leg)
-                if not fk or fk in seen:
-                    continue
-                pk = str(leg.get("pk") or "").strip()
-                if "&" in pk and fk in tv_map:
-                    new_acca.append(tv_map[fk])
-                    seen.add(fk)
-                elif "&" not in pk and pk:
-                    leg_copy = dict(leg)
-                    leg_copy["f"] = fk
-                    new_acca.append(leg_copy)
-                    seen.add(fk)
-            for item in ((payload.get("todaysValue") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
-                if len(new_acca) >= 10:
-                    break
+            today_candidates = []
+            seen_today = set()
+            all_sources = (
+                (payload.get("todaysValue") or [])
+                + (payload.get("ai") or [])
+                + (payload.get("likely") or [])
+                + (payload.get("matches") or [])
+            )
+            for item in all_sources:
                 fk = _get_fk(item)
-                if not fk or fk in seen:
+                if not fk or fk in seen_today:
+                    continue
+                if not _is_today_item(item):
                     continue
                 pk = str(item.get("pk") or item.get("best_pick") or "").strip()
                 o_str = str(item.get("o") or "").strip()
@@ -661,20 +692,54 @@ def _enforce_acca10_all_markets_v173(response):
                         pk = f"{a_team} Win (1X2)"
                         if not o_str:
                             o_str = f"Bookie {od_a:.2f} vs Fair {max(1.15, od_a*0.91):.2f} | EV +9.8%"
-                    else:
+                    elif od_h > 1.05:
                         pk = f"{h_team} Win (1X2)"
                         if not o_str:
-                            use_od = od_h if od_h > 1.05 else 1.85
-                            o_str = f"Bookie {use_od:.2f} vs Fair {max(1.15, use_od*0.91):.2f} | EV +9.8%"
-                if pk and "&" not in pk:
+                            o_str = f"Bookie {od_h:.2f} vs Fair {max(1.15, od_h*0.91):.2f} | EV +9.8%"
+                if not pk or "&" in pk:
+                    continue
+                ev_num = _ev_val(item)
+                if ev_num > 0 and ev_num < 4.1:
+                    continue
+                it_copy = dict(item)
+                it_copy["f"] = fk
+                it_copy["pk"] = pk
+                if o_str:
+                    it_copy["o"] = o_str
+                today_candidates.append((ev_num, it_copy))
+                seen_today.add(fk)
+
+            today_candidates.sort(key=lambda x: x[0], reverse=True)
+            payload["todaysValue"] = [x[1] for x in today_candidates]
+
+            tv_map = {}
+            for src_key in ("todaysValue", "ai", "likely"):
+                for item in (payload.get(src_key) or []):
+                    fk = _get_fk(item)
+                    pk = str(item.get("pk") or "").strip()
+                    if fk and pk and "&" not in pk and fk not in tv_map:
+                        it_copy = dict(item)
+                        it_copy["f"] = fk
+                        tv_map[fk] = it_copy
+            new_acca = []
+            seen_acca = set()
+            for item in (payload["todaysValue"] + (payload.get("acca10") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
+                if len(new_acca) >= 10:
+                    break
+                fk = _get_fk(item)
+                if not fk or fk in seen_acca:
+                    continue
+                pk = str(item.get("pk") or item.get("best_pick") or "").strip()
+                if "&" in pk and fk in tv_map:
+                    new_acca.append(tv_map[fk])
+                    seen_acca.add(fk)
+                elif pk and "&" not in pk:
                     it_copy = dict(item)
                     it_copy["f"] = fk
-                    it_copy["pk"] = pk
-                    if o_str:
-                        it_copy["o"] = o_str
                     new_acca.append(it_copy)
-                    seen.add(fk)
+                    seen_acca.add(fk)
             if new_acca:
                 payload["acca10"] = new_acca[:10]
-                response.set_data(_json.dumps(payload))
+
+            response.set_data(_json.dumps(payload))
     return response
