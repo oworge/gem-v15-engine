@@ -411,12 +411,12 @@
     "away_team": "Watford",
     "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.62,
-    "draw_odds": 4.1,
+    "home_odds": 1.61,
+    "draw_odds": 4.2,
     "away_odds": 5.25,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.64,
+    "xg_home": 1.65,
     "xg_away": 0.65
   },
   {
@@ -663,12 +663,12 @@
     "away_team": "LASK Linz",
     "league": "UEFA Champions League",
     "kickoff": "2026-11-24T17:45Z",
-    "home_odds": 1.53,
+    "home_odds": 1.54,
     "draw_odds": 4.9,
-    "away_odds": 5.0,
+    "away_odds": 4.9,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.73,
+    "xg_home": 1.72,
     "xg_away": 0.65
   },
   {

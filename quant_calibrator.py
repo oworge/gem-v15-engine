@@ -366,18 +366,24 @@ def _sync_pick_xg_label(item):
 
 
 def _is_within_24h_v161(item):
-    # FILTER_TODAY_24H_V161: keep todaysValue strictly inside [0h, +24h] while matches/acca10 retain full 72h slate
-    raw_ts = re.sub(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z$", r"\1:00Z", str(item.get("kickoff") or item.get("commence_time") or "").strip())
+    raw_ts = ""
+    for k in ("kickoff", "commence_time", "utcDate", "date", "ko", "time", "start_time", "dt", "iso"):
+        v = str(item.get(k) or "").strip()
+        if v and v[0].isdigit() and "-" in v:
+            raw_ts = v
+            break
     if not raw_ts:
         return True
     try:
-        dt = datetime.fromisoformat(str(raw_ts).replace("Z", "+00:00"))
+        raw_ts = re.sub(r"^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2})Z?$", r"\1:00+00:00", raw_ts)
+        dt = datetime.fromisoformat(raw_ts.replace("Z", "+00:00"))
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
         delta_h = (dt - datetime.now(timezone.utc)).total_seconds() / 3600.0
         return -0.25 <= delta_h <= 24.0
     except Exception:
         return True
+
 
 def build_calibrated_feed():
     w = audit_and_calibrate()
