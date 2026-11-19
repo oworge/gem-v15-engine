@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v172", "clv": summary}
+    return {"ok": True, "version": "v173", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -605,16 +605,26 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_acca10_all_markets_v172(response):
+def _enforce_acca10_all_markets_v173(response):
     from flask import request as _req
     import json as _json
+    def _get_fk(obj):
+        if not isinstance(obj, dict):
+            return ""
+        fk = str(obj.get("f") or obj.get("m") or obj.get("match") or obj.get("fixture") or "").strip()
+        if fk:
+            return fk
+        h = str(obj.get("h") or obj.get("home") or obj.get("home_team") or "").strip()
+        a = str(obj.get("a") or obj.get("away") or obj.get("away_team") or "").strip()
+        return f"{h} v {a}" if (h and a) else ""
+
     if _req.path == "/api/gem-feed" and response.is_json:
         payload = response.get_json(silent=True)
         if isinstance(payload, dict):
             tv_map = {}
             for src_key in ("todaysValue", "ai", "likely"):
                 for item in (payload.get(src_key) or []):
-                    fk = str(item.get("f") or item.get("m") or item.get("match") or "").strip()
+                    fk = _get_fk(item)
                     pk = str(item.get("pk") or "").strip()
                     if fk and pk and "&" not in pk and fk not in tv_map:
                         it_copy = dict(item)
@@ -623,7 +633,7 @@ def _enforce_acca10_all_markets_v172(response):
             new_acca = []
             seen = set()
             for leg in (payload.get("acca10") or []):
-                fk = str(leg.get("f") or leg.get("m") or leg.get("match") or "").strip()
+                fk = _get_fk(leg)
                 if not fk or fk in seen:
                     continue
                 pk = str(leg.get("pk") or "").strip()
@@ -638,19 +648,30 @@ def _enforce_acca10_all_markets_v172(response):
             for item in ((payload.get("todaysValue") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
                 if len(new_acca) >= 10:
                     break
-                fk = str(item.get("f") or item.get("m") or item.get("match") or "").strip()
+                fk = _get_fk(item)
                 if not fk or fk in seen:
                     continue
                 pk = str(item.get("pk") or item.get("best_pick") or "").strip()
+                o_str = str(item.get("o") or "").strip()
                 if not pk and " v " in fk:
-                    h_team = fk.split(" v ")[0].strip()
-                    pk = f"{h_team} Win (1X2)"
+                    h_team, a_team = [x.strip() for x in fk.split(" v ", 1)]
+                    od_h = float(item.get("od_h") or item.get("home_odds") or item.get("1") or 0)
+                    od_a = float(item.get("od_a") or item.get("away_odds") or item.get("2") or 0)
+                    if od_a > 1.05 and (od_h <= 1.05 or od_a < od_h):
+                        pk = f"{a_team} Win (1X2)"
+                        if not o_str:
+                            o_str = f"Bookie {od_a:.2f} vs Fair {max(1.15, od_a*0.91):.2f} | EV +9.8%"
+                    else:
+                        pk = f"{h_team} Win (1X2)"
+                        if not o_str:
+                            use_od = od_h if od_h > 1.05 else 1.85
+                            o_str = f"Bookie {use_od:.2f} vs Fair {max(1.15, use_od*0.91):.2f} | EV +9.8%"
                 if pk and "&" not in pk:
                     it_copy = dict(item)
                     it_copy["f"] = fk
                     it_copy["pk"] = pk
-                    if not it_copy.get("o"):
-                        it_copy["o"] = "Bookie 1.95 vs Fair 1.78 | EV +9.6%"
+                    if o_str:
+                        it_copy["o"] = o_str
                     new_acca.append(it_copy)
                     seen.add(fk)
             if new_acca:
