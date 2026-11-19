@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=200", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=201", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -948,8 +948,8 @@ setInterval(injectRegionToggle,900);
 })();
 
 (function(){
-  if (window.__GEM_V200_REGIONAL_TABS) return;
-  window.__GEM_V200_REGIONAL_TABS = true;
+  if (window.__GEM_V201_VISIBLE_TABS) return;
+  window.__GEM_V201_VISIBLE_TABS = true;
 
   const TAB_ORDER = [
     { key: "uk", label: "UK Leagues" },
@@ -993,64 +993,75 @@ setInterval(injectRegionToggle,900);
     return "row";
   }
 
-  function findTabAnchor(){
-    const candidates = Array.from(document.querySelectorAll("button, a, div, span, label"));
-    const match = candidates.find(el => {
+  function findMountTarget(){
+    const oldBar = document.querySelectorAll("button, a, div, span, label");
+    const hit = Array.from(oldBar).find(el => {
+      if (el.closest("#gem-v201-tab-bar")) return false;
       const t = (el.innerText || "").trim().toLowerCase();
       return (t === "all uk + global" || t === "uk leagues" || t === "global leagues") && el.children.length <= 2;
     });
-    if (!match) return null;
-    const bar = match.closest("div[style*='flex'], .tabs, .tab-bar, .nav, .btn-group") || match.parentElement;
-    return bar || match.parentElement;
+    if (hit && hit.parentElement) {
+      const group = hit.closest(".tabs, .tab-bar, .nav, .btn-group") || hit.parentElement;
+      if (group && group.parentElement) {
+        group.style.display = "none";
+        return { parent: group.parentElement, ref: group, mode: "before" };
+      }
+    }
+    const proBar = document.getElementById("gem-pro-bar");
+    if (proBar && proBar.parentElement) {
+      return { parent: proBar.parentElement, ref: proBar, mode: "after" };
+    }
+    const main = document.querySelector("main, .container, .content, #app, #root") || document.body;
+    return { parent: main, ref: main.firstChild, mode: "insertBefore" };
   }
 
   function hidePanel(){
-    const p = document.getElementById("gem-v200-panel");
+    const p = document.getElementById("gem-v201-panel");
     if (p) p.style.display = "none";
   }
 
-  function ensureOrderedTabBar(anchor){
-    let bar = document.getElementById("gem-v200-tab-bar");
+  function renderTabBar(){
+    let bar = document.getElementById("gem-v201-tab-bar");
     if (!bar) {
       bar = document.createElement("div");
-      bar.id = "gem-v200-tab-bar";
-      bar.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:8px;margin:10px 0 6px;";
-      if (anchor && anchor.parentElement) {
-        anchor.insertAdjacentElement("beforebegin", bar);
-        if (anchor.id !== "gem-v200-tab-bar") anchor.style.display = "none";
-      } else {
-        const main = document.querySelector("main, .container, #app, body") || document.body;
-        main.prepend(bar);
-      }
+      bar.id = "gem-v201-tab-bar";
+      bar.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:8px;margin:10px 0 8px;z-index:20;position:relative;";
     }
+    const loc = findMountTarget();
+    if (loc && loc.parent) {
+      if (loc.mode === "before" && loc.ref) loc.ref.insertAdjacentElement("beforebegin", bar);
+      else if (loc.mode === "after" && loc.ref) loc.ref.insertAdjacentElement("afterend", bar);
+      else loc.parent.insertBefore(bar, loc.ref || null);
+    }
+
     bar.innerHTML = TAB_ORDER.map(t => {
       const isAct = activeKey === t.key;
-      return `<button type="button" data-v200-tab="${t.key}" style="background:${isAct ? "#064e3b" : "#1e293b"};color:${isAct ? "#6ee7b7" : "#f8fafc"};border:1px solid ${isAct ? "#10b981" : "#334155"};border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;">${t.label}</button>`;
+      return `<button type="button" data-v201-tab="${t.key}" style="background:${isAct ? "#064e3b" : "#1e293b"};color:${isAct ? "#6ee7b7" : "#f8fafc"};border:1px solid ${isAct ? "#10b981" : "#475569"};border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">${t.label}</button>`;
     }).join("");
 
-    bar.querySelectorAll("[data-v200-tab]").forEach(btn => {
+    bar.querySelectorAll("[data-v201-tab]").forEach(btn => {
       btn.onclick = () => {
-        const k = btn.dataset.v200Tab;
+        const k = btn.dataset.v201Tab;
         if (activeKey === k) {
           activeKey = null;
-          ensureOrderedTabBar(anchor);
+          renderTabBar();
           hidePanel();
         } else {
           activeKey = k;
-          ensureOrderedTabBar(anchor);
-          openTabContent(k, bar);
+          renderTabBar();
+          openTabPanel(k, bar);
         }
       };
     });
     return bar;
   }
 
-  async function openTabContent(key, bar){
+  async function openTabPanel(key, bar){
     killLegacyBoxes();
     let feed = window.__LAST_GEM_FEED;
     if (!feed || !Array.isArray(feed.todaysValue)) {
       try {
-        const r = await fetch("/api/gem-feed?refresh=1&v=200", {cache:"no-store"});
+        const r = await fetch("/api/gem-feed?refresh=1&v=201", {cache:"no-store"});
         feed = await r.json();
         window.__LAST_GEM_FEED = feed;
       } catch(e){ return; }
@@ -1069,7 +1080,6 @@ setInterval(injectRegionToggle,900);
       grouped[classifyItem(it)].push(it);
     });
 
-    // Guarantee every tab is populated with relevant/available slate selections
     const fallbackByKey = {
       uk: pool.slice(0, 3),
       europe: pool.filter(x => /women|u21|uefa|cup|fc|united|city/i.test(`${x.f||""} ${x.lg||""}`)),
@@ -1087,10 +1097,10 @@ setInterval(injectRegionToggle,900);
     }
 
     const tabObj = TAB_ORDER.find(t => t.key === key) || { label: key };
-    let panel = document.getElementById("gem-v200-panel");
+    let panel = document.getElementById("gem-v201-panel");
     if (!panel) {
       panel = document.createElement("div");
-      panel.id = "gem-v200-panel";
+      panel.id = "gem-v201-panel";
       panel.style.cssText = "background:#0b1120;border:1px solid #334155;border-radius:12px;padding:12px;margin:6px 0 14px;color:#f8fafc;";
     }
     bar.insertAdjacentElement("afterend", panel);
@@ -1102,7 +1112,7 @@ setInterval(injectRegionToggle,900);
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
         <b style="font-size:13px;color:#fff;">${tabObj.label} Tab — ${rows.length} Selections</b>
-        <button type="button" id="gem-v200-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <button type="button" id="gem-v201-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + rows.map((x, i) => {
         const od = parseFloat(x.odds) || 1.55;
         const ev = parseFloat(x.ev) || 9.8;
@@ -1121,17 +1131,16 @@ setInterval(injectRegionToggle,900);
         </div>`;
       }).join("");
 
-    document.getElementById("gem-v200-close").onclick = () => {
+    document.getElementById("gem-v201-close").onclick = () => {
       activeKey = null;
-      ensureOrderedTabBar(findTabAnchor());
+      renderTabBar();
       hidePanel();
     };
   }
 
-  function initV200(){
+  function bootV201(){
     killLegacyBoxes();
-    const anc = findTabAnchor();
-    ensureOrderedTabBar(anc);
+    renderTabBar();
     if (!activeKey) hidePanel();
   }
 
@@ -1142,17 +1151,17 @@ setInterval(injectRegionToggle,900);
       if (String(args[0] || "").includes("/api/gem-feed")) {
         window.__LAST_GEM_FEED = await res.clone().json();
         setTimeout(() => {
-          initV200();
-          if (activeKey) openTabContent(activeKey, document.getElementById("gem-v200-tab-bar"));
+          bootV201();
+          if (activeKey) openTabPanel(activeKey, document.getElementById("gem-v201-tab-bar"));
         }, 80);
       }
     } catch(e){}
     return res;
   };
 
-  setTimeout(initV200, 300);
+  setTimeout(bootV201, 200);
   setInterval(() => {
     killLegacyBoxes();
-    if (!document.getElementById("gem-v200-tab-bar")) initV200();
-  }, 900);
+    if (!document.getElementById("gem-v201-tab-bar")) bootV201();
+  }, 800);
 })();
