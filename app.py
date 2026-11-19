@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v181(response):
+def _enforce_v182(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json, re as _re
@@ -614,81 +614,45 @@ def _enforce_v181(response):
     p = response.get_json(silent=True)
     if not isinstance(p, dict):
         return response
-    now_u = _dt.now(_tz.utc)
-    t_iso = now_u.date().isoformat()
-    t_dd, t_mm, t_mon = f"{now_u.day:02d}", f"{now_u.month:02d}", now_u.strftime("%b").lower()
+    t_iso = _dt.now(_tz.utc).date().isoformat()
 
     def _fk(o):
         if not isinstance(o, dict): return ""
-        for k in ("f", "m", "match", "fixture", "title", "name"):
-            v = str(o.get(k) or "").strip()
-            if v and (" v " in v.lower() or " vs " in v.lower()): return v
+        v = str(o.get("f") or o.get("match") or o.get("fixture") or "").strip()
+        if v and (" v " in v.lower() or " vs " in v.lower()): return v
         h, a = str(o.get("h") or o.get("home") or "").strip(), str(o.get("a") or o.get("away") or "").strip()
         return f"{h} v {a}" if (h and a) else ""
 
     def _tms(fk):
-        pts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
+        pts = _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)
         return [pts[0].strip().lower(), pts[1].strip().lower()] if len(pts) == 2 else []
 
-    def _date_status(o):
-        blob_parts = []
-        for k, v in o.items():
-            if k in ("pk", "o", "f", "h", "a", "home", "away", "rationale", "reason"): continue
-            if isinstance(v, (int, float)) and v > 1_000_000_000:
-                ts = float(v) / (1000.0 if v > 10_000_000_000 else 1.0)
-                return "TODAY" if _dt.fromtimestamp(ts, tz=_tz.utc).date().isoformat() == t_iso else "OTHER"
-            if v is not None:
-                blob_parts.append(str(v))
-        blob = " | ".join(blob_parts)
-        m_iso = _re.search(r"(\d{4}-\d{2}-\d{2})", blob)
-        if m_iso:
-            return "TODAY" if m_iso.group(1) == t_iso else "OTHER"
-        m_mon = _re.search(r"\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})\b", blob, _re.I)
-        if m_mon:
-            d_val = int(m_mon.group(1) or m_mon.group(4))
-            m_val = (m_mon.group(2) or m_mon.group(3)).lower()
-            return "TODAY" if (d_val == now_u.day and m_val == t_mon) else "OTHER"
-        m_num = _re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?\b", blob)
-        if m_num:
-            a_n, b_n = int(m_num.group(1)), int(m_num.group(2))
-            return "TODAY" if ((a_n == now_u.day and b_n == now_u.month) or (a_n == now_u.month and b_n == now_u.day)) else "OTHER"
-        if "today" in blob.lower():
-            return "TODAY"
-        if any(w in blob.lower() for w in ("tomorrow", "tmrw", "next")):
-            return "OTHER"
-        if _re.search(r"\b\d{1,2}:\d{2}\b", blob):
-            return "TODAY"
-        return "NONE"
+    def _item_date(o):
+        blob = " | ".join(str(v) for k, v in o.items() if k not in ("pk", "o", "f", "h", "a", "n") and v is not None)
+        m = _re.search(r"([0-9]{4}-[0-9]{2}-[0-9]{2})", blob)
+        return m.group(1) if m else ""
 
     pool = [x for x in ((p.get("todaysValue") or []) + (p.get("ai") or []) + (p.get("likely") or []) + (p.get("matches") or [])) if isinstance(x, dict)]
-    has_explicit_dates = any(_date_status(x) in ("TODAY", "OTHER") for x in pool)
     cands, sfk, stm = [], set(), set()
     for it in pool:
         fk = _fk(it)
         if not fk or fk in sfk: continue
-        ds = _date_status(it)
-        if ds == "OTHER" or (has_explicit_dates and ds != "TODAY"): continue
+        d_str = _item_date(it)
+        if d_str and d_str != t_iso: continue
         tms = _tms(fk)
         if any(t in stm for t in tms): continue
         pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()
-        if not pk and len(tms) == 2:
-            hp, ap = [x.strip() for x in _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)]
-            oh, oa = float(it.get("od_h") or it.get("home_odds") or 0), float(it.get("od_a") or it.get("away_odds") or 0)
-            if oa > 1.05 and (oh <= 1.05 or oa < oh):
-                pk, ostr = f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
-            elif oh > 1.05:
-                pk, ostr = f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
         if not pk or not ostr or "&" in pk: continue
-        m = _re.search(r"(?:EV|Edge)\s*\+?([0-9]+(?:\.[0-9]+)?)%", ostr, _re.I)
+        m = _re.search(r"(?:EV|Edge)[ ]*[+]?([0-9]+(?:[.][0-9]+)?)%", ostr, _re.I)
         evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 0.0)
         if 0 < evn < 4.1: continue
         cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
         cands.append((evn, cp)); sfk.add(fk); stm.update(tms)
-
     cands.sort(key=lambda x: x[0], reverse=True)
-    if cands: p["todaysValue"] = [x[1] for x in cands]
+    p["todaysValue"] = [x[1] for x in cands]
+
     acca, af, at = [], set(), set()
-    for it in ((p.get("todaysValue") or []) + (p.get("acca10") or []) + pool):
+    for it in (p["todaysValue"] + (p.get("acca10") or []) + pool):
         if len(acca) >= 10: break
         fk = _fk(it)
         if not fk or fk in af: continue
