@@ -1,61 +1,5 @@
 [
   {
-    "sport_key": "soccer_all",
-    "home_team": "Austria Vienna",
-    "away_team": "Bayern Munich",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-19T17:45Z",
-    "home_odds": 26.0,
-    "draw_odds": 12.0,
-    "away_odds": 1.07,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.75,
-    "xg_away": 2.3
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Paris FC",
-    "away_team": "HB K\u00f8ge",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-19T17:45Z",
-    "home_odds": 1.51,
-    "draw_odds": 4.6,
-    "away_odds": 5.5,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.75,
-    "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Arsenal",
-    "away_team": "OL Lyonnes",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-19T20:00Z",
-    "home_odds": 4.5,
-    "draw_odds": 4.4,
-    "away_odds": 1.65,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.75,
-    "xg_away": 1.61
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Barcelona",
-    "away_team": "Servette",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-19T20:00Z",
-    "home_odds": 2.05,
-    "draw_odds": 91.0,
-    "away_odds": 251.0,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.29,
-    "xg_away": 0.65
-  },
-  {
     "sport_key": "soccer_bra.1",
     "home_team": "Vasco da Gama",
     "away_team": "Internacional",
@@ -75,13 +19,13 @@
     "away_team": "Red Bull Bragantino",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-19T22:30Z",
-    "home_odds": 2.65,
-    "draw_odds": 3.4,
-    "away_odds": 2.6,
+    "home_odds": 2.6,
+    "draw_odds": 3.35,
+    "away_odds": 2.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.0,
-    "xg_away": 1.02
+    "xg_home": 1.02,
+    "xg_away": 0.98
   },
   {
     "sport_key": "soccer_all",
@@ -89,13 +33,13 @@
     "away_team": "FC Cincinnati",
     "league": "Global Football Slate",
     "kickoff": "2026-11-20T00:30Z",
-    "home_odds": 2.4,
-    "draw_odds": 3.85,
-    "away_odds": 2.5,
+    "home_odds": 2.35,
+    "draw_odds": 3.9,
+    "away_odds": 2.55,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.1,
-    "xg_away": 1.06
+    "xg_home": 1.13,
+    "xg_away": 1.04
   },
   {
     "sport_key": "soccer_bra.1",
@@ -103,13 +47,13 @@
     "away_team": "Fluminense",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-20T00:30Z",
-    "home_odds": 2.45,
-    "draw_odds": 3.2,
-    "away_odds": 2.95,
+    "home_odds": 2.5,
+    "draw_odds": 3.15,
+    "away_odds": 2.9,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.08,
-    "xg_away": 0.9
+    "xg_home": 1.06,
+    "xg_away": 0.91
   },
   {
     "sport_key": "soccer_all",
@@ -117,13 +61,13 @@
     "away_team": "Real Salt Lake",
     "league": "Global Football Slate",
     "kickoff": "2026-11-20T03:00Z",
-    "home_odds": 1.91,
-    "draw_odds": 3.7,
-    "away_odds": 3.55,
+    "home_odds": 2.0,
+    "draw_odds": 3.6,
+    "away_odds": 3.25,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.39,
-    "xg_away": 0.75
+    "xg_home": 1.32,
+    "xg_away": 0.82
   },
   {
     "sport_key": "soccer_ger.1",
@@ -159,12 +103,12 @@
     "away_team": "Sheffield Wednesday",
     "league": "English League One",
     "kickoff": "2026-11-20T20:00Z",
-    "home_odds": 2.9,
-    "draw_odds": 3.85,
+    "home_odds": 3.0,
+    "draw_odds": 3.9,
     "away_odds": 2.15,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.91,
+    "xg_home": 0.88,
     "xg_away": 1.23
   },
   {
@@ -173,12 +117,12 @@
     "away_team": "Espanyol",
     "league": "Spanish LALIGA",
     "kickoff": "2026-11-20T20:00Z",
-    "home_odds": 1.48,
-    "draw_odds": 4.5,
-    "away_odds": 7.0,
+    "home_odds": 1.49,
+    "draw_odds": 4.4,
+    "away_odds": 6.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.79,
+    "xg_home": 1.78,
     "xg_away": 0.65
   },
   {
@@ -579,13 +523,13 @@
     "away_team": "Exeter City",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.95,
-    "draw_odds": 3.5,
-    "away_odds": 3.65,
+    "home_odds": 2.0,
+    "draw_odds": 3.45,
+    "away_odds": 3.55,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.36,
-    "xg_away": 0.73
+    "xg_home": 1.32,
+    "xg_away": 0.75
   },
   {
     "sport_key": "soccer_eng.4",
@@ -607,13 +551,13 @@
     "away_team": "Walsall",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.8,
-    "draw_odds": 4.2,
-    "away_odds": 3.6,
+    "home_odds": 1.83,
+    "draw_odds": 4.0,
+    "away_odds": 3.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.47,
-    "xg_away": 0.74
+    "xg_home": 1.45,
+    "xg_away": 0.73
   },
   {
     "sport_key": "soccer_ita.1",

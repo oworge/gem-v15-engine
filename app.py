@@ -815,7 +815,7 @@ def api_tab_picks():
             if resp.status_code == 200:
                 feed = resp.get_json(silent=True) or {}
                 if isinstance(feed, dict):
-                    for k in ("all_picks", "todaysValue", "uk_picks", "global_picks", "matches", "value"):
+                    for k in ("all_picks", "todaysValue", "uk_picks", "global_picks", "matches", "value", "acca10"):
                         if isinstance(feed.get(k), list):
                             raw_items.extend(feed[k])
                 elif isinstance(feed, list):
@@ -823,12 +823,41 @@ def api_tab_picks():
     except Exception:
         pass
 
+    def to_prob(val):
+        if val is None or val == "":
+            return None
+        try:
+            x = float(val)
+        except (TypeError, ValueError):
+            return None
+        if x > 1.0 and x <= 100.0:
+            return x / 100.0
+        if 0.0 < x < 1.0:
+            return x
+        return None
+
+    def fair_to_prob(val):
+        if val is None or val == "":
+            return None
+        try:
+            x = float(val)
+        except (TypeError, ValueError):
+            return None
+        if 0.0 < x < 1.0:
+            return x
+        if 1.0 < x <= 100.0:
+            return x / 100.0
+        # If fair is decimal fair odds (> 1.01), implied fair probability is 1 / fair
+        if x > 1.01:
+            return 1.0 / x
+        return None
+
     seen = set()
     for item in raw_items:
         if not isinstance(item, dict):
             continue
-        fixture = str(item.get("f") or item.get("match") or item.get("fixture") or "").strip()
-        pick = str(item.get("pk") or item.get("best_pick") or item.get("pick") or "").strip()
+        fixture = str(item.get("f") or item.get("fixture") or item.get("match") or "").strip()
+        pick = str(item.get("pk") or item.get("pick") or item.get("combo_pick") or item.get("best_pick") or "").strip()
         if not fixture or not pick:
             continue
         sig = f"{fixture.lower()}|{pick.lower()}"
@@ -836,8 +865,11 @@ def api_tab_picks():
             continue
         seen.add(sig)
 
+        raw_odds = item.get("odds") if item.get("odds") is not None else (
+            item.get("o") if item.get("o") is not None else item.get("price")
+        )
         try:
-            odds = float(item.get("odds") or item.get("price") or 0)
+            odds = float(raw_odds or 0)
         except (TypeError, ValueError):
             odds = 0.0
         if odds <= 1.01:
@@ -847,36 +879,42 @@ def api_tab_picks():
         raw_model = item.get("model_prob") if item.get("model_prob") is not None else (
             item.get("prob") if item.get("prob") is not None else item.get("p_model")
         )
-        raw_devig = item.get("devig_prob") if item.get("devig_prob") is not None else item.get("p_mkt")
+        model_prob = to_prob(raw_model)
 
-        try:
-            model_prob = float(raw_model) if raw_model is not None else None
-            if model_prob is not None and model_prob > 1.0:
-                model_prob /= 100.0
-        except (TypeError, ValueError):
-            model_prob = None
+        raw_devig = item.get("devig_prob") if item.get("devig_prob") is not None else (
+            item.get("p_mkt") if item.get("p_mkt") is not None else item.get("fair")
+        )
+        devig_prob = fair_to_prob(raw_devig)
+        if devig_prob is None and raw_devig is not None:
+            try:
+                f_val = float(raw_devig)
+                if f_val > 1.01:
+                    devig_prob = 1.0 / f_val
+            except (TypeError, ValueError):
+                devig_prob = None
 
-        try:
-            devig_prob = float(raw_devig) if raw_devig is not None else None
-            if devig_prob is not None and devig_prob > 1.0:
-                devig_prob /= 100.0
-        except (TypeError, ValueError):
-            devig_prob = None
-
-        xg_gate_passed = bool(item.get("xg_gate_passed", False))
         calibrated = (
             model_prob is not None
             and devig_prob is not None
             and 0.0 < model_prob < 1.0
             and 0.0 < devig_prob < 1.0
         )
-
         if not calibrated:
             rejected.append({"f": fixture, "pk": pick, "reason": "missing_calibration"})
             continue
 
+        xg_sum = item.get("xg_sum")
+        xg_ok = True
+        if "xg_gate_passed" in item:
+            xg_ok = bool(item.get("xg_gate_passed"))
+        elif xg_sum is not None:
+            try:
+                xg_ok = float(xg_sum) > 0.0
+            except (TypeError, ValueError):
+                xg_ok = False
+
         ev_pct = round(((model_prob * odds) - 1.0) * 100.0, 2)
-        vetted = bool(xg_gate_passed and (model_prob > devig_prob) and (ev_pct >= min_ev))
+        vetted = bool(xg_ok and (model_prob > devig_prob) and (ev_pct >= min_ev))
 
         if not vetted:
             rejected.append({"f": fixture, "pk": pick, "ev": ev_pct, "reason": "failed_engine_threshold"})
@@ -895,7 +933,7 @@ def api_tab_picks():
         })
 
     return jsonify({
-        "version": "v221",
+        "version": "v222",
         "min_ev": min_ev,
         "verified_count": len(verified),
         "rejected_count": len(rejected),

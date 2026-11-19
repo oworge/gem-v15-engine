@@ -1,6 +1,6 @@
 {
   "date": "2026-11-19",
-  "count": 74,
+  "count": 70,
   "leagues": [
     "Global Football Slate",
     "English Premier League",
@@ -16,5 +16,5 @@
     "Brazilian Serie A"
   ],
   "source": "espn_keyless_live",
-  "updated": "Thu 19 Nov, 16:39 UTC"
+  "updated": "Thu 19 Nov, 21:14 UTC"
 }
