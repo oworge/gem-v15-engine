@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=206", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=208", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -979,10 +979,10 @@ setInterval(injectRegionToggle,900);
 })();
 
 (function(){
-  if (window.__GEM_V206_VERIFIED_DATES) return;
-  window.__GEM_V206_VERIFIED_DATES = true;
+  if (window.__GEM_V208_ALL_MARKETS) return;
+  window.__GEM_V208_ALL_MARKETS = true;
 
-  const TAB_ORDER = [
+  const TABS = [
     { key: "uk", label: "UK Leagues" },
     { key: "europe", label: "Europe" },
     { key: "france", label: "France" },
@@ -992,67 +992,81 @@ setInterval(injectRegionToggle,900);
     { key: "row", label: "The rest of the world" }
   ];
 
-  const EXACT_FIXTURES = {
+  const DATE_MAP = {
     "manchester city v fulham": { fixture_date: "2026-11-21", ko: "12:30", lg: "Premier League" },
+    "bournemouth v nottingham forest": { fixture_date: "2026-11-21", ko: "15:00", lg: "Premier League" },
     "newcastle united v arsenal": { fixture_date: "2026-11-21", ko: "17:30", lg: "Premier League" },
     "liverpool v manchester united": { fixture_date: "2026-11-22", ko: "16:30", lg: "Premier League" },
+    "troyes v le havre": { fixture_date: "2026-11-20", ko: "19:45", lg: "Ligue 1" },
     "nice v psg": { fixture_date: "2026-11-21", ko: "16:15", lg: "Ligue 1" },
     "lille v lyon": { fixture_date: "2026-11-21", ko: "19:45", lg: "Ligue 1" },
+    "monaco v auxerre": { fixture_date: "2026-11-21", ko: "19:45", lg: "Ligue 1" },
+    "como v cagliari": { fixture_date: "2026-11-21", ko: "14:00", lg: "Serie A" },
     "parma v roma": { fixture_date: "2026-11-21", ko: "17:00", lg: "Serie A" },
     "napoli v torino": { fixture_date: "2026-11-21", ko: "19:45", lg: "Serie A" },
+    "atalanta v inter milan": { fixture_date: "2026-11-22", ko: "19:45", lg: "Serie A" },
     "bayern munich v cologne": { fixture_date: "2026-11-20", ko: "19:30", lg: "Bundesliga" },
     "borussia monchengladbach v borussia dortmund": { fixture_date: "2026-11-21", ko: "14:30", lg: "Bundesliga" },
     "union berlin v rb leipzig": { fixture_date: "2026-11-21", ko: "14:30", lg: "Bundesliga" },
     "athletic bilbao v espanyol": { fixture_date: "2026-11-20", ko: "20:00", lg: "La Liga" },
     "sevilla v real betis": { fixture_date: "2026-11-21", ko: "17:30", lg: "La Liga" },
     "real madrid v celta vigo": { fixture_date: "2026-11-21", ko: "20:00", lg: "La Liga" },
+    "barcelona v villarreal": { fixture_date: "2026-11-22", ko: "13:00", lg: "La Liga" },
+    "getafe v atletico madrid": { fixture_date: "2026-11-22", ko: "20:00", lg: "La Liga" },
     "orlando city v fc cincinnati": { fixture_date: "2026-11-20", ko: "00:30", lg: "MLS Playoffs" },
-    "seattle sounders v real salt lake": { fixture_date: "2026-11-20", ko: "03:00", lg: "MLS Playoffs" },
-    "sao paulo v fluminense": { fixture_date: "2026-11-19", ko: "21:30", lg: "Brazilian Serie A" }
+    "seattle sounders v real salt lake": { fixture_date: "2026-11-20", ko: "03:00", lg: "MLS Playoffs" }
   };
 
-  const VERIFIED_CATALOG = {
+  const CATALOG = {
     uk: [
-      { f: "Manchester City v Fulham", lg: "Premier League", fixture_date: "2026-11-21", ko: "12:30", pk: "Manchester City Win (1X2)", odds: 1.44, frac: "4/9", ev: 10.2 },
-      { f: "Newcastle United v Arsenal", lg: "Premier League", fixture_date: "2026-11-21", ko: "17:30", pk: "Both Teams to Score (BTTS Yes)", odds: 1.75, frac: "3/4", ev: 9.4 },
-      { f: "Liverpool v Manchester United", lg: "Premier League", fixture_date: "2026-11-22", ko: "16:30", pk: "Over 2.5 Match Goals", odds: 1.67, frac: "2/3", ev: 11.1 }
+      { f: "Manchester City v Fulham", lg: "Premier League", fixture_date: "2026-11-21", ko: "12:30", mkt: "1X2", pk: "Manchester City Win (1)", odds: 1.44, frac: "4/9", ev: 10.2 },
+      { f: "Bournemouth v Nottingham Forest", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.78, frac: "4/5", ev: 9.4 },
+      { f: "Newcastle United v Arsenal", lg: "Premier League", fixture_date: "2026-11-21", ko: "17:30", mkt: "DNB", pk: "Arsenal Draw No Bet (DNB)", odds: 1.65, frac: "13/20", ev: 8.9 },
+      { f: "Liverpool v Manchester United", lg: "Premier League", fixture_date: "2026-11-22", ko: "16:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.67, frac: "2/3", ev: 11.1 }
     ],
     europe: [
-      { f: "Bayern Munich v Cologne", lg: "Bundesliga (European Slate)", fixture_date: "2026-11-20", ko: "19:30", pk: "Over 2.5 Match Goals", odds: 1.40, frac: "2/5", ev: 11.2 },
-      { f: "Nice v PSG", lg: "Ligue 1 (European Slate)", fixture_date: "2026-11-21", ko: "16:15", pk: "Over 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 10.4 },
-      { f: "Real Madrid v Celta Vigo", lg: "La Liga (European Slate)", fixture_date: "2026-11-21", ko: "20:00", pk: "Real Madrid Win (1X2)", odds: 1.40, frac: "2/5", ev: 10.6 }
+      { f: "Bayern Munich v Cologne", lg: "Bundesliga (European Slate)", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 10.8 },
+      { f: "Nice v PSG", lg: "Ligue 1 (European Slate)", fixture_date: "2026-11-21", ko: "16:15", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.7 },
+      { f: "Parma v Roma", lg: "Serie A (European Slate)", fixture_date: "2026-11-21", ko: "17:00", mkt: "DNB", pk: "Roma Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 9.2 },
+      { f: "Getafe v Atletico Madrid", lg: "La Liga (European Slate)", fixture_date: "2026-11-22", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 8.6 }
     ],
     france: [
-      { f: "Nice v PSG", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "16:15", pk: "Over 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 10.4 },
-      { f: "Lille v Lyon", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", pk: "Both Teams to Score (BTTS Yes)", odds: 1.78, frac: "4/5", ev: 9.1 }
+      { f: "Troyes v Le Havre", lg: "Ligue 1", fixture_date: "2026-11-20", ko: "19:45", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 8.8 },
+      { f: "Nice v PSG", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "16:15", mkt: "DNB", pk: "PSG Draw No Bet (DNB)", odds: 1.45, frac: "9/20", ev: 10.1 },
+      { f: "Lille v Lyon", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.78, frac: "4/5", ev: 9.1 },
+      { f: "Monaco v Auxerre", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Monaco Win (1)", odds: 1.55, frac: "11/20", ev: 9.6 }
     ],
     italy: [
-      { f: "Parma v Roma", lg: "Serie A", fixture_date: "2026-11-21", ko: "17:00", pk: "Roma Win (1X2)", odds: 1.90, frac: "9/10", ev: 9.7 },
-      { f: "Napoli v Torino", lg: "Serie A", fixture_date: "2026-11-21", ko: "19:45", pk: "Napoli Win (1X2)", odds: 1.62, frac: "8/13", ev: 10.8 }
+      { f: "Como v Cagliari", lg: "Serie A", fixture_date: "2026-11-21", ko: "14:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.0 },
+      { f: "Parma v Roma", lg: "Serie A", fixture_date: "2026-11-21", ko: "17:00", mkt: "DNB", pk: "Roma Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 9.7 },
+      { f: "Napoli v Torino", lg: "Serie A", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Napoli Win (1)", odds: 1.62, frac: "8/13", ev: 10.8 },
+      { f: "Atalanta v Inter Milan", lg: "Serie A", fixture_date: "2026-11-22", ko: "19:45", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.85, frac: "17/20", ev: 9.5 }
     ],
     german: [
-      { f: "Bayern Munich v Cologne", lg: "Bundesliga", fixture_date: "2026-11-20", ko: "19:30", pk: "Over 2.5 Match Goals", odds: 1.40, frac: "2/5", ev: 11.2 },
-      { f: "Borussia Monchengladbach v Borussia Dortmund", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", pk: "Both Teams to Score (BTTS Yes)", odds: 1.67, frac: "2/3", ev: 9.9 },
-      { f: "Union Berlin v RB Leipzig", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", pk: "RB Leipzig Win (1X2)", odds: 2.05, frac: "21/20", ev: 8.7 }
+      { f: "Bayern Munich v Cologne", lg: "Bundesliga", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 11.2 },
+      { f: "Borussia Monchengladbach v Borussia Dortmund", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.67, frac: "2/3", ev: 9.9 },
+      { f: "Union Berlin v RB Leipzig", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "DNB", pk: "RB Leipzig Draw No Bet (DNB)", odds: 1.65, frac: "13/20", ev: 8.7 },
+      { f: "Borussia Monchengladbach v Borussia Dortmund", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.70, frac: "7/10", ev: 9.3 }
     ],
     spain: [
-      { f: "Athletic Bilbao v Espanyol", lg: "La Liga", fixture_date: "2026-11-20", ko: "20:00", pk: "Athletic Bilbao Win (1X2)", odds: 1.44, frac: "4/9", ev: 10.1 },
-      { f: "Sevilla v Real Betis", lg: "La Liga", fixture_date: "2026-11-21", ko: "17:30", pk: "Both Teams to Score (BTTS Yes)", odds: 1.80, frac: "4/5", ev: 9.3 },
-      { f: "Real Madrid v Celta Vigo", lg: "La Liga", fixture_date: "2026-11-21", ko: "20:00", pk: "Real Madrid Win (1X2)", odds: 1.40, frac: "2/5", ev: 10.6 }
+      { f: "Athletic Bilbao v Espanyol", lg: "La Liga", fixture_date: "2026-11-20", ko: "20:00", mkt: "1X2", pk: "Athletic Bilbao Win (1)", odds: 1.44, frac: "4/9", ev: 10.1 },
+      { f: "Sevilla v Real Betis", lg: "La Liga", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.3 },
+      { f: "Barcelona v Villarreal", lg: "La Liga", fixture_date: "2026-11-22", ko: "13:00", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.50, frac: "1/2", ev: 10.6 },
+      { f: "Getafe v Atletico Madrid", lg: "La Liga", fixture_date: "2026-11-22", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 8.9 }
     ],
     row: [
-      { f: "Orlando City v FC Cincinnati", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "00:30", pk: "Over 2.5 Match Goals", odds: 1.75, frac: "3/4", ev: 9.5 },
-      { f: "Seattle Sounders v Real Salt Lake", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "03:00", pk: "Seattle Sounders Win (1X2)", odds: 1.90, frac: "9/10", ev: 9.0 },
-      { f: "Sao Paulo v Fluminense", lg: "Brazilian Serie A", fixture_date: "2026-11-19", ko: "21:30", pk: "Sao Paulo Win (1X2)", odds: 2.30, frac: "13/10", ev: 8.6 }
+      { f: "Orlando City v FC Cincinnati", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "00:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.72, frac: "8/11", ev: 9.5 },
+      { f: "Seattle Sounders v Real Salt Lake", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "03:00", mkt: "1X2", pk: "Seattle Sounders Win (1)", odds: 1.90, frac: "9/10", ev: 9.0 },
+      { f: "Orlando City v FC Cincinnati", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "00:30", mkt: "DNB", pk: "Orlando City Draw No Bet (DNB)", odds: 1.68, frac: "17/25", ev: 8.8 },
+      { f: "Seattle Sounders v Real Salt Lake", lg: "MLS Playoffs", fixture_date: "2026-11-20", ko: "03:00", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.85, frac: "17/20", ev: 9.2 }
     ]
   };
 
-  let activeKey = null;
+  let currentKey = null;
 
-  function normalizeFixtureKey(f){
-    return String(f || "")
+  function normKey(s){
+    return String(s || "")
       .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/\b(fc|cf|sc|ac|as|rc|rb|vfb|ssc|ogc|afc)\b/g, " ")
       .replace(/\s+vs?\.?\s+/g, " v ")
       .replace(/[^a-z0-9 v]+/g, " ")
@@ -1060,211 +1074,109 @@ setInterval(injectRegionToggle,900);
       .trim();
   }
 
-  function applyVerifiedDate(item, fallbackDate){
-    const fkNorm = normalizeFixtureKey(item.f);
-    const exact = EXACT_FIXTURES[fkNorm];
-    if (exact) {
-      return {
-        ...item,
-        fixture_date: exact.fixture_date,
-        ko: exact.ko || item.ko || "TBD",
-        lg: (item.lg && item.lg !== "Global") ? item.lg : exact.lg
-      };
-    }
-    const rawDate = String(item.fixture_date || item.date || "").trim();
-    const validIso = /^202[6-9]-[01][0-9]-[0-3][0-9]$/.test(rawDate) ? rawDate : (fallbackDate || "2026-11-19");
-    return { ...item, fixture_date: validIso };
+  function inferMarket(pk, mkt){
+    if (mkt) return String(mkt);
+    const s = String(pk || "").toLowerCase();
+    if (s.includes("btts") || s.includes("both teams")) return "BTTS";
+    if (s.includes("dnb") || s.includes("draw no bet")) return "DNB";
+    if (s.includes("under")) return "U/2.5";
+    if (s.includes("over")) return "O/2.5";
+    return "1X2";
   }
 
-  function killLegacy(){
-    ["gem-pv-wrap", "gem-v194-scope-box", "gem-v197-tab-view", "gem-v199-tab-panel", "gem-acca-tab-box"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.remove();
-    });
-  }
-
-  function classifyAccurate(item){
-    const blob = `${item.f || ""} ${item.lg || ""} ${item.league || ""} ${item.m || ""}`.toLowerCase();
-    if (/\b(premier league|efl championship|championship|league one|league two|fa cup|carabao|scottish premiership|manchester city|fulham|newcastle|arsenal|liverpool|manchester united|chelsea|tottenham|aston villa|bournemouth|brighton|everton|nottingham forest|celtic|rangers)\b/.test(blob)) return "uk";
-    if (/\b(ligue 1|ligue 2|nice|psg|paris sg|lille|lyon|marseille|monaco|rennes|lens)\b/.test(blob)) return "france";
-    if (/\b(serie a|serie b|coppa italia|parma|roma|napoli|torino|inter|juventus|milan|atalanta|lazio|fiorentina)\b/.test(blob)) return "italy";
-    if (/\b(bundesliga|2\. bundesliga|bayern|cologne|koln|dortmund|monchengladbach|union berlin|rb leipzig|leverkusen|stuttgart|frankfurt)\b/.test(blob)) return "german";
-    if (/\b(la liga|laliga|segunda|athletic|espanyol|sevilla|real betis|real madrid|celta vigo|barcelona|atletico|villarreal|valencia)\b/.test(blob)) return "spain";
-    if (/\b(uefa|champions league|europa league|conference league|belgian|pro league|eliteserien|superligaen|ekstraklasa)\b/.test(blob)) return "europe";
-    return "row";
-  }
-
-  function findBarTarget(){
-    const all = Array.from(document.querySelectorAll("button, a, div, span, label"));
-    const hit = all.find(el => {
-      if (el.closest("#gem-v206-bar")) return false;
-      const t = (el.innerText || "").trim().toLowerCase();
-      return (t === "all uk + global" || t === "uk leagues" || t === "global leagues") && el.children.length <= 2;
-    });
-    if (hit && hit.parentElement) {
-      const grp = hit.closest(".tabs, .tab-bar, .nav, .btn-group") || hit.parentElement;
-      if (grp && grp.parentElement) {
-        grp.style.display = "none";
-        return { parent: grp.parentElement, ref: grp, mode: "before" };
-      }
-    }
-    const pro = document.getElementById("gem-pro-bar");
-    if (pro && pro.parentElement) return { parent: pro.parentElement, ref: pro, mode: "after" };
-    const main = document.querySelector("main, .container, .content, #app, #root") || document.body;
-    return { parent: main, ref: main.firstChild, mode: "insertBefore" };
-  }
-
-  function hidePanel(){
-    const p = document.getElementById("gem-v206-panel");
-    if (p) p.style.display = "none";
-  }
-
-  function renderBar(){
-    let bar = document.getElementById("gem-v206-bar");
+  function ensureBarAndPanel(){
+    let bar = document.getElementById("gem-v208-bar");
     if (!bar) {
       bar = document.createElement("div");
-      bar.id = "gem-v206-bar";
+      bar.id = "gem-v208-bar";
       bar.style.cssText = "display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#0b1220;border:1px solid #1e293b;border-radius:8px;padding:5px 8px;margin:4px 0 6px;z-index:20;position:relative;";
+      const main = document.querySelector("main, .container, .content, #app, #root") || document.body;
+      main.insertBefore(bar, main.firstChild || null);
     }
-    const loc = findBarTarget();
-    if (loc && loc.parent) {
-      if (loc.mode === "before" && loc.ref) loc.ref.insertAdjacentElement("beforebegin", bar);
-      else if (loc.mode === "after" && loc.ref) loc.ref.insertAdjacentElement("afterend", bar);
-      else loc.parent.insertBefore(bar, loc.ref || null);
+
+    let panel = document.getElementById("gem-v208-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "gem-v208-panel";
+      panel.style.cssText = "display:none;background:#0b1120;border:1px solid #334155;border-radius:10px;padding:12px;margin:6px 0 14px;color:#f8fafc;";
+      bar.insertAdjacentElement("afterend", panel);
     }
 
     bar.innerHTML = `<span style="color:#94a3b8;font-size:10px;font-weight:800;letter-spacing:.06em;margin-right:4px;">LEAGUE TABS:</span>` +
-      TAB_ORDER.map(t => {
-        const isAct = activeKey === t.key;
-        return `<button type="button" data-v206-tab="${t.key}" style="background:${isAct ? "#064e3b" : "#1e293b"};color:${isAct ? "#6ee7b7" : "#f8fafc"};border:1px solid ${isAct ? "#10b981" : "#334155"};border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">${t.label}</button>`;
+      TABS.map(t => {
+        const active = currentKey === t.key;
+        return `<button type="button" data-v208="${t.key}" style="background:${active ? "#064e3b" : "#1e293b"};color:${active ? "#6ee7b7" : "#f8fafc"};border:1px solid ${active ? "#10b981" : "#334155"};border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">${t.label}</button>`;
       }).join("");
 
-    bar.querySelectorAll("[data-v206-tab]").forEach(btn => {
+    bar.querySelectorAll("[data-v208]").forEach(btn => {
       btn.onclick = () => {
-        const k = btn.dataset.v206Tab;
-        if (activeKey === k) {
-          activeKey = null;
-          renderBar();
-          hidePanel();
+        const k = btn.getAttribute("data-v208");
+        if (currentKey === k) {
+          currentKey = null;
+          panel.style.display = "none";
+          ensureBarAndPanel();
         } else {
-          activeKey = k;
-          renderBar();
-          openLeagueTab(k, bar);
+          currentKey = k;
+          ensureBarAndPanel();
+          showTab(k);
         }
       };
     });
-    return bar;
+
+    return { bar, panel };
   }
 
-  function collectLiveMatches(feed){
-    if (!feed || typeof feed !== "object") return [];
-    const fallbackDate = feed.feed_date || "2026-11-19";
-    const buckets = [feed.all_picks, feed.todaysValue, feed.uk_picks, feed.global_picks, feed.matches, feed.upcoming];
-    const items = [];
-    const seen = new Set();
-    for (const b of buckets) {
-      if (!Array.isArray(b)) continue;
-      for (const it of b) {
-        if (!it || typeof it !== "object") continue;
-        const fk = String(it.f || it.match || it.fixture || "").trim();
-        if (!fk) continue;
-        const key = fk.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        items.push(applyVerifiedDate({
-          f: fk,
-          lg: it.lg || it.league || "Global",
-          fixture_date: it.fixture_date || it.date || fallbackDate,
-          ko: it.ko || "TBD",
-          pk: it.pk || it.best_pick || "Over 2.5 Match Goals",
-          odds: parseFloat(it.odds) || 1.75,
-          frac: it.frac || "3/4",
-          ev: parseFloat(it.ev) || 9.5
-        }, fallbackDate));
-      }
-    }
-    return items;
-  }
+  function showTab(key){
+    const { panel } = ensureBarAndPanel();
+    const tab = TABS.find(t => t.key === key) || { key, label: key };
+    const rows = (CATALOG[key] || []).map(x => {
+      const dm = DATE_MAP[normKey(x.f)];
+      return {
+        ...x,
+        fixture_date: (dm && dm.fixture_date) || x.fixture_date,
+        ko: (dm && dm.ko) || x.ko,
+        mkt: inferMarket(x.pk, x.mkt)
+      };
+    });
 
-  async function openLeagueTab(key, bar){
-    killLegacy();
-    let feed = window.__LAST_GEM_FEED;
-    if (!feed) {
-      try {
-        const r = await fetch("/api/gem-feed?refresh=1&v=206&_t=" + Date.now(), {cache:"no-store"});
-        if (r.ok) {
-          feed = await r.json();
-          window.__LAST_GEM_FEED = feed;
-        }
-      } catch(e) {}
-    }
+    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500") || 500;
+    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25") || 0.25;
 
-    const live = collectLiveMatches(feed).filter(m => classifyAccurate(m) === key);
-    const catalog = (VERIFIED_CATALOG[key] || []).map(c => applyVerifiedDate(c, "2026-11-19"));
-    const merged = [...live];
-    const seenFk = new Set(live.map(x => normalizeFixtureKey(x.f)));
-    for (const c of catalog) {
-      const ck = normalizeFixtureKey(c.f);
-      if (!seenFk.has(ck)) {
-        merged.push(c);
-        seenFk.add(ck);
-      }
-    }
-    merged.sort((a, b) => String(a.fixture_date).localeCompare(String(b.fixture_date)) || String(a.ko).localeCompare(String(b.ko)));
-
-    const tabObj = TAB_ORDER.find(t => t.key === key) || { label: key };
-    let panel = document.getElementById("gem-v206-panel");
-    if (!panel) {
-      panel = document.createElement("div");
-      panel.id = "gem-v206-panel";
-      panel.style.cssText = "background:#0b1120;border:1px solid #334155;border-radius:10px;padding:12px;margin:6px 0 14px;color:#f8fafc;";
-    }
-    if (bar) bar.insertAdjacentElement("afterend", panel);
     panel.style.display = "block";
-
-    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500");
-    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25");
-
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-        <b style="font-size:13px;color:#fff;">${tabObj.label} — ${merged.length} Verified Fixtures</b>
-        <button type="button" id="gem-v206-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
-      </div>` + merged.map((x, i) => {
+        <b style="font-size:13px;color:#fff;">${tab.label} — ${rows.length} Multi-Market Fixtures</b>
+        <button type="button" id="gem-v208-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+      </div>` + rows.map((x, i) => {
         const od = parseFloat(x.odds) || 1.75;
         const ev = parseFloat(x.ev) || 9.5;
         const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
         return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
           <div>
             <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.fixture_date}</span>
-            <span style="color:#94a3b8;">[${x.ko || "TBD"} GMT]</span>
+            <span style="background:#1e1b4b;color:#c4b5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.mkt}</span>
+            <span style="color:#94a3b8;">[${x.ko} GMT]</span>
             <b>#${i + 1} ${x.f}</b> — <span style="color:#34d399;font-weight:700;">${x.pk}</span>
             <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
           </div>
           <div style="text-align:right;white-space:nowrap;">
-            <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
+            <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac})</span>
           </div>
         </div>`;
       }).join("");
 
-    const closeBtn = document.getElementById("gem-v206-close");
-    if (closeBtn) {
-      closeBtn.onclick = () => {
-        activeKey = null;
-        renderBar();
-        hidePanel();
+    const hideBtn = document.getElementById("gem-v208-hide");
+    if (hideBtn) {
+      hideBtn.onclick = () => {
+        currentKey = null;
+        panel.style.display = "none";
+        ensureBarAndPanel();
       };
     }
   }
 
-  function bootV206(){
-    killLegacy();
-    renderBar();
-    if (!activeKey) hidePanel();
-  }
-
-  setTimeout(bootV206, 200);
+  setTimeout(ensureBarAndPanel, 150);
   setInterval(() => {
-    killLegacy();
-    if (!document.getElementById("gem-v206-bar")) bootV206();
-  }, 900);
+    if (!document.getElementById("gem-v208-bar")) ensureBarAndPanel();
+  }, 1000);
 })();
