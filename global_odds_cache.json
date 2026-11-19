@@ -33,13 +33,13 @@
     "away_team": "OL Lyonnes",
     "league": "Global Football Slate",
     "kickoff": "2026-11-19T20:00Z",
-    "home_odds": 4.9,
-    "draw_odds": 4.6,
-    "away_odds": 1.57,
+    "home_odds": 4.5,
+    "draw_odds": 4.4,
+    "away_odds": 1.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.69
+    "xg_away": 1.61
   },
   {
     "sport_key": "soccer_all",

@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v192(response):
+def _enforce_v193(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     from fractions import Fraction as _Frac
@@ -775,6 +775,9 @@ def _enforce_v192(response):
 
     if acca:
         p["acca3"], p["acca5"], p["acca10"], p["acca"] = acca[:3], acca[:5], acca[:10], acca[:10]
+        p["accumulator"] = acca[:10]
+        p["acca_picks"] = acca[:10]
+        p["acca_legs"] = acca[:10]
         p["accas"] = [_pack_acca("High-Confidence 3-Fold", acca[:3]), _pack_acca("Balanced 5-Fold Value", acca[:5]), _pack_acca("Daily 10-Fold Global Acca", acca[:10])]
 
     avg_ev = round(sum(float(x.get("ev") or 9.5) for x in (cands or acca)) / max(1, len(cands or acca)), 1)

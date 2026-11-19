@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=192", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=193", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -986,4 +986,36 @@ setInterval(injectRegionToggle,900);
     return res;
   };
   setInterval(formatCards, 1800);
+})();
+
+
+(function(){
+  if (window.__GEM_V193_ACCA) return;
+  window.__GEM_V193_ACCA = true;
+  function fillAccaTab(){
+    const feed = window.__LAST_GEM_FEED;
+    const legs = (feed && (feed.acca10 || feed.accumulator || feed.acca || feed.todaysValue)) || [];
+    if (!legs.length) return;
+    const activeTab = document.querySelector(".tab.active, .nav-link.active, [aria-selected='true']");
+    const tabTxt = ((activeTab && activeTab.innerText) || "").toLowerCase();
+    if (!tabTxt.includes("acca") && !tabTxt.includes("accumulator")) return;
+    const anchor = document.getElementById("gem-pro-bar");
+    if (!anchor || !anchor.parentElement) return;
+    let box = document.getElementById("gem-acca-tab-box");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "gem-acca-tab-box";
+      box.style.cssText = "background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:12px;margin:10px 0;color:#f8fafc;";
+      anchor.insertAdjacentElement("afterend", box);
+    }
+    const comb = legs.reduce((a, x) => a * (parseFloat(x.odds) || 1.75), 1);
+    box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <b>Value Accumulator Legs (${legs.length})</b>
+      <span style="color:#34d399;font-weight:700;">Combined ${comb.toFixed(2)}x</span>
+    </div>` + legs.map((x, i) => `<div style="display:flex;justify-content:space-between;border-top:1px solid #1e293b;padding:6px 0;font-size:12px;">
+      <div><b>#${i+1} ${x.f}</b> — <span style="color:#34d399;">${x.pk}</span></div>
+      <div><b>${x.odds || ""}</b> (${x.frac || ""})</div>
+    </div>`).join("");
+  }
+  setInterval(fillAccaTab, 1200);
 })();
