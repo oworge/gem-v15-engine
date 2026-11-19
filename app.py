@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v167", "clv": summary}
+    return {"ok": True, "version": "v168", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -602,4 +602,17 @@ def _gem_v139_unified_guard(response):
         response.set_data(json.dumps(data))
     except Exception as _err:
         print("[V139 UNIFIED GUARD WARNING]", _err)
+    return response
+
+@app.after_request
+def _enforce_acca10_all_markets_v168(response):
+    # AFTER_REQUEST_ACCA10_V168: guarantee acca10 uses full multi-market Argmax-EV selections, never (1X)/(X2) & Over 1.5
+    try:
+        if request.path == "/api/gem-feed" and response.is_json:
+            payload = response.get_json(silent=True)
+            if isinstance(payload, dict) and ("acca10" in payload or "todaysValue" in payload):
+                payload = _sanitize_acca10_all_markets_v167(payload)
+                response.set_data(json.dumps(payload))
+    except Exception:
+        pass
     return response
