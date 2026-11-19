@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=213", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=215", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1208,7 +1208,7 @@ setInterval(injectRegionToggle,900);
     let feed = window.__LAST_GEM_FEED;
     if (!feed) {
       try {
-        const resp = await fetch("/api/gem-feed?refresh=1&v=213&_t=" + Date.now(), { cache: "no-store" });
+        const resp = await fetch("/api/gem-feed?refresh=1&v=215&_t=" + Date.now(), { cache: "no-store" });
         if (resp.ok) {
           feed = await resp.json();
           window.__LAST_GEM_FEED = feed;
