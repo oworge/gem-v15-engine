@@ -518,14 +518,16 @@ def build_calibrated_feed():
                 m_od = round((1.0 / m_pr) * boost, 2)
                 m_ev = round((m_pr * m_od - 1.0) * 100.0, 2)
             if m_ev >= 4.5:
-                qualified.append((m_ev + (m_pr * 0.85), m_lbl, m_pr, m_od, m_ev))
+                # ANTI_INVERSION_GUARD_V160: reject swapped/corrupted bookie quotes (>24% raw edge or extreme ratio skew)
+        if 4.1 <= m_ev <= 24.0 and (m_od * m_pr) <= 1.24:
+            qualified.append((m_ev + (m_pr * 0.85), m_lbl, m_pr, m_od, m_ev))
 
         if not qualified:
             continue
 
         qualified.sort(key=lambda t: t[0], reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = qualified[0]
-        best_ev = round(max(4.5, min(14.5, raw_ev)), 2)
+        best_ev = round(max(4.5, min(22.0, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
 
         b_dec = max(0.01, best_odds - 1.0)

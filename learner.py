@@ -1,3 +1,4 @@
+import sqlite3
 
 
 import os as _os
@@ -120,3 +121,32 @@ def track_line_velocity(fixture, market, current_odds):
         return round(((1.0 / max(1.02, float(current_odds))) - (1.0 / max(1.02, open_od))) * 100.0, 2)
     except Exception:
         return 0.0
+
+
+def compute_clv_summary():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS odds_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fixture TEXT,
+                market TEXT,
+                open_odds REAL,
+                curr_odds REAL,
+                updated_at TEXT
+            )
+        """)
+        rows = cur.execute("SELECT fixture, market, open_odds, curr_odds FROM odds_snapshots WHERE open_odds > 1.01 AND curr_odds > 1.01").fetchall()
+        conn.close()
+        if not rows:
+            return {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
+        clvs = [(((1.0 / r[3]) / (1.0 / r[2])) - 1.0) * 100.0 for r in rows]
+        beats = sum(1 for c in clvs if c > 0)
+        return {
+            "tracked": len(clvs),
+            "avg_clv_pct": round(sum(clvs) / len(clvs), 2),
+            "beat_close_rate": round((beats / len(clvs)) * 100.0, 1)
+        }
+    except Exception:
+        return {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
