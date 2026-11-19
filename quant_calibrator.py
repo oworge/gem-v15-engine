@@ -324,8 +324,7 @@ def fetch_live_daily_fixtures(force=False):
     if fetched:
         json.dump(fetched, open(CACHE_PATH, "w", encoding="utf-8"), indent=2)
         return True
-    return False
-
+    return _sanitize_acca10_all_markets_v167(False)
 
 def is_upcoming_fixture(item):
     ko = str(item.get("kickoff") or item.get("commence_time") or "").strip()
@@ -338,7 +337,7 @@ def is_upcoming_fixture(item):
             dt = dt.replace(tzinfo=timezone.utc)
         return dt >= datetime.now(timezone.utc)
     except Exception:
-        return True
+        return _sanitize_acca10_all_markets_v167(True)
 
 def is_football_only(item):
     sk = str(item.get("sport_key", "")).lower()
@@ -362,8 +361,7 @@ def _sync_pick_xg_label(item):
         if "Over 2.5" in pk_txt and true_xg < 2.55:
             return None
         item["pk"] = pk_txt
-    return item
-
+    return _sanitize_acca10_all_markets_v167(item)
 
 def _is_within_24h_v161(item):
     raw_ts = ""
@@ -522,7 +520,47 @@ def extract_all_markets_from_matrix_v165(mat, home_name, away_name, raw_odds=Non
             if min_ev <= ev <= 24.0 and (od_f * eff_pr) <= 1.24:
                 score = (ev - (3.5 if is_combo else 0.0)) + (eff_pr * 0.85)
                 out.append((score, lbl, round(eff_pr, 4), round(od_f, 2), round(ev, 2)))
-    return out
+    return _sanitize_acca10_all_markets_v167(out)
+
+def _sanitize_acca10_all_markets_v167(feed_dict):
+    # ACCA10_ALL_MARKETS_V167: replace repetitive (1X)/(X2) & Over 1.5 acca10 legs with true multi-market Argmax-EV selections
+    if not isinstance(feed_dict, dict):
+        return feed_dict
+    tv_map = {}
+    for item in (feed_dict.get("todaysValue") or []) + (feed_dict.get("ai") or []) + (feed_dict.get("likely") or []):
+        fk = str(item.get("f") or "").strip()
+        pk = str(item.get("pk") or "").strip()
+        if fk and pk and "&" not in pk:
+            tv_map.setdefault(fk, item)
+
+    new_acca = []
+    seen_fixtures = set()
+    for leg in (feed_dict.get("acca10") or []):
+        fk = str(leg.get("f") or "").strip()
+        if fk in seen_fixtures:
+            continue
+        pk = str(leg.get("pk") or "").strip()
+        if "&" in pk and fk in tv_map:
+            repl = dict(tv_map[fk])
+            new_acca.append(repl)
+            seen_fixtures.add(fk)
+        elif "&" not in pk:
+            new_acca.append(leg)
+            seen_fixtures.add(fk)
+
+    # Top up from highest-EV multi-market todaysValue items if fewer than 10 legs remain
+    for item in (feed_dict.get("todaysValue") or []):
+        if len(new_acca) >= 10:
+            break
+        fk = str(item.get("f") or "").strip()
+        pk = str(item.get("pk") or "").strip()
+        if fk and fk not in seen_fixtures and "&" not in pk:
+            new_acca.append(dict(item))
+            seen_fixtures.add(fk)
+
+    if new_acca:
+        feed_dict["acca10"] = new_acca
+    return _sanitize_acca10_all_markets_v167(feed_dict)
 
 def build_calibrated_feed():
     w = audit_and_calibrate()

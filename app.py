@@ -1,3 +1,43 @@
+def _sanitize_acca10_all_markets_v167(feed_dict):
+    # ACCA10_ALL_MARKETS_V167: replace repetitive (1X)/(X2) & Over 1.5 acca10 legs with true multi-market Argmax-EV selections
+    if not isinstance(feed_dict, dict):
+        return feed_dict
+    tv_map = {}
+    for item in (feed_dict.get("todaysValue") or []) + (feed_dict.get("ai") or []) + (feed_dict.get("likely") or []):
+        fk = str(item.get("f") or "").strip()
+        pk = str(item.get("pk") or "").strip()
+        if fk and pk and "&" not in pk:
+            tv_map.setdefault(fk, item)
+
+    new_acca = []
+    seen_fixtures = set()
+    for leg in (feed_dict.get("acca10") or []):
+        fk = str(leg.get("f") or "").strip()
+        if fk in seen_fixtures:
+            continue
+        pk = str(leg.get("pk") or "").strip()
+        if "&" in pk and fk in tv_map:
+            repl = dict(tv_map[fk])
+            new_acca.append(repl)
+            seen_fixtures.add(fk)
+        elif "&" not in pk:
+            new_acca.append(leg)
+            seen_fixtures.add(fk)
+
+    # Top up from highest-EV multi-market todaysValue items if fewer than 10 legs remain
+    for item in (feed_dict.get("todaysValue") or []):
+        if len(new_acca) >= 10:
+            break
+        fk = str(item.get("f") or "").strip()
+        pk = str(item.get("pk") or "").strip()
+        if fk and fk not in seen_fixtures and "&" not in pk:
+            new_acca.append(dict(item))
+            seen_fixtures.add(fk)
+
+    if new_acca:
+        feed_dict["acca10"] = new_acca
+    return feed_dict
+
 
 
 import os as _os
@@ -223,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v166", "clv": summary}
+    return {"ok": True, "version": "v167", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
