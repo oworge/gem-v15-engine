@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=216", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=217", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1210,15 +1210,22 @@ setInterval(injectRegionToggle,900);
 
     let payload = null;
     try {
-      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=216&_t=" + Date.now(), { cache: "no-store" });
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 2500);
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=217&_t=" + Date.now(), {
+        cache: "no-store",
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
       if (resp.ok) payload = await resp.json();
-    } catch (err) {}
+    } catch (err) {
+      payload = null;
+    }
 
     const apiPicks = (payload && Array.isArray(payload.picks))
       ? payload.picks.filter(x => x && x.threshold_passed === true && routeKey(x) === key)
       : [];
 
-    // Use engine-verified API picks if available; otherwise fall back to CATALOG for this tab
     const sourceRows = apiPicks.length > 0 ? apiPicks : (CATALOG[key] || []);
 
     const rows = sourceRows.map(item => {
@@ -1239,8 +1246,7 @@ setInterval(injectRegionToggle,900);
         frac: String(item.frac || "3/4"),
         ev: parseFloat(item.ev) || 0,
         model_prob: item.model_prob,
-        devig_prob: item.devig_prob,
-        engineVerified: apiPicks.length > 0
+        devig_prob: item.devig_prob
       };
     });
 
@@ -1248,12 +1254,12 @@ setInterval(injectRegionToggle,900);
     const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25") || 0.25;
     const modeLabel = apiPicks.length > 0
       ? `${rows.length} Engine-Verified Picks (Threshold Passed)`
-      : `${rows.length} Weekend Slate Picks (Fallback Slate)`;
+      : `${rows.length} Weekend Slate Picks (Fast Fallback)`;
 
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
         <b style="font-size:13px;color:#fff;">${tab.label} — ${modeLabel}</b>
-        <button type="button" id="gem-v216-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <button type="button" id="gem-v217-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + rows.map((x, i) => {
         const od = parseFloat(x.odds) || 1.75;
         const ev = parseFloat(x.ev) || 0;
@@ -1275,7 +1281,7 @@ setInterval(injectRegionToggle,900);
         </div>`;
       }).join("");
 
-    const hideBtn = document.getElementById("gem-v216-hide");
+    const hideBtn = document.getElementById("gem-v217-hide");
     if (hideBtn) {
       hideBtn.onclick = () => {
         currentKey = null;

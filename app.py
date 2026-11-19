@@ -985,7 +985,7 @@ def api_tab_picks():
             rejected.append({"f": fixture, "pk": pick, "ev": ev_pct, "reason": "below_ev_threshold"})
 
     return jsonify({
-        "version": "v216",
+        "version": "v217",
         "min_ev": min_ev,
         "verified_count": len(verified),
         "rejected_count": len(rejected),
