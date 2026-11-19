@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v170", "clv": summary}
+    return {"ok": True, "version": "v171", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -631,7 +631,7 @@ def _enforce_acca10_all_markets_v169(response):
                 elif "&" not in pk:
                     new_acca.append(leg)
                     seen.add(fk)
-            for item in ((payload.get("todaysValue") or []) + (payload.get("ai") or []) + (payload.get("likely") or [])):
+            for item in ((payload.get("todaysValue") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
                 if len(new_acca) >= 10:
                     break
                 fk = str(item.get("f") or "").strip()
