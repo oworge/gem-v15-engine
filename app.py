@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v185(response):
+def _enforce_v186(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json, re as _re
@@ -614,7 +614,10 @@ def _enforce_v185(response):
     p = response.get_json(silent=True)
     if not isinstance(p, dict):
         return response
-    t_iso = _dt.now(_tz.utc).date().isoformat()
+    now_utc = _dt.now(_tz.utc)
+    t_iso = now_utc.date().isoformat()
+    p["feed_date"] = t_iso
+    p["generated_utc"] = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _clean_fk(raw):
         return _re.sub(r"^[0-9]+[.)][ ]*", "", str(raw or "").strip()).strip()
@@ -631,17 +634,21 @@ def _enforce_v185(response):
         return [_clean_fk(pts[0]).lower(), _clean_fk(pts[1]).lower()] if len(pts) == 2 else []
 
     def _item_date(o):
-        blob = " | ".join(str(v) for k, v in o.items() if k not in ("pk", "o", "f", "h", "a", "n") and v is not None)
-        m = _re.search(r"([0-9]{4}-[0-9]{2}-[0-9]{2})", blob)
-        return m.group(1) if m else ""
+        for k in ("commence_time", "utcDate", "ko", "date", "dt", "start_time", "time", "kickoff", "m", "sub"):
+            v = o.get(k)
+            if isinstance(v, (int, float)) and v > 1_000_000_000:
+                ts = float(v) / (1000.0 if v > 10_000_000_000 else 1.0)
+                return _dt.fromtimestamp(ts, tz=_tz.utc).date().isoformat()
+            if v is not None:
+                m = _re.search(r"([0-9]{4}-[0-9]{2}-[0-9]{2})", str(v))
+                if m: return m.group(1)
+        return ""
 
     def _synth_pick(it, fk, allow_fallback=True):
         pk = str(it.get("pk") or it.get("best_pick") or it.get("pick") or "").strip()
         ostr = str(it.get("o") or it.get("odds_str") or "").strip()
-        if pk and ostr and "&" not in pk:
-            return pk, ostr
-        if not allow_fallback:
-            return "", ""
+        if pk and ostr and "&" not in pk: return pk, ostr
+        if not allow_fallback: return "", ""
         pts = _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)
         if len(pts) != 2: return "", ""
         hp, ap = _clean_fk(pts[0]), _clean_fk(pts[1])
@@ -672,7 +679,7 @@ def _enforce_v185(response):
         m = _re.search(r"(?:EV|Edge)[ ]*[+]?([0-9]+(?:[.][0-9]+)?)%", ostr, _re.I)
         evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 0.0)
         if 0 < evn < 4.1: continue
-        cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
+        cp = dict(it); cp["f"], cp["pk"], cp["o"], cp["feed_date"] = fk, pk, ostr, t_iso
         cands.append((evn, cp)); sfk.add(fk); stm.update(tms)
     cands.sort(key=lambda x: x[0], reverse=True)
     p["todaysValue"] = [x[1] for x in cands]
@@ -690,5 +697,7 @@ def _enforce_v185(response):
                 cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
                 acca.append(cp); af.add(fk); at.update(tms)
     if acca: p["acca10"] = acca[:10]
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
     response.set_data(_json.dumps(p))
     return response

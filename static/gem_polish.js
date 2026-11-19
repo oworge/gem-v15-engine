@@ -8,7 +8,7 @@
       });
     }
     Object.keys(localStorage).forEach(function(k) {
-      if (k.startsWith("gem_last_good_feed_") && k !== "gem_last_good_feed_v185") {
+      if (k.startsWith("gem_last_good_feed_") && k !== ("gem_last_good_feed_" + new Date().toISOString().slice(0,10))) {
         localStorage.removeItem(k);
       }
     });
@@ -18,7 +18,7 @@
 
 // Permanent v135 Never-Blank Guard: cache last valid feed & auto-retry during Render cold starts
 (function() {
-  const CACHE_KEY = "gem_last_good_feed_v185";
+  const CACHE_KEY = ("gem_last_good_feed_" + new Date().toISOString().slice(0,10));
   const origFetch = window.fetch;
   if (!origFetch || window.__gemFetchGuarded) return;
   window.__gemFetchGuarded = true;
@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=185", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=186", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
