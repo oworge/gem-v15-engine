@@ -362,6 +362,21 @@ def _sync_pick_xg_label(item):
         item["pk"] = pk_txt
     return item
 
+
+def _is_within_24h_v161(item):
+    # FILTER_TODAY_24H_V161: keep todaysValue strictly inside [0h, +24h] while matches/acca10 retain full 72h slate
+    raw_ts = item.get("commence_time") or item.get("ko_iso") or item.get("ts") or ""
+    if not raw_ts:
+        return True
+    try:
+        dt = datetime.fromisoformat(str(raw_ts).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        delta_h = (dt - datetime.now(timezone.utc)).total_seconds() / 3600.0
+        return -0.25 <= delta_h <= 24.0
+    except Exception:
+        return True
+
 def build_calibrated_feed():
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
@@ -503,7 +518,7 @@ def build_calibrated_feed():
             all_markets.append((f"Over 2.5 Match Goals (Proj xG {xg_tot})", p_o25, round(_o25_od, 2)))
         if xg_tot <= 2.45 and p_u25 >= 0.54 and float(src.get("under_25_odds") or 0) > 1.01:
             all_markets.append((f"Under 2.5 Match Goals (Proj xG {xg_tot})", p_u25, round(_u25_od, 2)))
-        if xg_tot >= 2.50 and p_btts_y >= 0.53 and float(src.get("btts_yes_odds") or 0) > 1.01:
+        if xg_tot >= 2.55 and p_btts_y >= 0.53 and float(src.get("btts_yes_odds") or 0) > 1.01:
             all_markets.append((f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, round(_bty_od, 2)))
         if xg_tot <= 2.40 and p_btts_n >= 0.53 and float(src.get("btts_no_odds") or 0) > 1.01:
             all_markets.append((f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, round(_btn_od, 2)))
