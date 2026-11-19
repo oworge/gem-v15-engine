@@ -481,8 +481,8 @@ def build_calibrated_feed():
         _u25_od = float(src.get("under_25_odds") or 0) or _mkt_price(p_u25, 15)
         _bty_od = float(src.get("btts_yes_odds") or 0) or _mkt_price(p_btts_y, 18)
         _btn_od = float(src.get("btts_no_odds") or 0) or _mkt_price(p_btts_n, 21)
-        _real_1x_o15 = round(max(1.24, (1.0 / max(0.35, min(0.92, shin_h + shin_d))) * 1.18), 2)
-        _real_x2_o15 = round(max(1.24, (1.0 / max(0.35, min(0.92, shin_a + shin_d))) * 1.18), 2)
+        _real_1x_o15 = round(max(1.22, (1.0 / max(0.35, min(0.90, bv["1x_o15"]))) * 1.03), 2)
+        _real_x2_o15 = round(max(1.22, (1.0 / max(0.35, min(0.90, bv["x2_o15"]))) * 1.03), 2)
         _combo_od = _real_1x_o15 if bv["1x_o15"] >= bv["x2_o15"] else _real_x2_o15
         all_markets = [
             (f"{hm} Win (1X2)", p_home, round(od_h, 2)),
@@ -510,7 +510,7 @@ def build_calibrated_feed():
                 m_od = round((1.0 / m_pr) * boost, 2)
                 m_ev = round((m_pr * m_od - 1.0) * 100.0, 2)
             if m_ev >= 4.5:
-                qualified.append((m_ev + (m_pr * 4.0), m_lbl, m_pr, m_od, m_ev))
+                qualified.append((m_ev + (m_pr * 0.85), m_lbl, m_pr, m_od, m_ev))
 
         if not qualified:
             continue
