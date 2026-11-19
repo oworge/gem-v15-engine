@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=193", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=194", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1018,4 +1018,91 @@ setInterval(injectRegionToggle,900);
     </div>`).join("");
   }
   setInterval(fillAccaTab, 1200);
+})();
+
+
+(function(){
+  if (window.__GEM_V194_TABS) return;
+  window.__GEM_V194_TABS = true;
+
+  async function ensureFeed(){
+    if (window.__LAST_GEM_FEED && Array.isArray(window.__LAST_GEM_FEED.todaysValue) && window.__LAST_GEM_FEED.todaysValue.length) {
+      return window.__LAST_GEM_FEED;
+    }
+    try {
+      const r = await fetch("/api/gem-feed?refresh=1&v=194", {cache:"no-store"});
+      const j = await r.json();
+      window.__LAST_GEM_FEED = j;
+      return j;
+    } catch(e){ return null; }
+  }
+
+  function pickTargetContainer(){
+    const panels = Array.from(document.querySelectorAll("[role='tabpanel'], .tab-pane, .tab-content > div, main > div, .container > div"))
+      .filter(el => el.id !== "gem-pro-bar" && el.id !== "gem-pv-wrap" && el.id !== "gem-slip-drawer" && el.id !== "gem-acca-tab-box");
+    const visible = panels.filter(el => {
+      const st = getComputedStyle(el);
+      return st.display !== "none" && st.visibility !== "hidden" && el.offsetHeight >= 0;
+    });
+    return visible[visible.length - 1] || document.querySelector("main") || document.body;
+  }
+
+  async function renderScopeTab(mode){
+    const feed = await ensureFeed();
+    if (!feed) return;
+    const all = feed.all_picks || feed.todaysValue || [];
+    const uk = feed.uk_picks || feed.uk || all;
+    const gl = feed.global_picks || feed.global || all;
+    const acca = feed.acca10 || feed.accumulator || feed.acca || all;
+
+    let rows = all, heading = "All UK + Global Picks";
+    if (mode === "uk") { rows = uk.length ? uk : all; heading = "UK Leagues Value Picks"; }
+    else if (mode === "global") { rows = gl.length ? gl : all; heading = "Global Leagues Value Picks"; }
+    else if (mode === "acca") { rows = acca.length ? acca : all; heading = "Accumulator Value Selections"; }
+
+    const target = pickTargetContainer();
+    if (!target) return;
+
+    let box = document.getElementById("gem-v194-scope-box");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "gem-v194-scope-box";
+      box.style.cssText = "background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:12px;margin:10px 0;color:#f8fafc;";
+      target.prepend(box);
+    }
+
+    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500");
+    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25");
+
+    box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <b>${heading} (${rows.length})</b>
+      <span style="color:#34d399;font-size:12px;font-weight:700;">Date: ${feed.feed_date || "2026-11-19"}</span>
+    </div>` + rows.map((x, i) => {
+      const od = parseFloat(x.odds) || 1.55;
+      const ev = parseFloat(x.ev) || 9.8;
+      const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
+        <div>
+          <span style="color:#94a3b8;">[${x.ko || "Today"}]</span>
+          <b>#${i+1} ${x.f || ""}</b> — <span style="color:#34d399;font-weight:600;">${x.pk || ""}</span>
+          <div style="color:#94a3b8;font-size:11px;">${x.lg || "Global"} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
+        </div>
+        <div style="text-align:right;white-space:nowrap;">
+          <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button, a, [role='tab'], .tab, .nav-link");
+    if (!btn) return;
+    const t = (btn.innerText || "").toLowerCase();
+    if (t.includes("uk leagues")) setTimeout(() => renderScopeTab("uk"), 60);
+    else if (t.includes("global leagues")) setTimeout(() => renderScopeTab("global"), 60);
+    else if (t.includes("all uk") || t.includes("all leagues")) setTimeout(() => renderScopeTab("all"), 60);
+    else if (t.includes("accumulator") || t.includes("acca")) setTimeout(() => renderScopeTab("acca"), 60);
+  });
+
+  setTimeout(() => { ensureFeed().then(() => renderScopeTab("all")); }, 300);
 })();
