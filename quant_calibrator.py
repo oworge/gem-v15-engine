@@ -515,9 +515,13 @@ def extract_all_markets_from_matrix_v165(mat, home_name, away_name, raw_odds=Non
         except Exception:
             od_f = 0.0
         if od_f > 1.02 and 0.03 < pr < 0.97:
-            ev = ((pr * od_f) - 1.0) * 100.0
-            if 4.1 <= ev <= 24.0 and (od_f * pr) <= 1.24:
-                out.append((ev + (pr * 0.85), lbl, round(pr, 4), round(od_f, 2), round(ev, 2)))
+            is_combo = ("&" in lbl)
+            eff_pr = (pr * 0.93) if is_combo else pr
+            min_ev = 9.5 if is_combo else 4.1
+            ev = ((eff_pr * od_f) - 1.0) * 100.0
+            if min_ev <= ev <= 24.0 and (od_f * eff_pr) <= 1.24:
+                score = (ev - (3.5 if is_combo else 0.0)) + (eff_pr * 0.85)
+                out.append((score, lbl, round(eff_pr, 4), round(od_f, 2), round(ev, 2)))
     return out
 
 def build_calibrated_feed():

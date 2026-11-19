@@ -223,7 +223,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v165", "clv": summary}
+    return {"ok": True, "version": "v166", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
