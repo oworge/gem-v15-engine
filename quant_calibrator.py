@@ -519,8 +519,8 @@ def build_calibrated_feed():
                 m_ev = round((m_pr * m_od - 1.0) * 100.0, 2)
             if m_ev >= 4.5:
                 # ANTI_INVERSION_GUARD_V160: reject swapped/corrupted bookie quotes (>24% raw edge or extreme ratio skew)
-        if 4.1 <= m_ev <= 24.0 and (m_od * m_pr) <= 1.24:
-            qualified.append((m_ev + (m_pr * 0.85), m_lbl, m_pr, m_od, m_ev))
+                if 4.1 <= m_ev <= 24.0 and (m_od * m_pr) <= 1.24:
+                    qualified.append((m_ev + (m_pr * 0.85), m_lbl, m_pr, m_od, m_ev))
 
         if not qualified:
             continue
