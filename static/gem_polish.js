@@ -155,11 +155,11 @@ function renderP1(){
         kpiBox("Active Global Value Pool",(liveVal.length||6)+" Signals","Min EV Floor +"+(w.min_ev_pct||4.2)+"%")+
         kpiBox("Best Performing Niche","1X & O1.5","+13.9% Yield across 164 bets")+
       '</div>'+
-      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Market Edge &amp; Closing Line Value (CLV) Breakdown</span><span>Shin Devigged + Dixon-Coles</span></div>'+
+      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Market Edge & Closing Line Value (CLV) Breakdown</span><span>Shin Devigged + Dixon-Coles</span></div>'+
       '<table class="gp-p1-tbl"><thead><tr><th>Market Type</th><th>Sample</th><th>Hit Rate</th><th>Avg Odds</th><th>Mean CLV</th><th>Net ROI</th></tr></thead><tbody>'+
       trendRows.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td style="color:#059669">'+r[4]+'</td><td style="color:#065f46"><b>'+r[5]+'</b></td></tr>';}).join("")+
       '</tbody></table></div>'+
-      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Competition Sharpness &amp; Brier Efficiency</span><span>Global Scanner</span></div>'+
+      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Competition Sharpness & Brier Efficiency</span><span>Global Scanner</span></div>'+
       '<table class="gp-p1-tbl"><thead><tr><th>Competition Tier</th><th>Closing Edge</th><th>Realized ROI</th><th>Calibration Grade</th></tr></thead><tbody>'+
       leagueRows.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td style="color:#059669">'+r[1]+'</td><td><b>'+r[2]+'</b></td><td>'+r[3]+'</td></tr>';}).join("")+
       '</tbody></table></div>';
@@ -208,7 +208,7 @@ function renderP1(){
         kpiBox("Average Taken Odds","2.12","Mean +5.3% EV at placement")+
         kpiBox("Open / Live Slips",String(allBets.filter(function(x){return x.status==="OPEN";}).length),"Synced with syndicate_ledger.db")+
       '</div>'+
-      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Verified Signal &amp; Ledger History</span><span>Live SQLite + Audit Log</span></div>'+
+      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Verified Signal & Ledger History</span><span>Live SQLite + Audit Log</span></div>'+
       '<table class="gp-p1-tbl"><thead><tr><th>ID</th><th>Fixture</th><th>Selection</th><th>Odds</th><th>EV</th><th>Stake</th><th>Status</th></tr></thead><tbody>'+
       allBets.map(function(b){
         return '<tr><td>#'+b.id+'</td><td><b>'+b.fixture+'</b></td><td>'+b.market+'</td><td>@ '+Number(b.odds).toFixed(2)+'</td><td style="color:#059669">+'+Number(b.ev_pct).toFixed(1)+'%</td><td>£'+Number(b.stake).toFixed(2)+'</td><td>'+badge(b.status)+'</td></tr>';
@@ -228,7 +228,7 @@ function renderP1(){
         kpiBox("Steam-Guard Pass Rate","94.1%","Rejects drifting lines > +3.5%")+
       '</div>'+
       '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Today\'s Enhanced Value Qualifiers</span><span>Click Open app → Perfect Value to Place</span></div>'+
-      '<table class="gp-p1-tbl"><thead><tr><th>Fixture</th><th>Enhanced Pick</th><th>Pricing &amp; Edge</th><th>Model Telemetry</th></tr></thead><tbody>'+
+      '<table class="gp-p1-tbl"><thead><tr><th>Fixture</th><th>Enhanced Pick</th><th>Pricing & Edge</th><th>Model Telemetry</th></tr></thead><tbody>'+
       enhRows.map(function(x){return '<tr><td><b>'+x.f+'</b></td><td>'+x.pk+'</td><td style="color:#059669"><b>'+x.o+'</b></td><td>'+x.n+'</td></tr>';}).join("")+
       '</tbody></table></div>';
   }else if(p1Cur==="acca"){
@@ -244,7 +244,7 @@ function renderP1(){
         kpiBox("Today's 10-Fold Acca",(liveAcca.length||10)+" Legs","Combined +48.5% EV uncorrelated slate")+
         kpiBox("CS 3-Fold Syndicate","@ 497.25","Bivariate Poisson exact-score treble")+
       '</div>'+
-      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Multi-Leg Accumulator &amp; Correct Score Results</span><span>Correlation-Screened Slips</span></div>'+
+      '<div class="gp-p1-sec"><div class="gp-p1-sec-hdr"><span>Multi-Leg Accumulator & Correct Score Results</span><span>Correlation-Screened Slips</span></div>'+
       '<table class="gp-p1-tbl"><thead><tr><th>Slip Type</th><th>Legs</th><th>Combined Odds</th><th>Return (£10 Base)</th><th>Status</th></tr></thead><tbody>'+
       accaHistory.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td><b>'+r[2]+'</b></td><td>'+r[3]+'</td><td>'+badge(r[4])+'</td></tr>';}).join("")+
       '</tbody></table></div>';
@@ -374,7 +374,7 @@ function mount(){
 
   // Page 2 Header + Nav + Desk
   var hdr=document.createElement("header");hdr.id="gp-pro-hdr";hdr.className="gp-pro-hdr";
-  hdr.innerHTML='<div class="gp-brand-wrap"><div class="gp-emblem">EM</div><div><div class="gp-title-row"><span class="gp-brand-main">EdgeMETRIX</span><span class="gp-brand-pro">PRO 26</span></div><div class="gp-brand-sub">Institutional Poisson &amp; No-Vig CLV Analytics Engine</div></div></div><div class="gp-hdr-right"><button id="gp-back-p1" type="button" class="gp-back-p1">← Overview</button><span class="gp-live-pill"><span class="gp-pulse"></span>ENGINE LIVE &middot; GLOBAL FEED</span><span class="gp-syndicate-badge">Global Quant Syndicate Terminal</span></div>';
+  hdr.innerHTML='<div class="gp-brand-wrap"><div class="gp-emblem">EM</div><div><div class="gp-title-row"><span class="gp-brand-main">EdgeMETRIX</span><span class="gp-brand-pro">PRO 26</span></div><div class="gp-brand-sub">Institutional Poisson & No-Vig CLV Analytics Engine</div></div></div><div class="gp-hdr-right"><button id="gp-back-p1" type="button" class="gp-back-p1">← Overview</button><span class="gp-live-pill"><span class="gp-pulse"></span>ENGINE LIVE &middot; GLOBAL FEED</span><span class="gp-syndicate-badge">Global Quant Syndicate Terminal</span></div>';
 
   var nav=h("div","gp-mint-nav");nav.id="gp-mint-nav";
   TABS.forEach(function(t){
@@ -416,7 +416,7 @@ function injectBackupControls(){
   var bar=document.createElement("div");
   bar.id="gp-backup-bar";
   bar.style.cssText="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#0f172a;color:#e2e8f0;padding:11px 14px;border-radius:10px;margin:12px 0;border:1px solid #334155;";
-  bar.innerHTML='<span style="font-size:12px;font-weight:800;color:#6ee7b7;">ZERO-CREDIT PERSISTENCE &amp; CLV AUDIT</span>';
+  bar.innerHTML='<span style="font-size:12px;font-weight:800;color:#6ee7b7;">ZERO-CREDIT PERSISTENCE & CLV AUDIT</span>';
   var exp=document.createElement("button");exp.type="button";exp.textContent="Export Ledger & Weights (.json)";
   exp.style.cssText="margin-left:auto;background:#059669;color:#fff;border:none;padding:6px 12px;border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;";
   exp.onclick=function(){
@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=223", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=225", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1213,17 +1213,22 @@ setInterval(injectRegionToggle,900);
     panel.innerHTML = `<div style="color:#94a3b8;font-size:12px;">Vetting ${tab.label} through engine threshold...</div>`;
 
     let payload = null;
+    let statusNote = "";
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 3000);
-      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=223&_t=" + Date.now(), {
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=225&_t=" + Date.now(), {
         cache: "no-store",
         signal: ctrl.signal
       });
       clearTimeout(timer);
-      if (resp.ok) payload = await resp.json();
+      if (resp.ok) {
+        payload = await resp.json();
+      } else {
+        statusNote = `Endpoint returned HTTP ${resp.status}.`;
+      }
     } catch (err) {
-      payload = null;
+      statusNote = "Vetting request timed out or was interrupted.";
     }
 
     const vettedPicks = (payload && Array.isArray(payload.picks))
@@ -1245,9 +1250,9 @@ setInterval(injectRegionToggle,900);
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
         <b style="font-size:13px;color:#fff;">${tab.label} — ${vettedPicks.length} Engine-Vetted Selections</b>
-        <button type="button" id="gem-v223-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <button type="button" id="gem-v225-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + (vettedPicks.length === 0
-        ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">0 selections cleared full engine vetting (model_prob &gt; devig_prob, xG gate, and EV &ge; 2.5%) for ${tab.label}. Rejected candidates: ${rejectedCount}.</div>`
+        ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">0 selections cleared full engine vetting (model_prob > devig_prob, xG gate, and EV >= 2.5%) for ${tab.label}. Rejected candidates: ${rejectedCount}.${statusNote ? " " + statusNote : ""}</div>`
         : vettedPicks.map((x, i) => {
             const dm = DATE_MAP[normKey(x.f)] || {};
             const rawDate = String(x.fixture_date || "").slice(0, 10);
@@ -1272,7 +1277,7 @@ setInterval(injectRegionToggle,900);
             </div>`;
           }).join(""));
 
-    const hideBtn = document.getElementById("gem-v223-hide");
+    const hideBtn = document.getElementById("gem-v225-hide");
     if (hideBtn) {
       hideBtn.onclick = () => {
         currentKey = null;
