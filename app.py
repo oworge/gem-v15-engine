@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v177", "clv": summary}
+    return {"ok": True, "version": "v178", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_today_global_and_acca10_v177(response):
+def _enforce_today_global_and_acca10_v178(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json
@@ -619,18 +619,15 @@ def _enforce_today_global_and_acca10_v177(response):
             return ""
         for k in ("f", "m", "match", "fixture", "title", "name"):
             v = str(obj.get(k) or "").strip()
-            if v and " v " in v.lower():
+            if v and (" v " in v.lower() or " vs " in v.lower()):
                 return v
         h = str(obj.get("h") or obj.get("home") or obj.get("home_team") or obj.get("homeTeam") or "").strip()
         a = str(obj.get("a") or obj.get("away") or obj.get("away_team") or obj.get("awayTeam") or "").strip()
         return f"{h} v {a}" if (h and a) else ""
 
     def _teams_from_fk(fk):
-        if " v " in fk:
-            parts = fk.split(" v ", 1)
-            return [parts[0].strip().lower(), parts[1].strip().lower()]
-        if " vs " in fk.lower():
-            parts = _re.split(r"\s+vs\.?\s+", fk, maxsplit=1, flags=_re.I)
+        parts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
+        if len(parts) == 2:
             return [parts[0].strip().lower(), parts[1].strip().lower()]
         return []
 
@@ -668,7 +665,6 @@ def _enforce_today_global_and_acca10_v177(response):
             if yy < 100:
                 yy += 2000
             return (yy, mm, dd) == (_today_utc.year, _today_utc.month, _today_utc.day)
-        # Allow HH:MM kickoff strings only if no future weekday/date marker is attached
         if _re.match(r"^\d{1,2}:\d{2}", s) and not any(w in s.lower() for w in ("tomorrow", "tmrw", "next", "mon", "tue", "wed", "thu", "fri", "sat", "sun")):
             return True
         return False
@@ -708,8 +704,9 @@ def _enforce_today_global_and_acca10_v177(response):
                     continue
                 pk = str(item.get("pk") or item.get("best_pick") or item.get("pick") or "").strip()
                 o_str = str(item.get("o") or item.get("odds_str") or "").strip()
-                if not pk and " v " in fk:
-                    h_team, a_team = [x.strip() for x in fk.split(" v ", 1)]
+                if not pk and len(teams) == 2:
+                    raw_parts = _re.split(r"\s+v(?:s\.?)?\s+", fk, maxsplit=1, flags=_re.I)
+                    h_team, a_team = raw_parts[0].strip(), raw_parts[1].strip()
                     od_h = float(item.get("od_h") or item.get("home_odds") or item.get("1") or 0)
                     od_a = float(item.get("od_a") or item.get("away_odds") or item.get("2") or 0)
                     if od_a > 1.05 and (od_h <= 1.05 or od_a < od_h):
@@ -737,9 +734,10 @@ def _enforce_today_global_and_acca10_v177(response):
                     seen_today_teams.add(t)
 
             today_candidates.sort(key=lambda x: x[0], reverse=True)
-            payload["todaysValue"] = [x[1] for x in today_candidates]
+            if today_candidates:
+                payload["todaysValue"] = [x[1] for x in today_candidates]
 
-            # Build guaranteed 10-leg multi-market acca10 (today-prioritized, zero combo spam, unique clubs)
+            # Build guaranteed 10-leg multi-market acca10
             tv_map = {}
             for src_key in ("todaysValue", "ai", "likely"):
                 for item in (payload.get(src_key) or []):
@@ -755,7 +753,7 @@ def _enforce_today_global_and_acca10_v177(response):
             new_acca = []
             seen_acca_fk = set()
             seen_acca_teams = set()
-            for item in (payload["todaysValue"] + (payload.get("acca10") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
+            for item in ((payload.get("todaysValue") or []) + (payload.get("acca10") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
                 if len(new_acca) >= 10:
                     break
                 if not isinstance(item, dict):
