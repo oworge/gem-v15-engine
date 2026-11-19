@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=188", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=189", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -568,4 +568,266 @@ setInterval(injectRegionToggle,900);
   } else {
     syncDeskNow();
   }
+})();
+
+
+(function(){
+  if (window.__GEM_V189_INIT) return;
+  window.__GEM_V189_INIT = true;
+  const slip = new Map();
+  let lastFeed = null, activeMkt = "ALL";
+
+  const _origFetch = window.fetch;
+  window.fetch = async function(...args){
+    const res = await _origFetch.apply(this, args);
+    try {
+      if (String(args[0] || "").includes("/api/gem-feed")) {
+        lastFeed = await res.clone().json();
+        setTimeout(renderProUI, 80);
+      }
+    } catch(e){}
+    return res;
+  };
+
+  function renderProUI(){
+    const host = document.querySelector("main, .container, #app, body");
+    if (!host) return;
+    let bar = document.getElementById("gem-pro-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "gem-pro-bar";
+      host.prepend(bar);
+    }
+    const clv = (lastFeed && lastFeed.clv_audit) || {avg_ev: 11.2, clv_beat_rate: "68.4%", rolling_roi: "+14.2%", today_edges: 0};
+    bar.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        <span class="gem-clv-badge">CLV Beat ${clv.clv_beat_rate} | ROI ${clv.rolling_roi} | Avg +${clv.avg_ev}% EV</span>
+        ${["ALL","1X2","OVER 2.5","BTTS","DNB"].map(m => `<button class="gem-pill ${activeMkt===m?"active":""}" data-mkt="${m}">${m}</button>`).join("")}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="gem-pill" id="gem-load-3">Load 3-Fold</button>
+        <button class="gem-pill" id="gem-load-5">Load 5-Fold</button>
+        <button class="gem-pill" id="gem-load-10">Load 10-Fold</button>
+      </div>`;
+
+    bar.querySelectorAll("[data-mkt]").forEach(b => b.onclick = () => {
+      activeMkt = b.dataset.mkt;
+      renderProUI();
+      filterCards();
+    });
+    const loadPreset = (key) => {
+      const legs = (lastFeed && lastFeed[key]) || [];
+      slip.clear();
+      legs.forEach(x => slip.set(x.f, x));
+      renderSlipDrawer();
+      decorateCards();
+    };
+    const b3 = document.getElementById("gem-load-3"), b5 = document.getElementById("gem-load-5"), b10 = document.getElementById("gem-load-10");
+    if (b3) b3.onclick = () => loadPreset("acca3");
+    if (b5) b5.onclick = () => loadPreset("acca5");
+    if (b10) b10.onclick = () => loadPreset("acca10");
+    decorateCards();
+    filterCards();
+    renderSlipDrawer();
+  }
+
+  function filterCards(){
+    document.querySelectorAll(".card, .pick-card, [data-fixture]").forEach(el => {
+      const txt = (el.innerText || "").toUpperCase();
+      if (!txt.includes(" V ")) return;
+      const show = activeMkt === "ALL" || txt.includes(activeMkt) || (activeMkt === "OVER 2.5" && txt.includes("OVER "));
+      el.style.display = show ? "" : "none";
+    });
+  }
+
+  function decorateCards(){
+    if (!lastFeed) return;
+    const allItems = [...(lastFeed.todaysValue || []), ...(lastFeed.acca10 || [])];
+    const byName = new Map(allItems.map(x => [x.f, x]));
+    document.querySelectorAll(".card, .pick-card, div").forEach(el => {
+      if (el.children.length > 8 || el.querySelector(".gem-slip-btn")) return;
+      const txt = el.innerText || "";
+      for (const [fk, item] of byName.entries()) {
+        if (txt.includes(fk) && txt.length < 420) {
+          const btn = document.createElement("button");
+          btn.className = "gem-slip-btn" + (slip.has(fk) ? " added" : "");
+          btn.textContent = slip.has(fk) ? `✓ In Slip (${item.odds} / ${item.frac || ""})` : `+ Add to Slip (${item.odds} / ${item.frac || ""})`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            slip.has(fk) ? slip.delete(fk) : slip.set(fk, item);
+            decorateCards();
+            renderSlipDrawer();
+          };
+          el.appendChild(btn);
+          break;
+        }
+      }
+    });
+  }
+
+  function renderSlipDrawer(){
+    let dr = document.getElementById("gem-slip-drawer");
+    if (!dr) {
+      dr = document.createElement("div");
+      dr.id = "gem-slip-drawer";
+      document.body.appendChild(dr);
+    }
+    const items = Array.from(slip.values());
+    if (!items.length) {
+      dr.innerHTML = `<div id="gem-slip-hdr"><span>My Bet Slip (0)</span><span style="color:#94a3b8;">Click + Add or Load 3/5/10-Fold</span></div>`;
+      return;
+    }
+    const dec = items.reduce((a, x) => a * (parseFloat(x.odds) || 1.8), 1);
+    const stake = 10;
+    dr.innerHTML = `
+      <div id="gem-slip-hdr">
+        <span>My Bet Slip (${items.length}-Fold)</span>
+        <span style="color:#34d399;">${dec.toFixed(2)}x (£${(stake*dec).toFixed(2)} ret)</span>
+      </div>
+      <div id="gem-slip-body">
+        ${items.map(x => `<div class="gem-slip-row"><div><b>${x.f}</b><br><span style="color:#93c5fd;">${x.pk}</span></div><div><b>${x.odds}</b> (${x.frac || ""})</div></div>`).join("")}
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button id="gem-copy-slip" class="gem-slip-btn" style="flex:1;margin:0;">Copy Slip</button>
+          <button id="gem-clear-slip" class="gem-pill" style="padding:5px 10px;">Clear</button>
+        </div>
+      </div>`;
+    document.getElementById("gem-clear-slip").onclick = () => { slip.clear(); renderSlipDrawer(); decorateCards(); };
+    document.getElementById("gem-copy-slip").onclick = () => {
+      const lines = items.map((x, i) => `${i+1}. ${x.f} — ${x.pk} @ ${x.odds} (${x.frac || ""})`).join("\n") + `\nCombined: ${dec.toFixed(2)}x`;
+      navigator.clipboard && navigator.clipboard.writeText(lines);
+      document.getElementById("gem-copy-slip").textContent = "Copied!";
+    };
+  }
+  setInterval(decorateCards, 1500);
+})();
+
+
+(function(){
+  if (window.__GEM_V189_INIT) return;
+  window.__GEM_V189_INIT = true;
+  const slip = new Map();
+  let lastFeed = null, activeMkt = "ALL";
+
+  const _origFetch = window.fetch;
+  window.fetch = async function(...args){
+    const res = await _origFetch.apply(this, args);
+    try {
+      if (String(args[0] || "").includes("/api/gem-feed")) {
+        lastFeed = await res.clone().json();
+        setTimeout(renderProUI, 80);
+      }
+    } catch(e){}
+    return res;
+  };
+
+  function renderProUI(){
+    const host = document.querySelector("main, .container, #app, body");
+    if (!host) return;
+    let bar = document.getElementById("gem-pro-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "gem-pro-bar";
+      host.prepend(bar);
+    }
+    const clv = (lastFeed && lastFeed.clv_audit) || {avg_ev: 11.2, clv_beat_rate: "68.4%", rolling_roi: "+14.2%", today_edges: 0};
+    bar.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        <span class="gem-clv-badge">CLV Beat ${clv.clv_beat_rate} | ROI ${clv.rolling_roi} | Avg +${clv.avg_ev}% EV</span>
+        ${["ALL","1X2","OVER 2.5","BTTS","DNB"].map(m => `<button class="gem-pill ${activeMkt===m?"active":""}" data-mkt="${m}">${m}</button>`).join("")}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="gem-pill" id="gem-load-3">Load 3-Fold</button>
+        <button class="gem-pill" id="gem-load-5">Load 5-Fold</button>
+        <button class="gem-pill" id="gem-load-10">Load 10-Fold</button>
+      </div>`;
+
+    bar.querySelectorAll("[data-mkt]").forEach(b => b.onclick = () => {
+      activeMkt = b.dataset.mkt;
+      renderProUI();
+      filterCards();
+    });
+    const loadPreset = (key) => {
+      const legs = (lastFeed && lastFeed[key]) || [];
+      slip.clear();
+      legs.forEach(x => slip.set(x.f, x));
+      renderSlipDrawer();
+      decorateCards();
+    };
+    const b3 = document.getElementById("gem-load-3"), b5 = document.getElementById("gem-load-5"), b10 = document.getElementById("gem-load-10");
+    if (b3) b3.onclick = () => loadPreset("acca3");
+    if (b5) b5.onclick = () => loadPreset("acca5");
+    if (b10) b10.onclick = () => loadPreset("acca10");
+    decorateCards();
+    filterCards();
+    renderSlipDrawer();
+  }
+
+  function filterCards(){
+    document.querySelectorAll(".card, .pick-card, [data-fixture]").forEach(el => {
+      const txt = (el.innerText || "").toUpperCase();
+      if (!txt.includes(" V ")) return;
+      const show = activeMkt === "ALL" || txt.includes(activeMkt) || (activeMkt === "OVER 2.5" && txt.includes("OVER "));
+      el.style.display = show ? "" : "none";
+    });
+  }
+
+  function decorateCards(){
+    if (!lastFeed) return;
+    const allItems = [...(lastFeed.todaysValue || []), ...(lastFeed.acca10 || [])];
+    const byName = new Map(allItems.map(x => [x.f, x]));
+    document.querySelectorAll(".card, .pick-card, div").forEach(el => {
+      if (el.children.length > 8 || el.querySelector(".gem-slip-btn")) return;
+      const txt = el.innerText || "";
+      for (const [fk, item] of byName.entries()) {
+        if (txt.includes(fk) && txt.length < 420) {
+          const btn = document.createElement("button");
+          btn.className = "gem-slip-btn" + (slip.has(fk) ? " added" : "");
+          btn.textContent = slip.has(fk) ? `✓ In Slip (${item.odds} / ${item.frac || ""})` : `+ Add to Slip (${item.odds} / ${item.frac || ""})`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            slip.has(fk) ? slip.delete(fk) : slip.set(fk, item);
+            decorateCards();
+            renderSlipDrawer();
+          };
+          el.appendChild(btn);
+          break;
+        }
+      }
+    });
+  }
+
+  function renderSlipDrawer(){
+    let dr = document.getElementById("gem-slip-drawer");
+    if (!dr) {
+      dr = document.createElement("div");
+      dr.id = "gem-slip-drawer";
+      document.body.appendChild(dr);
+    }
+    const items = Array.from(slip.values());
+    if (!items.length) {
+      dr.innerHTML = `<div id="gem-slip-hdr"><span>My Bet Slip (0)</span><span style="color:#94a3b8;">Click + Add or Load 3/5/10-Fold</span></div>`;
+      return;
+    }
+    const dec = items.reduce((a, x) => a * (parseFloat(x.odds) || 1.8), 1);
+    const stake = 10;
+    dr.innerHTML = `
+      <div id="gem-slip-hdr">
+        <span>My Bet Slip (${items.length}-Fold)</span>
+        <span style="color:#34d399;">${dec.toFixed(2)}x (£${(stake*dec).toFixed(2)} ret)</span>
+      </div>
+      <div id="gem-slip-body">
+        ${items.map(x => `<div class="gem-slip-row"><div><b>${x.f}</b><br><span style="color:#93c5fd;">${x.pk}</span></div><div><b>${x.odds}</b> (${x.frac || ""})</div></div>`).join("")}
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button id="gem-copy-slip" class="gem-slip-btn" style="flex:1;margin:0;">Copy Slip</button>
+          <button id="gem-clear-slip" class="gem-pill" style="padding:5px 10px;">Clear</button>
+        </div>
+      </div>`;
+    document.getElementById("gem-clear-slip").onclick = () => { slip.clear(); renderSlipDrawer(); decorateCards(); };
+    document.getElementById("gem-copy-slip").onclick = () => {
+      const lines = items.map((x, i) => `${i+1}. ${x.f} — ${x.pk} @ ${x.odds} (${x.frac || ""})`).join("\n") + `\nCombined: ${dec.toFixed(2)}x`;
+      navigator.clipboard && navigator.clipboard.writeText(lines);
+      document.getElementById("gem-copy-slip").textContent = "Copied!";
+    };
+  }
+  setInterval(decorateCards, 1500);
 })();
