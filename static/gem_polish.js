@@ -8,7 +8,7 @@
       });
     }
     Object.keys(localStorage).forEach(function(k) {
-      if (k.startsWith("gem_last_good_feed_") && k !== ("gem_last_good_feed_" + new Date().toISOString().slice(0,10))) {
+      if (k.startsWith("gem_last_good_feed_") && k !== ("gem_last_good_feed_" + new Date().toISOString())) {
         localStorage.removeItem(k);
       }
     });
@@ -18,7 +18,7 @@
 
 // Permanent v135 Never-Blank Guard: cache last valid feed & auto-retry during Render cold starts
 (function() {
-  const CACHE_KEY = ("gem_last_good_feed_" + new Date().toISOString().slice(0,10));
+  const CACHE_KEY = ("gem_last_good_feed_" + new Date().toISOString());
   const origFetch = window.fetch;
   if (!origFetch || window.__gemFetchGuarded) return;
   window.__gemFetchGuarded = true;
@@ -80,7 +80,7 @@
 // Permanent daily BET & Perfect Value reset on new UTC day
 (function() {
   try {
-    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayKey = new Date().toISOString();
     const lastDay = localStorage.getItem("gem_bet_tab_date");
     if (lastDay !== todayKey) {
       Object.keys(localStorage).forEach(k => {
@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=208", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=210", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -913,7 +913,7 @@ setInterval(injectRegionToggle,900);
   window.__GEM_V195_DATES = true;
   function stampAll(){
     const feed = window.__LAST_GEM_FEED;
-    const fDate = (feed && feed.feed_date) || new Date().toISOString().slice(0, 10);
+    const fDate = (feed && feed.feed_date) || new Date().toISOString();
     document.querySelectorAll(".gem-pv-card, .gem-slip-row, #gem-v194-scope-box > div, #gem-acca-tab-box > div").forEach(el => {
       if (!el.dataset.dated && (el.innerText || "").trim()) {
         el.dataset.dated = "1";
@@ -933,7 +933,7 @@ setInterval(injectRegionToggle,900);
   window.__GEM_V195_DATES = true;
   function stampAll(){
     const feed = window.__LAST_GEM_FEED;
-    const fDate = (feed && feed.feed_date) || new Date().toISOString().slice(0, 10);
+    const fDate = (feed && feed.feed_date) || new Date().toISOString();
     document.querySelectorAll(".gem-pv-card, .gem-slip-row, #gem-v194-scope-box > div, #gem-acca-tab-box > div").forEach(el => {
       if (!el.dataset.dated && (el.innerText || "").trim()) {
         el.dataset.dated = "1";
