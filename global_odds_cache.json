@@ -75,13 +75,13 @@
     "away_team": "Red Bull Bragantino",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-19T22:30Z",
-    "home_odds": 2.7,
+    "home_odds": 2.65,
     "draw_odds": 3.4,
-    "away_odds": 2.5,
+    "away_odds": 2.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.98,
-    "xg_away": 1.06
+    "xg_home": 1.0,
+    "xg_away": 1.02
   },
   {
     "sport_key": "soccer_all",

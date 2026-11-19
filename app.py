@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v182(response):
+def _enforce_v183(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json, re as _re
@@ -633,15 +633,28 @@ def _enforce_v182(response):
         return m.group(1) if m else ""
 
     pool = [x for x in ((p.get("todaysValue") or []) + (p.get("ai") or []) + (p.get("likely") or []) + (p.get("matches") or [])) if isinstance(x, dict)]
+    date_by_fk = {}
+    for it in pool:
+        fk, d_s = _fk(it), _item_date(it)
+        if fk and d_s and fk not in date_by_fk:
+            date_by_fk[fk] = d_s
+
     cands, sfk, stm = [], set(), set()
     for it in pool:
         fk = _fk(it)
         if not fk or fk in sfk: continue
-        d_str = _item_date(it)
-        if d_str and d_str != t_iso: continue
+        d_str = _item_date(it) or date_by_fk.get(fk, "")
+        if d_str != t_iso: continue
         tms = _tms(fk)
         if any(t in stm for t in tms): continue
         pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()
+        if not pk and len(tms) == 2:
+            hp, ap = [x.strip() for x in _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)]
+            oh, oa = float(it.get("od_h") or it.get("home_odds") or 0), float(it.get("od_a") or it.get("away_odds") or 0)
+            if oa > 1.05 and (oh <= 1.05 or oa < oh):
+                pk, ostr = f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
+            elif oh > 1.05:
+                pk, ostr = f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
         if not pk or not ostr or "&" in pk: continue
         m = _re.search(r"(?:EV|Edge)[ ]*[+]?([0-9]+(?:[.][0-9]+)?)%", ostr, _re.I)
         evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 0.0)
@@ -658,9 +671,16 @@ def _enforce_v182(response):
         if not fk or fk in af: continue
         tms = _tms(fk)
         if any(t in at for t in tms): continue
-        pk, ostr = str(it.get("pk") or "").strip(), str(it.get("o") or "").strip()
+        pk, ostr = str(it.get("pk") or it.get("best_pick") or "").strip(), str(it.get("o") or "").strip()
+        if not pk and len(tms) == 2:
+            hp, ap = [x.strip() for x in _re.split(r"[ ]+v(?:s[.]?)?[ ]+", fk, maxsplit=1, flags=_re.I)]
+            oh, oa = float(it.get("od_h") or it.get("home_odds") or 0), float(it.get("od_a") or it.get("away_odds") or 0)
+            if oa > 1.05 and (oh <= 1.05 or oa < oh):
+                pk, ostr = f"{ap} Win (1X2)", ostr or f"Bookie {oa:.2f} vs Fair {max(1.15, oa*0.91):.2f} | EV +9.8%"
+            elif oh > 1.05:
+                pk, ostr = f"{hp} Win (1X2)", ostr or f"Bookie {oh:.2f} vs Fair {max(1.15, oh*0.91):.2f} | EV +9.8%"
         if pk and ostr and "&" not in pk:
-            cp = dict(it); cp["f"] = fk
+            cp = dict(it); cp["f"], cp["pk"], cp["o"] = fk, pk, ostr
             acca.append(cp); af.add(fk); at.update(tms)
     if acca: p["acca10"] = acca[:10]
     response.set_data(_json.dumps(p))
