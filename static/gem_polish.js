@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=217", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=219", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1204,91 +1204,93 @@ setInterval(injectRegionToggle,900);
   async function showTab(key){
     const { panel } = ensureBarAndPanel();
     const tab = TABS.find(t => t.key === key) || { key, label: key };
+    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500") || 500;
+    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25") || 0.25;
 
-    panel.style.setProperty("display", "block", "important");
-    panel.innerHTML = `<div style="color:#94a3b8;font-size:12px;">Loading engine-calibrated picks for ${tab.label}...</div>`;
+    function renderRows(sourceRows, badgeText){
+      const rows = (sourceRows || []).map(item => {
+        const dm = DATE_MAP[normKey(item.f)];
+        const rawDate = String(item.fixture_date || "").slice(0, 10);
+        const validDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+          ? rawDate
+          : ((dm && dm.fixture_date) || "2026-11-21");
+        const pkText = String(item.pk || "Value Selection").trim();
+        return {
+          f: String(item.f).trim(),
+          lg: String(item.lg || (dm && dm.lg) || tab.label),
+          fixture_date: validDate,
+          ko: String(item.ko || (dm && dm.ko) || "15:00"),
+          mkt: inferMarket(pkText, item.mkt),
+          pk: pkText,
+          odds: parseFloat(item.odds) || 1.75,
+          frac: String(item.frac || "3/4"),
+          ev: parseFloat(item.ev) || 0,
+          model_prob: item.model_prob,
+          devig_prob: item.devig_prob
+        };
+      });
 
-    let payload = null;
+      panel.style.setProperty("display", "block", "important");
+      panel.style.setProperty("visibility", "visible", "important");
+      panel.style.setProperty("opacity", "1", "important");
+
+      panel.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+          <b style="font-size:13px;color:#fff;">${tab.label} — ${rows.length} ${badgeText}</b>
+          <button type="button" id="gem-v219-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        </div>` + rows.map((x, i) => {
+          const od = parseFloat(x.odds) || 1.75;
+          const ev = parseFloat(x.ev) || 0;
+          const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
+          const probMeta = (x.model_prob != null && x.devig_prob != null)
+            ? ` · Model ${x.model_prob}% vs Devig ${x.devig_prob}%`
+            : "";
+          return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
+            <div>
+              <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.fixture_date}</span>
+              <span style="background:#1e1b4b;color:#c4b5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.mkt}</span>
+              <span style="color:#94a3b8;">[${x.ko} GMT]</span>
+              <b>#${i + 1} ${x.f}</b> — <span style="color:#34d399;font-weight:700;">${x.pk}</span>
+              <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg} · +${ev.toFixed(1)}% EV${probMeta} · Stake £${st.toFixed(2)}</div>
+            </div>
+            <div style="text-align:right;white-space:nowrap;">
+              <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac})</span>
+            </div>
+          </div>`;
+        }).join("");
+
+      const hideBtn = document.getElementById("gem-v219-hide");
+      if (hideBtn) {
+        hideBtn.onclick = () => {
+          currentKey = null;
+          panel.style.setProperty("display", "none", "important");
+          ensureBarAndPanel();
+        };
+      }
+    }
+
+    // Immediate non-blocking render so the panel never sits blank
+    renderRows(CATALOG[key] || [], "Weekend Slate Selections");
+
+    // Upgrade in-place if /api/tab-picks returns threshold-verified picks quickly
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 2500);
-      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=217&_t=" + Date.now(), {
+      const timer = setTimeout(() => ctrl.abort(), 2000);
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=219&_t=" + Date.now(), {
         cache: "no-store",
         signal: ctrl.signal
       });
       clearTimeout(timer);
-      if (resp.ok) payload = await resp.json();
-    } catch (err) {
-      payload = null;
-    }
-
-    const apiPicks = (payload && Array.isArray(payload.picks))
-      ? payload.picks.filter(x => x && x.threshold_passed === true && routeKey(x) === key)
-      : [];
-
-    const sourceRows = apiPicks.length > 0 ? apiPicks : (CATALOG[key] || []);
-
-    const rows = sourceRows.map(item => {
-      const dm = DATE_MAP[normKey(item.f)];
-      const rawDate = String(item.fixture_date || "").slice(0, 10);
-      const validDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
-        ? rawDate
-        : ((dm && dm.fixture_date) || "2026-11-21");
-      const pkText = String(item.pk || "Value Selection").trim();
-      return {
-        f: String(item.f).trim(),
-        lg: String(item.lg || (dm && dm.lg) || tab.label),
-        fixture_date: validDate,
-        ko: String(item.ko || (dm && dm.ko) || "15:00"),
-        mkt: inferMarket(pkText, item.mkt),
-        pk: pkText,
-        odds: parseFloat(item.odds) || 1.75,
-        frac: String(item.frac || "3/4"),
-        ev: parseFloat(item.ev) || 0,
-        model_prob: item.model_prob,
-        devig_prob: item.devig_prob
-      };
-    });
-
-    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500") || 500;
-    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25") || 0.25;
-    const modeLabel = apiPicks.length > 0
-      ? `${rows.length} Engine-Verified Picks (Threshold Passed)`
-      : `${rows.length} Weekend Slate Picks (Fast Fallback)`;
-
-    panel.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-        <b style="font-size:13px;color:#fff;">${tab.label} — ${modeLabel}</b>
-        <button type="button" id="gem-v217-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
-      </div>` + rows.map((x, i) => {
-        const od = parseFloat(x.odds) || 1.75;
-        const ev = parseFloat(x.ev) || 0;
-        const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
-        const probMeta = (x.model_prob != null && x.devig_prob != null)
-          ? ` · Model ${x.model_prob}% vs Devig ${x.devig_prob}%`
-          : "";
-        return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
-          <div>
-            <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.fixture_date}</span>
-            <span style="background:#1e1b4b;color:#c4b5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.mkt}</span>
-            <span style="color:#94a3b8;">[${x.ko} GMT]</span>
-            <b>#${i + 1} ${x.f}</b> — <span style="color:#34d399;font-weight:700;">${x.pk}</span>
-            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg} · +${ev.toFixed(1)}% EV${probMeta} · Stake £${st.toFixed(2)}</div>
-          </div>
-          <div style="text-align:right;white-space:nowrap;">
-            <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac})</span>
-          </div>
-        </div>`;
-      }).join("");
-
-    const hideBtn = document.getElementById("gem-v217-hide");
-    if (hideBtn) {
-      hideBtn.onclick = () => {
-        currentKey = null;
-        panel.style.setProperty("display", "none", "important");
-        ensureBarAndPanel();
-      };
-    }
+      if (resp.ok) {
+        const payload = await resp.json();
+        const apiPicks = (payload && Array.isArray(payload.picks))
+          ? payload.picks.filter(x => x && x.threshold_passed === true && routeKey(x) === key)
+          : [];
+        if (apiPicks.length > 0 && currentKey === key) {
+          renderRows(apiPicks, "Engine-Verified Picks (Threshold Passed)");
+        }
+      }
+    } catch (err) {}
   }
 
   setTimeout(ensureBarAndPanel, 150);
@@ -1296,3 +1298,25 @@ setInterval(injectRegionToggle,900);
     if (!document.getElementById("gem-v208-bar")) ensureBarAndPanel();
   }, 1000);
 })();
+
+if (!window.__GEM_V219_DELEGATED__) {
+  window.__GEM_V219_DELEGATED__ = true;
+  document.addEventListener("click", function(ev) {
+    const btn = ev.target && ev.target.closest ? ev.target.closest("[data-tab-key], button") : null;
+    if (!btn) return;
+    const txt = (btn.getAttribute("data-tab-key") || btn.textContent || "").trim().toLowerCase();
+    const map = {
+      "uk": "uk", "uk leagues": "uk",
+      "europe": "europe",
+      "france": "france",
+      "italy": "italy",
+      "german": "german", "germany": "german",
+      "spain": "spain",
+      "row": "row", "the rest of the world": "row", "rest of the world": "row"
+    };
+    const matched = map[txt];
+    if (matched && typeof showTab === "function") {
+      try { void showTab(matched); } catch (e) {}
+    }
+  }, true);
+}
