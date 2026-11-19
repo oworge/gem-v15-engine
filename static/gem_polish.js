@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=202", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=203", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1082,7 +1082,7 @@ setInterval(injectRegionToggle,900);
     let feed = window.__LAST_GEM_FEED;
     if (!feed || !Array.isArray(feed.todaysValue)) {
       try {
-        const r = await fetch("/api/gem-feed?refresh=1&v=202", {cache:"no-store"});
+        const r = await fetch("/api/gem-feed?refresh=1&v=203", {cache:"no-store"});
         feed = await r.json();
         window.__LAST_GEM_FEED = feed;
       } catch(e){ return; }
@@ -1169,4 +1169,33 @@ setInterval(injectRegionToggle,900);
     killLegacyBoxes();
     if (!document.getElementById("gem-v202-tab-bar")) bootV202();
   }, 800);
+})();
+
+(function(){
+  if (window.__GEM_V203_HEADER_CLEAN) return;
+  window.__GEM_V203_HEADER_CLEAN = true;
+
+  function compactHeader(){
+    const bar = document.getElementById("gem-v202-tab-bar");
+    if (bar && !bar.dataset.v203Compact) {
+      bar.dataset.v203Compact = "1";
+      bar.style.cssText = "display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#0b1220;border:1px solid #1e293b;border-radius:8px;padding:5px 8px;margin:4px 0 6px;z-index:20;position:relative;";
+      const lbl = document.createElement("span");
+      lbl.textContent = "REGION:";
+      lbl.style.cssText = "color:#94a3b8;font-size:10px;font-weight:800;letter-spacing:.06em;margin-right:4px;";
+      bar.prepend(lbl);
+    }
+
+    // Hide duplicate scope bar if both #gem-v202-tab-bar and another scope row are visible
+    document.querySelectorAll("div, section").forEach(el => {
+      if (el.id === "gem-v202-tab-bar" || el.closest("#gem-v202-tab-bar")) return;
+      const txt = (el.innerText || "").replace(/\s+/g, " ").trim();
+      if (txt.includes("All UK + Global") && txt.includes("UK Leagues") && txt.includes("Global Leagues") && txt.length < 120) {
+        el.style.display = "none";
+      }
+    });
+  }
+
+  setTimeout(compactHeader, 250);
+  setInterval(compactHeader, 1000);
 })();
