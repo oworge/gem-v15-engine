@@ -1126,3 +1126,23 @@ setInterval(injectRegionToggle,900);
   }
   setInterval(stampAll, 1200);
 })();
+
+
+(function(){
+  if (window.__GEM_V195_DATES) return;
+  window.__GEM_V195_DATES = true;
+  function stampAll(){
+    const feed = window.__LAST_GEM_FEED;
+    const fDate = (feed && feed.feed_date) || new Date().toISOString().slice(0, 10);
+    document.querySelectorAll(".gem-pv-card, .gem-slip-row, #gem-v194-scope-box > div, #gem-acca-tab-box > div").forEach(el => {
+      if (!el.dataset.dated && (el.innerText || "").trim()) {
+        el.dataset.dated = "1";
+        const badge = document.createElement("span");
+        badge.textContent = `Date: ${fDate}`;
+        badge.style.cssText = "display:inline-block;background:#1e293b;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;";
+        el.prepend(badge);
+      }
+    });
+  }
+  setInterval(stampAll, 1200);
+})();
