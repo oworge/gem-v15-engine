@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=190", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=191", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -893,4 +893,97 @@ setInterval(injectRegionToggle,900);
       panel.remove();
     };
   }, 600);
+})();
+
+
+(function(){
+  if (window.__GEM_V191_PV) return;
+  window.__GEM_V191_PV = true;
+  let pvSort = "ev";
+
+  function formatCards(){
+    const feed = window.lastFeed || window.__LAST_GEM_FEED;
+    const list = (feed && Array.isArray(feed.todaysValue)) ? [...feed.todaysValue] : null;
+    const activeTab = document.querySelector(".tab.active, .nav-link.active, [aria-selected='true']");
+    const tabTxt = ((activeTab && activeTab.innerText) || "").toLowerCase();
+    const isPv = tabTxt.includes("value") || tabTxt.includes("today") || !tabTxt;
+    if (!isPv || !list || !list.length) return;
+
+    const nowHHMM = new Date().toISOString().slice(11, 16);
+    const filtered = list.filter(x => {
+      const ko = String(x.ko || "");
+      return !(/^[0-2][0-9]:[0-5][0-9]$/.test(ko) && ko < nowHHMM);
+    });
+    if (pvSort === "ev") filtered.sort((a, b) => (parseFloat(b.ev) || 0) - (parseFloat(a.ev) || 0));
+    if (pvSort === "ko") filtered.sort((a, b) => String(a.ko || "99:99").localeCompare(String(b.ko || "99:99")));
+
+    const anchor = document.getElementById("gem-pro-bar");
+    if (!anchor || !anchor.parentElement) return;
+    let wrap = document.getElementById("gem-pv-wrap");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "gem-pv-wrap";
+      anchor.insertAdjacentElement("afterend", wrap);
+    }
+
+    const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500");
+    const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25");
+
+    wrap.innerHTML = `
+      <div id="gem-pv-toolbar">
+        <div><b>Perfect Value Picks (${filtered.length} Today)</b> <span style="color:#94a3b8;font-size:12px;">— Daily-Win sorted</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="gem-pill ${pvSort==="ev"?"active":""}" id="gem-pv-sort-ev">Highest EV</button>
+          <button class="gem-pill ${pvSort==="ko"?"active":""}" id="gem-pv-sort-ko">Earliest Kickoff</button>
+        </div>
+      </div>
+      <div class="gem-pv-grid">
+        ${filtered.map((x, idx) => {
+          const od = parseFloat(x.odds) || 1.55;
+          const ev = parseFloat(x.ev) || 9.8;
+          const stake = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
+          return `<div class="gem-pv-card ${idx < 2 ? "top-edge" : ""}">
+            <div class="gem-pv-top">
+              <span class="gem-pv-ko">${x.ko || "Today"}</span>
+              <span>${x.lg || "Global"}</span>
+              <span class="gem-pv-ev">+${ev.toFixed(1)}% EV</span>
+            </div>
+            <div class="gem-pv-fk">${x.f}</div>
+            <div class="gem-pv-pk">${x.pk}</div>
+            <div class="gem-pv-foot">
+              <span><b>${od.toFixed(2)}</b> (${x.frac || ""}) · Stake <b>£${stake.toFixed(2)}</b></span>
+              <button class="gem-slip-btn" style="margin:0;" data-pv-idx="${idx}">+ Slip</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>`;
+
+    document.getElementById("gem-pv-sort-ev").onclick = () => { pvSort = "ev"; formatCards(); };
+    document.getElementById("gem-pv-sort-ko").onclick = () => { pvSort = "ko"; formatCards(); };
+    wrap.querySelectorAll("[data-pv-idx]").forEach(btn => {
+      btn.onclick = () => {
+        const item = filtered[Number(btn.dataset.pvIdx)];
+        if (item && window.__GEM_ADD_SLIP) {
+          window.__GEM_ADD_SLIP(item);
+        } else {
+          btn.textContent = "Added";
+          btn.classList.add("added");
+        }
+      };
+    });
+  }
+
+  const _origFetch = window.fetch;
+  window.fetch = async function(...args){
+    const res = await _origFetch.apply(this, args);
+    try {
+      if (String(args[0] || "").includes("/api/gem-feed")) {
+        const clone = await res.clone().json();
+        window.__LAST_GEM_FEED = clone;
+        setTimeout(formatCards, 120);
+      }
+    } catch(e){}
+    return res;
+  };
+  setInterval(formatCards, 1800);
 })();
