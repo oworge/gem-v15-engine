@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=215", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=216", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1205,44 +1205,30 @@ setInterval(injectRegionToggle,900);
     const { panel } = ensureBarAndPanel();
     const tab = TABS.find(t => t.key === key) || { key, label: key };
 
-    let feed = window.__LAST_GEM_FEED;
-    if (!feed) {
-      try {
-        const resp = await fetch("/api/gem-feed?refresh=1&v=215&_t=" + Date.now(), { cache: "no-store" });
-        if (resp.ok) {
-          feed = await resp.json();
-          window.__LAST_GEM_FEED = feed;
-        }
-      } catch (err) {}
-    }
+    panel.style.display = "block";
+    panel.innerHTML = `<div style="color:#94a3b8;font-size:12px;">Loading engine-calibrated picks for ${tab.label}...</div>`;
 
-    const rows = (CATALOG[key] || []).map(x => {
-      const dm = DATE_MAP[normKey(x.f)];
-      return {
-        ...x,
-        fixture_date: (dm && dm.fixture_date) || x.fixture_date,
-        ko: (dm && dm.ko) || x.ko,
-        mkt: inferMarket(x.pk, x.mkt)
-      };
-    });
+    let payload = null;
+    try {
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=216&_t=" + Date.now(), { cache: "no-store" });
+      if (resp.ok) payload = await resp.json();
+    } catch (err) {}
 
-    const harvested = harvestAllFeedItems(feed);
-    const seen = new Set(rows.map(r => normKey(r.f) + "|" + String(r.pk).toLowerCase()));
+    const apiPicks = (payload && Array.isArray(payload.picks))
+      ? payload.picks.filter(x => x && x.threshold_passed === true && routeKey(x) === key)
+      : [];
 
-    for (const item of harvested) {
-      if (routeKey(item) !== key) continue;
-      const pkText = String(item.pk || "Value Selection").trim();
-      const sig = normKey(item.f) + "|" + pkText.toLowerCase();
-      if (seen.has(sig)) continue;
-      seen.add(sig);
+    // Use engine-verified API picks if available; otherwise fall back to CATALOG for this tab
+    const sourceRows = apiPicks.length > 0 ? apiPicks : (CATALOG[key] || []);
 
+    const rows = sourceRows.map(item => {
       const dm = DATE_MAP[normKey(item.f)];
       const rawDate = String(item.fixture_date || "").slice(0, 10);
       const validDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
         ? rawDate
         : ((dm && dm.fixture_date) || "2026-11-21");
-
-      rows.push({
+      const pkText = String(item.pk || "Value Selection").trim();
+      return {
         f: String(item.f).trim(),
         lg: String(item.lg || (dm && dm.lg) || tab.label),
         fixture_date: validDate,
@@ -1251,29 +1237,37 @@ setInterval(injectRegionToggle,900);
         pk: pkText,
         odds: parseFloat(item.odds) || 1.75,
         frac: String(item.frac || "3/4"),
-        ev: parseFloat(item.ev) || 9.0
-      });
-    }
+        ev: parseFloat(item.ev) || 0,
+        model_prob: item.model_prob,
+        devig_prob: item.devig_prob,
+        engineVerified: apiPicks.length > 0
+      };
+    });
 
     const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500") || 500;
     const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25") || 0.25;
+    const modeLabel = apiPicks.length > 0
+      ? `${rows.length} Engine-Verified Picks (Threshold Passed)`
+      : `${rows.length} Weekend Slate Picks (Fallback Slate)`;
 
-    panel.style.display = "block";
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-        <b style="font-size:13px;color:#fff;">${tab.label} — All ${rows.length} Found Value Selections</b>
-        <button type="button" id="gem-v213-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        <b style="font-size:13px;color:#fff;">${tab.label} — ${modeLabel}</b>
+        <button type="button" id="gem-v216-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + rows.map((x, i) => {
         const od = parseFloat(x.odds) || 1.75;
-        const ev = parseFloat(x.ev) || 9.0;
+        const ev = parseFloat(x.ev) || 0;
         const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
+        const probMeta = (x.model_prob != null && x.devig_prob != null)
+          ? ` · Model ${x.model_prob}% vs Devig ${x.devig_prob}%`
+          : "";
         return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
           <div>
             <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.fixture_date}</span>
             <span style="background:#1e1b4b;color:#c4b5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${x.mkt}</span>
             <span style="color:#94a3b8;">[${x.ko} GMT]</span>
             <b>#${i + 1} ${x.f}</b> — <span style="color:#34d399;font-weight:700;">${x.pk}</span>
-            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
+            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg} · +${ev.toFixed(1)}% EV${probMeta} · Stake £${st.toFixed(2)}</div>
           </div>
           <div style="text-align:right;white-space:nowrap;">
             <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac})</span>
@@ -1281,7 +1275,7 @@ setInterval(injectRegionToggle,900);
         </div>`;
       }).join("");
 
-    const hideBtn = document.getElementById("gem-v213-hide");
+    const hideBtn = document.getElementById("gem-v216-hide");
     if (hideBtn) {
       hideBtn.onclick = () => {
         currentKey = null;
