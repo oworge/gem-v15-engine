@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=201", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=202", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -948,8 +948,8 @@ setInterval(injectRegionToggle,900);
 })();
 
 (function(){
-  if (window.__GEM_V201_VISIBLE_TABS) return;
-  window.__GEM_V201_VISIBLE_TABS = true;
+  if (window.__GEM_V202_STRICT_TABS) return;
+  window.__GEM_V202_STRICT_TABS = true;
 
   const TAB_ORDER = [
     { key: "uk", label: "UK Leagues" },
@@ -970,24 +970,25 @@ setInterval(injectRegionToggle,900);
     });
   }
 
-  function classifyItem(item){
-    const blob = `${item.f || ""} ${item.lg || ""} ${item.league || ""} ${item.m || ""} ${item.pk || ""}`.toLowerCase();
-    if (/england|scotland|wales|premier league|championship|league one|league two|fa cup|efl|arsenal|chelsea|liverpool|manchester|tottenham|west ham|newcastle|aston villa|brighton|fulham|bournemouth|brentford|crystal palace|everton|wolves|nottingham|leicester|ipswich|southampton|sunderland|leeds|burnley|sheffield|wrexham|lincoln|preston|celtic|rangers/.test(blob)) {
+  function classifyStrict(item){
+    const blob = `${item.f || ""} ${item.lg || ""} ${item.league || ""} ${item.m || ""}`.toLowerCase();
+
+    if (/\b(england|scotland|wales|premier league|efl championship|championship|league one|league two|fa cup|carabao|wsl|scottish premiership)\b/.test(blob)) {
       return "uk";
     }
-    if (/france|ligue 1|ligue 2|paris|lyon|marseille|monaco|lille|nice|rennes|lens|strasbourg|toulouse|brest|nantes|montpellier|reims|auxerre|angers|saint-etienne|le havre/.test(blob)) {
+    if (/\b(france|ligue 1|ligue 2|coupe de france|paris sg|psg|olympique lyonnais|marseille|as monaco|lille|ogc nice|rennes|rc lens|strasbourg|toulouse|brest|nantes|montpellier|reims|auxerre|angers|saint-etienne|le havre)\b/.test(blob)) {
       return "france";
     }
-    if (/italy|serie a|serie b|coppa italia|inter|milan|juventus|napoli|roma|lazio|atalanta|fiorentina|bologna|torino|udinese|genoa|monza|verona|cagliari|empoli|parma|como|venezia|lecce/.test(blob)) {
+    if (/\b(italy|serie a|serie b|coppa italia|inter milan|ac milan|juventus|napoli|as roma|lazio|atalanta|fiorentina|bologna|torino|udinese|genoa|monza|hellas verona|verona|cagliari|empoli|parma|como|venezia|lecce)\b/.test(blob)) {
       return "italy";
     }
-    if (/germany|german|bundesliga|2. bundesliga|dfb|bayern|dortmund|leipzig|leverkusen|stuttgart|frankfurt|freiburg|hoffenheim|wolfsburg|mainz|augsburg|werder|monchengladbach|bochum|union berlin|heidenheim|st. pauli|kiel/.test(blob)) {
+    if (/\b(germany|german|bundesliga|2\. bundesliga|dfb pokal|bayern munich|bayern|borussia dortmund|dortmund|rb leipzig|leipzig|bayer leverkusen|leverkusen|vfb stuttgart|stuttgart|eintracht frankfurt|frankfurt|freiburg|hoffenheim|wolfsburg|mainz|augsburg|werder bremen|werder|monchengladbach|bochum|union berlin|heidenheim|st\. pauli|holstein kiel)\b/.test(blob)) {
       return "german";
     }
-    if (/spain|spanish|la liga|segunda|copa del rey|barcelona|real madrid|atletico|athletic|real sociedad|villarreal|real betis|sevilla|valencia|osasuna|celta|getafe|girona|mallorca|alaves|las palmas|leganes|valladolid|espanyol|rayo/.test(blob)) {
+    if (/\b(spain|spanish|la liga|laliga|segunda division|copa del rey|fc barcelona|barcelona|real madrid|atletico madrid|atletico|athletic bilbao|athletic club|real sociedad|villarreal|real betis|sevilla|valencia|osasuna|celta vigo|getafe|girona|mallorca|alaves|las palmas|leganes|real valladolid|espanyol|rayo vallecano)\b/.test(blob)) {
       return "spain";
     }
-    if (/champions league|europa league|conference league|uefa|uwcl|women's champions league|koge|servette|austria vienna|ajax|psv|feyenoord|porto|benfica|sporting|galatasaray|fenerbahce|besiktas|copenhagen|salzburg|club brugge|anderlecht|basel|zurich|young boys|celtic|rangers/.test(blob)) {
+    if (/\b(uefa|champions league|europa league|conference league|women's champions league|uwcl|austria vienna|servette|koge|ajax|psv|feyenoord|porto|benfica|sporting cp|galatasaray|fenerbahce|besiktas|copenhagen|red bull salzburg|salzburg|club brugge|anderlecht|basel|zurich|young boys|celtic|rangers|arsenal women|lyon women|paris women|bayern munich women|barcelona women)\b/.test(blob)) {
       return "europe";
     }
     return "row";
@@ -996,7 +997,7 @@ setInterval(injectRegionToggle,900);
   function findMountTarget(){
     const oldBar = document.querySelectorAll("button, a, div, span, label");
     const hit = Array.from(oldBar).find(el => {
-      if (el.closest("#gem-v201-tab-bar")) return false;
+      if (el.closest("#gem-v202-tab-bar")) return false;
       const t = (el.innerText || "").trim().toLowerCase();
       return (t === "all uk + global" || t === "uk leagues" || t === "global leagues") && el.children.length <= 2;
     });
@@ -1016,15 +1017,15 @@ setInterval(injectRegionToggle,900);
   }
 
   function hidePanel(){
-    const p = document.getElementById("gem-v201-panel");
+    const p = document.getElementById("gem-v202-panel");
     if (p) p.style.display = "none";
   }
 
   function renderTabBar(){
-    let bar = document.getElementById("gem-v201-tab-bar");
+    let bar = document.getElementById("gem-v202-tab-bar");
     if (!bar) {
       bar = document.createElement("div");
-      bar.id = "gem-v201-tab-bar";
+      bar.id = "gem-v202-tab-bar";
       bar.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:8px;margin:10px 0 8px;z-index:20;position:relative;";
     }
     const loc = findMountTarget();
@@ -1036,12 +1037,12 @@ setInterval(injectRegionToggle,900);
 
     bar.innerHTML = TAB_ORDER.map(t => {
       const isAct = activeKey === t.key;
-      return `<button type="button" data-v201-tab="${t.key}" style="background:${isAct ? "#064e3b" : "#1e293b"};color:${isAct ? "#6ee7b7" : "#f8fafc"};border:1px solid ${isAct ? "#10b981" : "#475569"};border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">${t.label}</button>`;
+      return `<button type="button" data-v202-tab="${t.key}" style="background:${isAct ? "#064e3b" : "#1e293b"};color:${isAct ? "#6ee7b7" : "#f8fafc"};border:1px solid ${isAct ? "#10b981" : "#475569"};border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">${t.label}</button>`;
     }).join("");
 
-    bar.querySelectorAll("[data-v201-tab]").forEach(btn => {
+    bar.querySelectorAll("[data-v202-tab]").forEach(btn => {
       btn.onclick = () => {
-        const k = btn.dataset.v201Tab;
+        const k = btn.dataset.v202Tab;
         if (activeKey === k) {
           activeKey = null;
           renderTabBar();
@@ -1049,19 +1050,39 @@ setInterval(injectRegionToggle,900);
         } else {
           activeKey = k;
           renderTabBar();
-          openTabPanel(k, bar);
+          openTabPanel(k, bar, false);
         }
       };
     });
     return bar;
   }
 
-  async function openTabPanel(key, bar){
+  function renderRowsHtml(rows, feed, bankroll, frac, tabLabel){
+    return rows.map((x, i) => {
+      const od = parseFloat(x.odds) || 1.55;
+      const ev = parseFloat(x.ev) || 9.8;
+      const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
+      const fDate = x.fixture_date || feed.feed_date || "2026-11-19";
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
+        <div>
+          <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">Date: ${fDate}</span>
+          <span style="color:#94a3b8;">[${x.ko || "Today"}]</span>
+          <b>#${i + 1} ${x.f || ""}</b> — <span style="color:#34d399;font-weight:700;">${x.pk || ""}</span>
+          <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg || tabLabel} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
+        </div>
+        <div style="text-align:right;white-space:nowrap;">
+          <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  async function openTabPanel(key, bar, showAllFallback){
     killLegacyBoxes();
     let feed = window.__LAST_GEM_FEED;
     if (!feed || !Array.isArray(feed.todaysValue)) {
       try {
-        const r = await fetch("/api/gem-feed?refresh=1&v=201", {cache:"no-store"});
+        const r = await fetch("/api/gem-feed?refresh=1&v=202", {cache:"no-store"});
         feed = await r.json();
         window.__LAST_GEM_FEED = feed;
       } catch(e){ return; }
@@ -1077,68 +1098,52 @@ setInterval(injectRegionToggle,900);
       const fk = String(it.f || "");
       if (!fk || seen.has(fk + "|" + (it.pk || ""))) return;
       seen.add(fk + "|" + (it.pk || ""));
-      grouped[classifyItem(it)].push(it);
+      grouped[classifyStrict(it)].push(it);
     });
 
-    const fallbackByKey = {
-      uk: pool.slice(0, 3),
-      europe: pool.filter(x => /women|u21|uefa|cup|fc|united|city/i.test(`${x.f||""} ${x.lg||""}`)),
-      france: pool.filter(x => /paris|lyon|fc/i.test(`${x.f||""}`)),
-      italy: pool.filter(x => /internacional|inter|fc|ac/i.test(`${x.f||""}`)),
-      german: pool.filter(x => /bayern|vienna|sc|sv/i.test(`${x.f||""}`)),
-      spain: pool.filter(x => /barcelona|real|atletico/i.test(`${x.f||""}`)),
-      row: pool.filter(x => /vasco|internacional|bragantino|vitoria|america|copa|mls|brazil/i.test(`${x.f||""} ${x.lg||""}`))
-    };
-
-    let rows = grouped[key] || [];
-    if (!rows.length) {
-      const fb = (fallbackByKey[key] || []).filter(Boolean);
-      rows = fb.length ? fb : pool.slice(0, 3);
-    }
-
+    const strictRows = grouped[key] || [];
     const tabObj = TAB_ORDER.find(t => t.key === key) || { label: key };
-    let panel = document.getElementById("gem-v201-panel");
+    let panel = document.getElementById("gem-v202-panel");
     if (!panel) {
       panel = document.createElement("div");
-      panel.id = "gem-v201-panel";
+      panel.id = "gem-v202-panel";
       panel.style.cssText = "background:#0b1120;border:1px solid #334155;border-radius:12px;padding:12px;margin:6px 0 14px;color:#f8fafc;";
     }
-    bar.insertAdjacentElement("afterend", panel);
+    if (bar) bar.insertAdjacentElement("afterend", panel);
     panel.style.display = "block";
 
     const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500");
     const frac = parseFloat(localStorage.getItem("gem_kelly_frac") || "0.25");
 
-    panel.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-        <b style="font-size:13px;color:#fff;">${tabObj.label} Tab — ${rows.length} Selections</b>
-        <button type="button" id="gem-v201-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
-      </div>` + rows.map((x, i) => {
-        const od = parseFloat(x.odds) || 1.55;
-        const ev = parseFloat(x.ev) || 9.8;
-        const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
-        const fDate = x.fixture_date || feed.feed_date || "2026-11-19";
-        return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #1e293b;padding:7px 0;font-size:12px;">
-          <div>
-            <span style="background:#172554;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">Date: ${fDate}</span>
-            <span style="color:#94a3b8;">[${x.ko || "Today"}]</span>
-            <b>#${i + 1} ${x.f || ""}</b> — <span style="color:#34d399;font-weight:700;">${x.pk || ""}</span>
-            <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${x.lg || tabObj.label} · +${ev.toFixed(1)}% EV · Stake £${st.toFixed(2)}</div>
+    if (strictRows.length > 0) {
+      panel.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+          <b style="font-size:13px;color:#fff;">${tabObj.label} Tab — ${strictRows.length} Matched Selections</b>
+          <button type="button" id="gem-v202-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
+        </div>` + renderRowsHtml(strictRows, feed, bankroll, frac, tabObj.label);
+    } else {
+      panel.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+          <b style="font-size:13px;color:#fff;">${tabObj.label} Tab — 0 Matched Fixtures Today</b>
+          <div style="display:flex;gap:6px;">
+            <button type="button" id="gem-v202-show-all" style="background:#064e3b;color:#6ee7b7;border:1px solid #10b981;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">${showAllFallback ? "Hide All Slate" : "Show All Today (" + pool.length + ")"}</button>
+            <button type="button" id="gem-v202-close" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
           </div>
-          <div style="text-align:right;white-space:nowrap;">
-            <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
-          </div>
-        </div>`;
-      }).join("");
+        </div>
+        <div style="color:#94a3b8;font-size:12px;padding:4px 0;">No ${tabObj.label} fixtures are scheduled in today's feed (${feed.feed_date || "2026-11-19"}).</div>
+        ${showAllFallback ? renderRowsHtml(pool, feed, bankroll, frac, "All Today") : ""}`;
+      const fbBtn = document.getElementById("gem-v202-show-all");
+      if (fbBtn) fbBtn.onclick = () => openTabPanel(key, bar, !showAllFallback);
+    }
 
-    document.getElementById("gem-v201-close").onclick = () => {
+    document.getElementById("gem-v202-close").onclick = () => {
       activeKey = null;
       renderTabBar();
       hidePanel();
     };
   }
 
-  function bootV201(){
+  function bootV202(){
     killLegacyBoxes();
     renderTabBar();
     if (!activeKey) hidePanel();
@@ -1151,17 +1156,17 @@ setInterval(injectRegionToggle,900);
       if (String(args[0] || "").includes("/api/gem-feed")) {
         window.__LAST_GEM_FEED = await res.clone().json();
         setTimeout(() => {
-          bootV201();
-          if (activeKey) openTabPanel(activeKey, document.getElementById("gem-v201-tab-bar"));
+          bootV202();
+          if (activeKey) openTabPanel(activeKey, document.getElementById("gem-v202-tab-bar"), false);
         }, 80);
       }
     } catch(e){}
     return res;
   };
 
-  setTimeout(bootV201, 200);
+  setTimeout(bootV202, 200);
   setInterval(() => {
     killLegacyBoxes();
-    if (!document.getElementById("gem-v201-tab-bar")) bootV201();
+    if (!document.getElementById("gem-v202-tab-bar")) bootV202();
   }, 800);
 })();
