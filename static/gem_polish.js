@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=194", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=195", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1030,7 +1030,7 @@ setInterval(injectRegionToggle,900);
       return window.__LAST_GEM_FEED;
     }
     try {
-      const r = await fetch("/api/gem-feed?refresh=1&v=194", {cache:"no-store"});
+      const r = await fetch("/api/gem-feed?refresh=1&v=195", {cache:"no-store"});
       const j = await r.json();
       window.__LAST_GEM_FEED = j;
       return j;
@@ -1105,4 +1105,24 @@ setInterval(injectRegionToggle,900);
   });
 
   setTimeout(() => { ensureFeed().then(() => renderScopeTab("all")); }, 300);
+})();
+
+
+(function(){
+  if (window.__GEM_V195_DATES) return;
+  window.__GEM_V195_DATES = true;
+  function stampAll(){
+    const feed = window.__LAST_GEM_FEED;
+    const fDate = (feed && feed.feed_date) || new Date().toISOString().slice(0, 10);
+    document.querySelectorAll(".gem-pv-card, .gem-slip-row, #gem-v194-scope-box > div, #gem-acca-tab-box > div").forEach(el => {
+      if (!el.dataset.dated && (el.innerText || "").trim()) {
+        el.dataset.dated = "1";
+        const badge = document.createElement("span");
+        badge.textContent = `Date: ${fDate}`;
+        badge.style.cssText = "display:inline-block;background:#1e293b;color:#93c5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;";
+        el.prepend(badge);
+      }
+    });
+  }
+  setInterval(stampAll, 1200);
 })();

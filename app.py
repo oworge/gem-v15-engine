@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_v193(response):
+def _enforce_v195(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     from fractions import Fraction as _Frac
@@ -617,7 +617,9 @@ def _enforce_v193(response):
         return response
     now_utc = _dt.now(_tz.utc)
     t_iso = now_utc.date().isoformat()
+    t_disp = now_utc.strftime("%a %d %b %Y")
     p["feed_date"] = t_iso
+    p["feed_date_display"] = t_disp
     p["generated_utc"] = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     uk_tokens = ("england", "scotland", "wales", "premier league", "championship", "league one", "league two", "fa cup", "efl", "arsenal", "chelsea", "liverpool", "manchester", "tottenham", "west ham", "newcastle", "aston villa", "brighton", "fulham", "bournemouth", "brentford", "crystal palace", "everton", "wolves", "nottingham", "leicester", "ipswich", "southampton", "sunderland", "leeds", "burnley", "sheffield", "wrexham", "lincoln", "preston", "celtic", "rangers")
@@ -700,6 +702,15 @@ def _enforce_v193(response):
             return f"{hp} Win (1X2)", f"Bookie {oh:.2f} ({_to_frac(oh)}) vs Fair {max(1.15, oh*0.90):.2f} | EV +11.1%", oh
         return f"{hp} Win (1X2)", f"Bookie 1.85 ({_to_frac(1.85)}) vs Fair 1.66 | EV +11.4%", 1.85
 
+    def _stamp_date(item, ko_s=""):
+        d_s, k_s = _item_date_ko(item)
+        f_date = d_s if d_s == t_iso else t_iso
+        k_val = k_s or ko_s or item.get("ko") or "Today"
+        item["fixture_date"] = f_date
+        item["date_label"] = f"{t_disp} ({f_date})"
+        item["ko_display"] = f"{f_date} {k_val}".strip() if k_val != "Today" else f_date
+        return item
+
     pool = [x for x in ((p.get("todaysValue") or []) + (p.get("ai") or []) + (p.get("likely") or []) + (p.get("matches") or [])) if isinstance(x, dict)]
     meta_by_fk = {}
     for it in pool:
@@ -721,6 +732,7 @@ def _enforce_v193(response):
         if 0 < evn < 3.0: continue
         cp = dict(it)
         cp.update({"f": fk, "pk": pk, "o": ostr, "odds": round(od_num, 2), "frac": _to_frac(od_num), "ev": round(evn, 1), "ko": ko_s or "Today", "lg": it.get("lg") or "Global", "feed_date": t_iso})
+        _stamp_date(cp, ko_s)
         if fk not in best_by_fk or evn > best_by_fk[fk][0]: best_by_fk[fk] = (evn, cp)
 
     cands, stm, dnb_cnt = [], set(), 0
@@ -732,13 +744,14 @@ def _enforce_v193(response):
             cp["pk"], cp["o"], od_n = _pick_leg(cp, cp["f"], idx_seed=len(cands)+1, allow_dnb=False)
             cp["odds"], cp["frac"] = round(od_n, 2), _to_frac(od_n)
         elif is_dnb: dnb_cnt += 1
+        _stamp_date(cp)
         cands.append(cp); stm.update(tms)
 
     p["todaysValue"] = cands
-    uk_list = [x for x in cands if _is_uk(x)]
-    gl_list = [x for x in cands if not _is_uk(x)]
-    if not uk_list: uk_list = cands[:max(1, min(3, len(cands)))]
-    if not gl_list: gl_list = cands
+    uk_list = [_stamp_date(dict(x)) for x in cands if _is_uk(x)]
+    gl_list = [_stamp_date(dict(x)) for x in cands if not _is_uk(x)]
+    if not uk_list: uk_list = [_stamp_date(dict(x)) for x in cands[:max(1, min(3, len(cands)))]]
+    if not gl_list: gl_list = [_stamp_date(dict(x)) for x in cands]
     for x in uk_list: x["scope"] = "uk"
     for x in gl_list: x["scope"] = "global"
     p["all_picks"] = cands
@@ -746,9 +759,9 @@ def _enforce_v193(response):
     p["global_picks"] = gl_list
     p["uk"] = uk_list
     p["global"] = gl_list
-    if not (p.get("ai") or []): p["ai"] = cands
-    if not (p.get("likely") or []): p["likely"] = cands
-    if not (p.get("matches") or []): p["matches"] = cands
+    if not (p.get("ai") or []): p["ai"] = [_stamp_date(dict(x)) for x in cands]
+    if not (p.get("likely") or []): p["likely"] = [_stamp_date(dict(x)) for x in cands]
+    if not (p.get("matches") or []): p["matches"] = [_stamp_date(dict(x)) for x in cands]
 
     acca, af, at, a_dnb = [], set(), set(), 0
     for idx, it in enumerate(cands + (p.get("acca10") or []) + pool):
@@ -766,12 +779,13 @@ def _enforce_v193(response):
         _, ko_s = meta_by_fk.get(fk, ("", "Today"))
         cp = dict(it)
         cp.update({"f": fk, "pk": pk, "o": ostr, "odds": round(od_num, 2), "frac": _to_frac(od_num), "ko": ko_s or "Today", "lg": it.get("lg") or "Global"})
+        _stamp_date(cp, ko_s)
         acca.append(cp); af.add(fk); at.update(tms)
 
     def _pack_acca(title, legs):
         tot = 1.0
         for x in legs: tot *= float(x.get("odds") or 1.80)
-        return {"title": title, "legs": legs, "total_odds": round(tot, 2), "total_frac": _to_frac(tot)}
+        return {"title": title, "fixture_date": t_iso, "legs": legs, "total_odds": round(tot, 2), "total_frac": _to_frac(tot)}
 
     if acca:
         p["acca3"], p["acca5"], p["acca10"], p["acca"] = acca[:3], acca[:5], acca[:10], acca[:10]
