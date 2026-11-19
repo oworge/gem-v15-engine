@@ -1,8 +1,16 @@
+
+import os as _os
+from pathlib import Path as _Path
+DATA_DIR = _Path(_os.environ.get("GEM_DATA_DIR", "/var/data" if _os.path.isdir("/var/data") else "."))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = str(DATA_DIR / DB_PATH)
+WEIGHTS_PATH = str(DATA_DIR / WEIGHTS_PATH)
+
 from football_data_sync import get_fixture_xg, sync_football_data
 import math, json, os
 from datetime import datetime, timezone, timedelta
 from engines import ENGINES, logit_pool
-from learner import audit_and_calibrate, platt_calibrate
+from learner import track_line_velocity, audit_and_calibrate, platt_calibrate
 
 RHO_MAP = {
     "PREMIER_LEAGUE": -0.115, "SERIE_A": -0.142, "LIGUE_1": -0.124,
@@ -491,13 +499,13 @@ def build_calibrated_feed():
             (f"{aw} Draw No Bet (DNB)", p_dnb_a, _real_dnb_a),
             (combo_pick, combo_cal, _combo_od),
         ]
-        if xg_tot >= 2.55 and p_o25 >= 0.54:
+        if xg_tot >= 2.55 and p_o25 >= 0.54 and float(src.get("over_25_odds") or 0) > 1.01:
             all_markets.append((f"Over 2.5 Match Goals (Proj xG {xg_tot})", p_o25, round(_o25_od, 2)))
-        if xg_tot <= 2.45 and p_u25 >= 0.54:
+        if xg_tot <= 2.45 and p_u25 >= 0.54 and float(src.get("under_25_odds") or 0) > 1.01:
             all_markets.append((f"Under 2.5 Match Goals (Proj xG {xg_tot})", p_u25, round(_u25_od, 2)))
-        if xg_tot >= 2.50 and p_btts_y >= 0.53:
+        if xg_tot >= 2.50 and p_btts_y >= 0.53 and float(src.get("btts_yes_odds") or 0) > 1.01:
             all_markets.append((f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, round(_bty_od, 2)))
-        if xg_tot <= 2.40 and p_btts_n >= 0.53:
+        if xg_tot <= 2.40 and p_btts_n >= 0.53 and float(src.get("btts_no_odds") or 0) > 1.01:
             all_markets.append((f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, round(_btn_od, 2)))
         qualified = []
         for m_lbl, m_pr, m_od in all_markets:

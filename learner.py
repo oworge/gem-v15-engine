@@ -1,6 +1,14 @@
+
+import os as _os
+from pathlib import Path as _Path
+DATA_DIR = _Path(_os.environ.get("GEM_DATA_DIR", "/var/data" if _os.path.isdir("/var/data") else "."))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = str(DATA_DIR / DB_PATH)
+WEIGHTS_PATH = str(DATA_DIR / WEIGHTS_PATH)
+
 import json, math, os, sqlite3
 
-WEIGHTS_FILE = "model_weights.json"
+WEIGHTS_FILE = WEIGHTS_PATH
 DEFAULT_WEIGHTS = {
     "dc_weight": 0.42,
     "market_weight": 0.58,
@@ -41,7 +49,7 @@ def platt_calibrate(p, market_family="1X2", weights=None):
 def audit_and_calibrate():
     w = load_weights()
     outcomes = []
-    for db in ("syndicate_ledger.db", "clv_audit.db"):
+    for db in (DB_PATH, "clv_audit.db"):
         if not os.path.exists(db):
             continue
         c = sqlite3.connect(db)
@@ -98,7 +106,7 @@ def audit_and_calibrate():
 
 def track_line_velocity(fixture, market, current_odds):
     try:
-        c = sqlite3.connect("syndicate_ledger.db")
+        c = sqlite3.connect(DB_PATH)
         c.execute("CREATE TABLE IF NOT EXISTS odds_snapshots (fixture TEXT, market TEXT, open_odds REAL, last_odds REAL, updated_at TEXT, PRIMARY KEY (fixture, market))")
         row = c.execute("SELECT open_odds FROM odds_snapshots WHERE fixture=? AND market=?", (fixture, market)).fetchone()
         now_s = datetime.now(timezone.utc).isoformat() if "datetime" in globals() else ""

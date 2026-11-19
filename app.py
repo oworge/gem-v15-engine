@@ -1,3 +1,11 @@
+
+import os as _os
+from pathlib import Path as _Path
+DATA_DIR = _Path(_os.environ.get("GEM_DATA_DIR", "/var/data" if _os.path.isdir("/var/data") else "."))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = str(DATA_DIR / DB_PATH)
+WEIGHTS_PATH = str(DATA_DIR / WEIGHTS_PATH)
+
 import os
 from flask import Flask, render_template, request
 import data_generator as dg
@@ -121,7 +129,7 @@ def _sync_sqlite_to_postgres(direction="restore"):
                 updated_at TIMESTAMPTZ DEFAULT NOW()
             )
         """)
-        for fname in ("clv_audit.db", "syndicate_ledger.db"):
+        for fname in ("clv_audit.db", DB_PATH):
             if direction == "restore":
                 cur.execute("SELECT payload FROM gem_sqlite_snapshots WHERE db_name = %s", (fname,))
                 row = cur.fetchone()
@@ -186,7 +194,7 @@ def gem_api_history():
         data = request.get_json(silent=True) or {}
         rid, st = data.get("id"), data.get("status")
         if rid and st in ("WON", "LOST", "OPEN"):
-            for db in ("syndicate_ledger.db", "clv_audit.db"):
+            for db in (DB_PATH, "clv_audit.db"):
                 if os.path.exists(db):
                     c = sqlite3.connect(db)
                     for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
@@ -197,7 +205,7 @@ def gem_api_history():
                     c.close()
         return jsonify({"ok": True})
     items = []
-    for db, tag in (("syndicate_ledger.db", "SLIP"), ("clv_audit.db", "LEG")):
+    for db, tag in ((DB_PATH, "SLIP"), ("clv_audit.db", "LEG")):
         if not os.path.exists(db): continue
         c = sqlite3.connect(db)
         c.row_factory = sqlite3.Row
@@ -262,7 +270,7 @@ def api_gem_feed():
 def api_get_ledger():
     import sqlite3
     from flask import jsonify
-    c = sqlite3.connect("syndicate_ledger.db")
+    c = sqlite3.connect(DB_PATH)
     c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -281,7 +289,7 @@ def api_place_bet():
     import sqlite3
     from flask import request, jsonify
     d = request.get_json(silent=True) or {}
-    c = sqlite3.connect("syndicate_ledger.db")
+    c = sqlite3.connect(DB_PATH)
     c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -307,7 +315,7 @@ def api_settle_bet():
     from learner import audit_and_calibrate
     d = request.get_json(silent=True) or {}
     st = "WON" if str(d.get("status","")).upper() == "WON" else "LOST"
-    c = sqlite3.connect("syndicate_ledger.db")
+    c = sqlite3.connect(DB_PATH)
     c.execute("UPDATE user_bets SET status=| WHERE id=|", (st, int(d.get("id",0))))
     c.commit()
     c.close()
@@ -319,7 +327,7 @@ def api_settle_bet():
 def api_backup_state():
     import sqlite3, json, os
     from flask import jsonify
-    c = sqlite3.connect("syndicate_ledger.db")
+    c = sqlite3.connect(DB_PATH)
     c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -335,7 +343,7 @@ def api_backup_state():
     cols = ["id","created_at","fixture","market","odds","fair_odds","ev_pct","true_prob","stake","status","closing_odds"]
     bets = [dict(zip(cols, r)) for r in c.execute("SELECT id,created_at,fixture,market,odds,fair_odds,ev_pct,true_prob,stake,status,closing_odds FROM user_bets ORDER BY id ASC").fetchall()]
     c.close()
-    weights = json.load(open("model_weights.json", encoding="utf-8")) if os.path.exists("model_weights.json") else {}
+    weights = json.load(open(WEIGHTS_PATH, encoding="utf-8")) if os.path.exists(WEIGHTS_PATH) else {}
     return jsonify({"ok": True, "bets": bets, "weights": weights})
 
 @app.route("/api/restore", methods=["POST"])
@@ -345,7 +353,7 @@ def api_restore_state():
     d = request.get_json(silent=True) or {}
     bets = d.get("bets") or []
     weights = d.get("weights")
-    c = sqlite3.connect("syndicate_ledger.db")
+    c = sqlite3.connect(DB_PATH)
     c.execute("""CREATE TABLE IF NOT EXISTS user_bets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -369,7 +377,7 @@ def api_restore_state():
     c.commit()
     c.close()
     if isinstance(weights, dict) and weights:
-        json.dump(weights, open("model_weights.json", "w", encoding="utf-8"), indent=2)
+        json.dump(weights, open(WEIGHTS_PATH, "w", encoding="utf-8"), indent=2)
     return jsonify({"ok": True, "restored": len(bets)})
 
 
