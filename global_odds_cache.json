@@ -663,12 +663,12 @@
     "away_team": "LASK Linz",
     "league": "UEFA Champions League",
     "kickoff": "2026-11-24T17:45Z",
-    "home_odds": 1.54,
+    "home_odds": 1.56,
     "draw_odds": 4.9,
-    "away_odds": 4.9,
+    "away_odds": 4.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.72,
+    "xg_home": 1.7,
     "xg_away": 0.65
   },
   {

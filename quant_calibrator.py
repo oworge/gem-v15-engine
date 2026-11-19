@@ -413,6 +413,113 @@ def apply_steam_shock_v164(lam_h, lam_a, steam_pct=0.0):
     shock = min(0.12, max(-0.12, (st / 100.0) * 1.6))
     return round(max(0.25, lam_h * (1.0 + shock)), 4), round(max(0.25, lam_a * (1.0 - shock * 0.75)), 4)
 
+def extract_all_markets_from_matrix_v165(mat, home_name, away_name, raw_odds=None):
+    # ALL_MARKETS_MATRIX_V165: derive all 12 market families from the 8x8 Gamma-Poisson Dixon-Coles matrix
+    raw_odds = raw_odds or {}
+    p_h = p_d = p_a = 0.0
+    p_o15 = p_o25 = p_o35 = 0.0
+    p_btts_y = 0.0
+    p_ho15 = p_ao15 = 0.0
+    p_hwtn = p_awtn = 0.0
+    p_hcs = p_acs = 0.0
+    p_1x_o15 = p_x2_o15 = p_h_o15 = p_a_o15 = p_h_btts = p_a_btts = 0.0
+    p_ah_m15_h = p_ah_m15_a = p_ah_p15_h = p_ah_p15_a = 0.0
+    best_cs = ("1-0", 0.0)
+
+    for i in range(len(mat)):
+        for j in range(len(mat[i])):
+            p = float(mat[i][j])
+            if p <= 0.0:
+                continue
+            tot = i + j
+            diff = i - j
+            if diff > 0:
+                p_h += p
+            elif diff == 0:
+                p_d += p
+            else:
+                p_a += p
+
+            if tot >= 2: p_o15 += p
+            if tot >= 3: p_o25 += p
+            if tot >= 4: p_o35 += p
+            if i >= 1 and j >= 1: p_btts_y += p
+            if i >= 2: p_ho15 += p
+            if j >= 2: p_ao15 += p
+            if i >= 1 and j == 0: p_hwtn += p
+            if j >= 1 and i == 0: p_awtn += p
+            if j == 0: p_hcs += p
+            if i == 0: p_acs += p
+
+            if diff >= 0 and tot >= 2: p_1x_o15 += p
+            if diff <= 0 and tot >= 2: p_x2_o15 += p
+            if diff > 0 and tot >= 2: p_h_o15 += p
+            if diff < 0 and tot >= 2: p_a_o15 += p
+            if diff > 0 and i >= 1 and j >= 1: p_h_btts += p
+            if diff < 0 and i >= 1 and j >= 1: p_a_btts += p
+
+            if diff >= 2: p_ah_m15_h += p
+            if diff <= -2: p_ah_m15_a += p
+            if diff >= -1: p_ah_p15_h += p
+            if diff <= 1: p_ah_p15_a += p
+
+            if i <= 4 and j <= 4 and p > best_cs[1]:
+                best_cs = (f"{i}-{j}", p)
+
+    p_1x = p_h + p_d
+    p_x2 = p_a + p_d
+    p_12 = p_h + p_a
+    p_dnb_h = p_h / max(1e-6, p_h + p_a)
+    p_dnb_a = p_a / max(1e-6, p_h + p_a)
+
+    # Map candidate markets to any real bookmaker prices supplied in raw_odds
+    candidates = [
+        (f"{home_name} Win (1X2)", p_h, raw_odds.get("home") or raw_odds.get("1")),
+        (f"{away_name} Win (1X2)", p_a, raw_odds.get("away") or raw_odds.get("2")),
+        ("Draw (1X2)", p_d, raw_odds.get("draw") or raw_odds.get("X")),
+        (f"{home_name} Draw No Bet (DNB)", p_dnb_h, raw_odds.get("dnb_home")),
+        (f"{away_name} Draw No Bet (DNB)", p_dnb_a, raw_odds.get("dnb_away")),
+        (f"{home_name} or Draw (1X)", p_1x, raw_odds.get("dc_1x")),
+        (f"{away_name} or Draw (X2)", p_x2, raw_odds.get("dc_x2")),
+        (f"{home_name} or {away_name} (12)", p_12, raw_odds.get("dc_12")),
+        (f"{home_name} -1.5 Asian Handicap", p_ah_m15_h, raw_odds.get("ah_home_m15")),
+        (f"{away_name} -1.5 Asian Handicap", p_ah_m15_a, raw_odds.get("ah_away_m15")),
+        (f"{home_name} +1.5 Asian Handicap", p_ah_p15_h, raw_odds.get("ah_home_p15")),
+        (f"{away_name} +1.5 Asian Handicap", p_ah_p15_a, raw_odds.get("ah_away_p15")),
+        ("Over 1.5 Match Goals", p_o15, raw_odds.get("over_15")),
+        ("Under 1.5 Match Goals", 1.0 - p_o15, raw_odds.get("under_15")),
+        ("Over 2.5 Match Goals", p_o25, raw_odds.get("over_25") or raw_odds.get("over")),
+        ("Under 2.5 Match Goals", 1.0 - p_o25, raw_odds.get("under_25") or raw_odds.get("under")),
+        ("Over 3.5 Match Goals", p_o35, raw_odds.get("over_35")),
+        ("Under 3.5 Match Goals", 1.0 - p_o35, raw_odds.get("under_35")),
+        ("Both Teams to Score - Yes (BTTS)", p_btts_y, raw_odds.get("btts_yes")),
+        ("Both Teams to Score - No (BTTS)", 1.0 - p_btts_y, raw_odds.get("btts_no")),
+        (f"{home_name} Over 1.5 Team Goals", p_ho15, raw_odds.get("home_over_15")),
+        (f"{away_name} Over 1.5 Team Goals", p_ao15, raw_odds.get("away_over_15")),
+        (f"{home_name} Win to Nil", p_hwtn, raw_odds.get("home_wtn")),
+        (f"{away_name} Win to Nil", p_awtn, raw_odds.get("away_wtn")),
+        (f"{home_name} Clean Sheet", p_hcs, raw_odds.get("home_cs")),
+        (f"{away_name} Clean Sheet", p_acs, raw_odds.get("away_cs")),
+        (f"{home_name} Win & Over 1.5 Goals", p_h_o15, raw_odds.get("home_and_o15")),
+        (f"{away_name} Win & Over 1.5 Goals", p_a_o15, raw_odds.get("away_and_o15")),
+        (f"{home_name} Win & BTTS Yes", p_h_btts, raw_odds.get("home_and_btts")),
+        (f"{away_name} Win & BTTS Yes", p_a_btts, raw_odds.get("away_and_btts")),
+        (f"1X & Over 1.5 Goals", p_1x_o15, raw_odds.get("dc1x_and_o15")),
+        (f"X2 & Over 1.5 Goals", p_x2_o15, raw_odds.get("dcx2_and_o15")),
+        (f"Correct Score {best_cs[0]}", best_cs[1], raw_odds.get(f"cs_{best_cs[0]}")),
+    ]
+    out = []
+    for lbl, pr, od in candidates:
+        try:
+            od_f = float(od or 0.0)
+        except Exception:
+            od_f = 0.0
+        if od_f > 1.02 and 0.03 < pr < 0.97:
+            ev = ((pr * od_f) - 1.0) * 100.0
+            if 4.1 <= ev <= 24.0 and (od_f * pr) <= 1.24:
+                out.append((ev + (pr * 0.85), lbl, round(pr, 4), round(od_f, 2), round(ev, 2)))
+    return out
+
 def build_calibrated_feed():
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9

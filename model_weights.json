@@ -40,6 +40,17 @@
     "1X2": 0.52,
     "COMBO": 0.52,
     "TOTALS": 0.55,
-    "BTTS": 0.55
+    "BTTS": 0.55,
+    "DNB": 1.0,
+    "DC": 1.0,
+    "AH": 1.0,
+    "TOTALS_15": 1.0,
+    "TOTALS_25": 1.0,
+    "TOTALS_35": 1.0,
+    "TEAM_TOTALS": 1.0,
+    "WIN_TO_NIL": 1.0,
+    "CLEAN_SHEET": 1.0,
+    "1H": 1.0,
+    "CS": 1.0
   }
 }
