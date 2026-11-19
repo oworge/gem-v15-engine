@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v175", "clv": summary}
+    return {"ok": True, "version": "v176", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -609,6 +609,7 @@ def _enforce_today_global_and_acca10_v175(response):
     from flask import request as _req
     from datetime import datetime as _dt, timezone as _tz
     import json as _json
+    import re as _re
 
     _today_utc = _dt.now(_tz.utc).date()
     _today_iso = _today_utc.isoformat()
@@ -645,23 +646,23 @@ def _enforce_today_global_and_acca10_v175(response):
             s = str(raw_t).strip()
             if _today_iso in s or "today" in s.lower():
                 return True
-            m_iso = re.search(r"(\d{4}-\d{2}-\d{2})", s)
+            m_iso = _re.search(r"(\d{4}-\d{2}-\d{2})", s)
             if m_iso:
                 return m_iso.group(1) == _today_iso
-            m_dmy = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", s)
+            m_dmy = _re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", s)
             if m_dmy:
                 dd, mm = int(m_dmy.group(1)), int(m_dmy.group(2))
                 yy = int(m_dmy.group(3)) if m_dmy.group(3) else _today_utc.year
                 if yy < 100:
                     yy += 2000
                 return (yy, mm, dd) == (_today_utc.year, _today_utc.month, _today_utc.day)
-            if re.match(r"^\d{1,2}:\d{2}", s) and not any(w in s.lower() for w in ("tomorrow", "tmrw", "next", "mon", "tue", "wed", "thu", "fri", "sat", "sun")):
+            if _re.match(r"^\d{1,2}:\d{2}", s) and not any(w in s.lower() for w in ("tomorrow", "tmrw", "next", "mon", "tue", "wed", "thu", "fri", "sat", "sun")):
                 return True
         return False
 
     def _ev_val(obj):
         o_txt = str(obj.get("o") or "")
-        m = re.search(r"(?:EV|Edge)\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_txt, re.I)
+        m = _re.search(r"(?:EV|Edge)\s*\+?([0-9]+(?:\.[0-9]+)?)%", o_txt, re.I)
         if m:
             return float(m.group(1))
         try:
