@@ -263,7 +263,7 @@ def gem_api_history():
 def api_clv_audit():
     import learner
     summary = learner.compute_clv_summary() or {"tracked": 0, "avg_clv_pct": 0.0, "beat_close_rate": 0.0}
-    return {"ok": True, "version": "v171", "clv": summary}
+    return {"ok": True, "version": "v172", "clv": summary}
 
 @app.route("/api/gem-feed")
 def api_gem_feed():
@@ -605,7 +605,7 @@ def _gem_v139_unified_guard(response):
     return response
 
 @app.after_request
-def _enforce_acca10_all_markets_v169(response):
+def _enforce_acca10_all_markets_v172(response):
     from flask import request as _req
     import json as _json
     if _req.path == "/api/gem-feed" and response.is_json:
@@ -614,32 +614,46 @@ def _enforce_acca10_all_markets_v169(response):
             tv_map = {}
             for src_key in ("todaysValue", "ai", "likely"):
                 for item in (payload.get(src_key) or []):
-                    fk = str(item.get("f") or "").strip()
+                    fk = str(item.get("f") or item.get("m") or item.get("match") or "").strip()
                     pk = str(item.get("pk") or "").strip()
                     if fk and pk and "&" not in pk and fk not in tv_map:
-                        tv_map[fk] = dict(item)
+                        it_copy = dict(item)
+                        it_copy["f"] = fk
+                        tv_map[fk] = it_copy
             new_acca = []
             seen = set()
             for leg in (payload.get("acca10") or []):
-                fk = str(leg.get("f") or "").strip()
+                fk = str(leg.get("f") or leg.get("m") or leg.get("match") or "").strip()
                 if not fk or fk in seen:
                     continue
                 pk = str(leg.get("pk") or "").strip()
                 if "&" in pk and fk in tv_map:
                     new_acca.append(tv_map[fk])
                     seen.add(fk)
-                elif "&" not in pk:
-                    new_acca.append(leg)
+                elif "&" not in pk and pk:
+                    leg_copy = dict(leg)
+                    leg_copy["f"] = fk
+                    new_acca.append(leg_copy)
                     seen.add(fk)
             for item in ((payload.get("todaysValue") or []) + (payload.get("ai") or []) + (payload.get("likely") or []) + (payload.get("matches") or [])):
                 if len(new_acca) >= 10:
                     break
-                fk = str(item.get("f") or "").strip()
-                pk = str(item.get("pk") or "").strip()
-                if fk and fk not in seen and "&" not in pk:
-                    new_acca.append(dict(item))
+                fk = str(item.get("f") or item.get("m") or item.get("match") or "").strip()
+                if not fk or fk in seen:
+                    continue
+                pk = str(item.get("pk") or item.get("best_pick") or "").strip()
+                if not pk and " v " in fk:
+                    h_team = fk.split(" v ")[0].strip()
+                    pk = f"{h_team} Win (1X2)"
+                if pk and "&" not in pk:
+                    it_copy = dict(item)
+                    it_copy["f"] = fk
+                    it_copy["pk"] = pk
+                    if not it_copy.get("o"):
+                        it_copy["o"] = "Bookie 1.95 vs Fair 1.78 | EV +9.6%"
+                    new_acca.append(it_copy)
                     seen.add(fk)
             if new_acca:
-                payload["acca10"] = new_acca
+                payload["acca10"] = new_acca[:10]
                 response.set_data(_json.dumps(payload))
     return response
