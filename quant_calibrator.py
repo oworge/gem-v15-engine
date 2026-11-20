@@ -563,6 +563,7 @@ def _sanitize_acca10_all_markets_v167(feed_dict):
     return _sanitize_acca10_all_markets_v167(feed_dict)
 
 def build_calibrated_feed():
+    build_calibrated_feed._mkt_cnts = {"O25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
     w["odds_source"] = "football-data.co.uk"
@@ -735,14 +736,18 @@ def build_calibrated_feed():
             if "Draw No Bet" in lbl: return "DNB"
             if "Win (1X2)" in lbl: return "1X2"
             return "COMBO"
+        _cnts = getattr(build_calibrated_feed, "_mkt_cnts", None)
+        if _cnts is None:
+            _cnts = {"O25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
+            build_calibrated_feed._mkt_cnts = _cnts
         def _div_score(q):
             b = _mkt_bucket(q[1])
             base_w = {"O25": 1.25, "BTTS": 1.25, "1X2": 1.10, "DNB": 1.00, "COMBO": 0.90}[b]
-            penalty = 1.0 / (1.0 + 0.35 * _seen_mkt_counts[b])
+            penalty = 1.0 / (1.0 + 0.35 * _cnts[b])
             return q[4] * base_w * penalty
         _near.sort(key=_div_score, reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = _near[0]
-        _seen_mkt_counts[_mkt_bucket(best_pick)] += 1
+        _cnts[_mkt_bucket(best_pick)] += 1
         best_ev = round(max(4.5, min(22.0, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
 
