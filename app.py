@@ -836,7 +836,18 @@ def api_tab_picks():
             feed = {}
 
     if isinstance(feed, dict):
-        for k in ("all_picks", "todaysValue", "uk_picks", "global_picks", "matches", "value", "acca10"):
+        # Prioritize diversified buckets first and deduplicate by fixture
+        _seen_fks = set()
+        for k in ("todaysValue", "uk_picks", "global_picks", "all_picks", "ai", "value", "matches", "acca10"):
+            if isinstance(feed.get(k), list):
+                for _it in feed[k]:
+                    _fk_key = str(_it.get("f") or _it.get("fixture") or "").strip().lower()
+                    if _fk_key and _fk_key in _seen_fks:
+                        continue
+                    if _fk_key:
+                        _seen_fks.add(_fk_key)
+                    raw_items.append(_it)
+    elif False:
             if isinstance(feed.get(k), list):
                 raw_items.extend(feed[k])
     elif isinstance(feed, list):
