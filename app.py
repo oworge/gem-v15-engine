@@ -889,10 +889,6 @@ def _enforce_v195(response):
 
 @app.route("/api/tab-picks", methods=["GET"])
 def api_tab_picks():
-    if request.args.get("tab") == "bet_builder":
-        _pool = _all_vetted if "_all_vetted" in locals() else (picks if "picks" in locals() else [])
-        _bb = [m for m in (_make_5_legs(x) for x in _pool if isinstance(x, dict)) if m]
-        return jsonify({"ok": True, "picks": _bb, "rejected_count": 0})
     from flask import jsonify, request
     min_ev = float(request.args.get("min_ev", 4.0))
     verified = []
@@ -1032,12 +1028,16 @@ def api_tab_picks():
             "threshold_passed": True,
         })
 
+    _out_picks = verified
+    if request.args.get("tab") == "bet_builder":
+        _out_picks = [m for m in (_make_5_legs(x) for x in verified if isinstance(x, dict)) if m]
+
     return jsonify({
         "version": "v223",
         "min_ev": min_ev,
         "verified_count": len(verified),
         "rejected_count": len(rejected),
-        "picks": verified,
+        "picks": _out_picks,
         "rejected": rejected[:50],
     })
 

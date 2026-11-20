@@ -1201,7 +1201,7 @@ setInterval(injectRegionToggle,900);
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 5000);
-      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=233&_t=" + Date.now(), {
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&tab=" + encodeURIComponent(key) + "&v=246&_t=" + Date.now(), {
         cache: "no-store",
         signal: ctrl.signal
       });
