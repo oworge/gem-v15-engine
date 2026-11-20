@@ -301,7 +301,7 @@ function renderDesk(){
     var tot=1.0,legs=D.acca10.map(function(x){tot*=x.od;return [x.f,x.pk+" ("+x.ev+" EV)","@ "+x.od.toFixed(2)];});
     panel.appendChild(slipBox("10-FOLD GLOBAL VALUE ACCUMULATOR (10 GAMES)","Combined EV +48.5%",legs,"10-Fold Combined Odds: "+tot.toFixed(2),"£10 -> £"+(tot*10).toFixed(2)));
   }else if(mode==="bets"){
-    panel.appendChild(slipBox("ACTIVE GEM V4.0 3-FOLD SLIP (19:45 UTC)","Status: LIVE",[["#1 Wales vs Portugal","X2 & O1.5","@ 1.30"],["#2 Ukraine vs Georgia","1X & O1.5","@ 1.62"],["#3 Denmark vs Norway","1X & O1.5","@ 1.67"]],"Treble @ 3.52","£10 -> £35.20"));
+    var b3=(D.acca10||D.todaysValue||[]).slice(0,3),b3Od=1.0,b3Rows=b3.map(function(x,i){b3Od*=Number(x.od||1.5);return ["#"+(i+1)+" "+x.f,x.pk+" ("+x.ev+")","@ "+Number(x.od||1.5).toFixed(2)];});if(b3Rows.length)panel.appendChild(slipBox("ACTIVE VETTED 3-FOLD SLIP","Status: LIVE",b3Rows,"Treble @ "+b3Od.toFixed(2),"£10 -> £"+(b3Od*10).toFixed(2)));
     if(p1Bets.length){
       var lh=h("div","gp-upd");lh.style.marginTop="14px";lh.appendChild(h("span","","SYNDICATE SQLITE LEDGER ("+p1Bets.length+" LOGGED)"));lh.appendChild(h("span","","Feeds Platt Calibration"));panel.appendChild(lh);
       p1Bets.forEach(function(b){
@@ -332,19 +332,36 @@ function setView(next){
 
 function syncAll(){
   fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){p1Bets=d.bets||[];renderP1();renderDesk();}).catch(function(){});
-  fetch("/api/gem-feed").then(function(r){return r.json();}).then(function(live){
+  Promise.all([
+    fetch("/api/gem-feed").then(function(r){return r.json();}).catch(function(){return {};}),
+    fetch("/api/tab-picks?min_ev=4.0&v=240").then(function(r){return r.json();}).catch(function(){return {};})
+  ]).then(function(res){
+    var live=res[0]||{}, tp=(res[1]&&res[1].picks)||[];
     p1Feed=live;
-    if(live&&live.live&&window.GEM_DATA){
-      if(live.upd)window.GEM_DATA.upd=live.upd;
-      if(live.matches&&live.matches.length)window.GEM_DATA.matches=live.matches;
-      if(live.days&&live.days.length)window.GEM_DATA.days=live.days;if(live.todaysValue&&live.todaysValue.length)window.GEM_DATA.todaysValue=live.todaysValue;
-      if(live.likely&&live.likely.length)window.GEM_DATA.likely=live.likely;
-      if(live.ai&&live.ai.length)window.GEM_DATA.ai=live.ai;
-      if(live.arbs&&live.arbs.length)window.GEM_DATA.arbs=live.arbs;
-      if(live.acca10&&live.acca10.length>=10)window.GEM_DATA.acca10=live.acca10;
+    if(!window.GEM_DATA)window.GEM_DATA={days:[],todaysValue:[],likely:[],ai:[],arbs:[],acca10:[],matches:[]};
+    var D=window.GEM_DATA;
+    if(live.upd)D.upd=live.upd;
+    var normTp=tp.map(function(x,i){
+      var ev=Number(x.ev||0).toFixed(1), pr=Number(x.prob||55).toFixed(0), od=Number(x.odds||1.85);
+      return {k:"VETTED #"+(i+1)+" | +"+ev+"% EV",p:pr+"%",b:x.lg||"Vetted +EV Edge",f:x.f,pk:x.pk,od:od,ev:"+"+ev+"%",dt:x.dt||""};
+    });
+    var pool=(live.todaysValue&&live.todaysValue.length)?live.todaysValue:normTp;
+    if(pool.length){
+      D.todaysValue=pool;
+      D.likely=(live.likely&&live.likely.length)?live.likely:pool.slice().sort(function(a,b){return parseFloat(b.p)-parseFloat(a.p);}).slice(0,12);
+      D.ai=(live.ai&&live.ai.length)?live.ai:pool.slice(0,12);
+      D.arbs=(live.arbs&&live.arbs.length)?live.arbs:pool.filter(function(x){return parseFloat(x.ev)>=7.5;}).slice(0,10);
+      if(!D.arbs.length)D.arbs=pool.slice(0,8);
+      D.acca10=(live.acca10&&live.acca10.length>=6)?live.acca10:pool.slice(0,10);
+      D.matches=(live.matches&&live.matches.length)?live.matches:pool;
+      if(live.days&&live.days.length&&live.days[0].picks&&live.days[0].picks.length){
+        D.days=live.days;
+      }else{
+        D.days=[{label:"Today ("+pool.length+")",picks:pool},{label:"Top +EV",picks:pool.slice(0,15)},{label:"High Prob",picks:D.likely},{label:"AI Picks",picks:D.ai},{label:"Value Scan",picks:pool}];
+      }
     }
     renderP1();renderDesk();
-  }).catch(function(){});
+  });
 }
 
 function mount(){
