@@ -1159,8 +1159,10 @@ setInterval(injectRegionToggle,900);
   }
 
   function routeKey(item){
-    const lg = String((item && (item.league || item.lg)) || "").toLowerCase();
-    const fx = String((item && (item.f || item.fixture || item.match)) || "").toLowerCase();
+    const fxRaw = String((item && (item.f || item.fixture || item.match)) || "");
+    const dmEntry = (typeof DATE_MAP !== "undefined" && typeof normKey === "function") ? (DATE_MAP[normKey(fxRaw)] || {}) : {};
+    const lg = String((item && (item.league || item.lg)) || dmEntry.lg || "").toLowerCase();
+    const fx = fxRaw.toLowerCase();
     const reg = String((item && item.region) || "").toLowerCase();
     const text = `${lg} ${fx}`;
 
@@ -1170,7 +1172,7 @@ setInterval(injectRegionToggle,900);
     if (/(champions league|europa league|conference league|uefa|super cup)/.test(text)) {
       return "europe";
     }
-    if (/(ligue 1|ligue 2|coupe de france|france|french|paris saint-germain|psg|marseille|lyon|monaco|lille|nice|lens|rennes|strasbourg|nantes|toulouse|reims|brest|montpellier|auxerre|angers|saint-etienne|le havre)/.test(text)) {
+    if (/(ligue 1|ligue 2|coupe de france|france|french|paris saint-germain|psg|marseille|lyon|monaco|lille|nice|lens|rennes|strasbourg|nantes|toulouse|reims|brest|montpellier|auxerre|angers|saint-etienne|le havre|troyes)/.test(text)) {
       return "france";
     }
     if (/(serie a|serie b|coppa italia|italy|italian|inter|ac milan|milan|juventus|napoli|roma|lazio|atalanta|fiorentina|bologna|torino|udinese|genoa|cagliari|verona|lecce|empoli|parma|como|venezia|monza)/.test(text)) {
