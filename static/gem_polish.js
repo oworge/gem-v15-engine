@@ -267,14 +267,16 @@ function slipBox(title,sub,legs,footL,footR,bg){
 }
 function renderDesk(){
   harvestPV();
-  var D=window.GEM_DATA;if(!D)return;
+  if(!window.GEM_DATA)window.GEM_DATA={upd:"Live",days:[],todaysValue:[],likely:[],ai:[],arbs:[],acca10:[],matches:[]};
+  var D=window.GEM_DATA;
+  D.days=D.days||[];D.todaysValue=D.todaysValue||[];D.likely=D.likely||[];D.ai=D.ai||[];D.arbs=D.arbs||[];D.acca10=D.acca10||[];
   var panel=document.getElementById("gp-desk-panel");if(!panel)return;
   panel.innerHTML="";
   var u=h("div","gp-upd");
   if(mode==="matches"){
-    var d=D.days[activeDay]||D.days[0];u.appendChild(h("span","","5-Day Dated Slate · Odds updated "+D.upd));u.appendChild(h("span","","Day "+(activeDay+1)+" of 5"));panel.appendChild(u);
+    var d=D.days[activeDay]||D.days[0]||{label:"Today",picks:D.todaysValue};u.appendChild(h("span","","5-Day Dated Slate · Odds updated "+D.upd));u.appendChild(h("span","","Day "+(activeDay+1)+" of 5"));panel.appendChild(u);
     var strip=h("div","gp-day-strip");D.days.forEach(function(it,idx){var b=h("button","gp-day-pill"+(idx===activeDay?" active":""),it.label);b.type="button";b.onclick=function(){activeDay=idx;renderDesk();};strip.appendChild(b);});
-    panel.appendChild(strip);d.picks.forEach(function(p){panel.appendChild(cardEl(p));});
+    panel.appendChild(strip);(d.picks||[]).forEach(function(p){panel.appendChild(cardEl(p));});
   }else if(mode==="perfect"){
     u.appendChild(h("span","","PERFECT VALUE SIGNALS ("+(pvCache.length||D.todaysValue.length)+" ACTIVE)"));u.appendChild(h("span","","Moved from Dashboard"));panel.appendChild(u);
     if(pvCache.length){
@@ -327,14 +329,14 @@ function setView(next){
   page=next;
   document.body.classList.remove("gp-view-p1","gp-view-p2");
   document.body.classList.add(page==="app"?"gp-view-p2":"gp-view-p1");
-  if(page==="app")renderDesk();else renderP1();
+  if(page==="app"){renderDesk();if(!window.GEM_DATA||!(window.GEM_DATA.todaysValue||[]).length)syncAll();}else renderP1();
 }
 
 function syncAll(){
   fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){p1Bets=d.bets||[];renderP1();renderDesk();}).catch(function(){});
   Promise.all([
     fetch("/api/gem-feed").then(function(r){return r.json();}).catch(function(){return {};}),
-    fetch("/api/tab-picks?min_ev=4.0&v=240").then(function(r){return r.json();}).catch(function(){return {};})
+    fetch("/api/tab-picks?min_ev=4.0&v=241").then(function(r){return r.json();}).catch(function(){return {};})
   ]).then(function(res){
     var live=res[0]||{}, tp=(res[1]&&res[1].picks)||[];
     p1Feed=live;
