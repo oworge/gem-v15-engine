@@ -129,16 +129,21 @@ def compute_clv_summary():
         cur = conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS odds_snapshots (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 fixture TEXT,
                 market TEXT,
                 open_odds REAL,
-                curr_odds REAL,
-                updated_at TEXT
+                last_odds REAL,
+                updated_at TEXT,
+                PRIMARY KEY (fixture, market)
             )
         """)
+        cols = [r[1] for r in cur.execute("PRAGMA table_info(odds_snapshots)").fetchall()]
+        if "last_odds" not in cols:
+            cur.execute("ALTER TABLE odds_snapshots ADD COLUMN last_odds REAL")
+            if "curr_odds" in cols:
+                cur.execute("UPDATE odds_snapshots SET last_odds = curr_odds WHERE last_odds IS NULL")
         rows = cur.execute(
-            "SELECT fixture, market, open_odds, curr_odds FROM odds_snapshots WHERE open_odds > 1.01 AND curr_odds > 1.01"
+            "SELECT fixture, market, open_odds, last_odds FROM odds_snapshots WHERE open_odds > 1.01 AND last_odds > 1.01"
         ).fetchall()
         conn.close()
         if not rows:

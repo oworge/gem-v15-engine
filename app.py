@@ -248,6 +248,40 @@ def _record_clv_audit(rows):
                     "ev_pct": r.get("ev"),
                 }
                 fh.write(_json.dumps(rec) + "\n")
+        try:
+            import sqlite3 as _sq
+            _c = _sq.connect(DB_PATH)
+            _c.execute(
+                "CREATE TABLE IF NOT EXISTS odds_snapshots (fixture TEXT, market TEXT, open_odds REAL, last_odds REAL, updated_at TEXT, PRIMARY KEY (fixture, market))"
+            )
+            _cols = [x[1] for x in _c.execute("PRAGMA table_info(odds_snapshots)").fetchall()]
+            if "last_odds" not in _cols:
+                _c.execute("ALTER TABLE odds_snapshots ADD COLUMN last_odds REAL")
+                if "curr_odds" in _cols:
+                    _c.execute("UPDATE odds_snapshots SET last_odds = curr_odds WHERE last_odds IS NULL")
+            for r in rows:
+                _fx = str(r.get("f") or r.get("fixture") or "").strip()
+                _mk = str(r.get("pk") or r.get("pick") or "").strip()
+                try:
+                    _od = float(r.get("odds") or 0.0)
+                except (TypeError, ValueError):
+                    _od = 0.0
+                if _fx and _mk and _od > 1.01:
+                    _ex = _c.execute("SELECT open_odds FROM odds_snapshots WHERE fixture=? AND market=?", (_fx, _mk)).fetchone()
+                    if not _ex:
+                        _c.execute(
+                            "INSERT OR REPLACE INTO odds_snapshots (fixture, market, open_odds, last_odds, updated_at) VALUES (?, ?, ?, ?, ?)",
+                            (_fx, _mk, _od, _od, ts),
+                        )
+                    else:
+                        _c.execute(
+                            "UPDATE odds_snapshots SET last_odds=?, updated_at=? WHERE fixture=? AND market=?",
+                            (_od, ts, _fx, _mk),
+                        )
+            _c.commit()
+            _c.close()
+        except Exception:
+            pass
     except Exception:
         pass
 
