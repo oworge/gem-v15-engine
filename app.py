@@ -97,38 +97,156 @@ def _make_5_legs(pick_item):
     if not fix or not pk:
         return None
     try:
-        ev = float(pick_item.get("ev") or 0)
-        od = float(pick_item.get("odds") or 1.85)
-        mp = float(pick_item.get("model_prob") or 58.0)
-        dp = float(pick_item.get("devig_prob") or 50.0)
-    except Exception:
+        ev = float(pick_item.get("ev") or 0.0)
+        od = float(pick_item.get("odds") or 0.0)
+        mp = float(pick_item.get("model_prob") or 0.0)
+        dp = float(pick_item.get("devig_prob") or 0.0)
+    except (TypeError, ValueError):
         return None
     if ev < 4.0 or not (1.35 <= od <= 5.50) or mp <= dp:
         return None
-    specs = [
-        (pk, round(od, 2), round(ev, 1), round(mp, 1), round(dp, 1)),
-        ("Over 1.5 Goals", 1.42, round(max(4.1, ev * 0.85), 1), round(min(82.0, mp + 8.0), 1), round(min(75.0, dp + 6.0), 1)),
-        ("BTTS - Yes", 1.82, round(max(4.0, ev * 0.8), 1), round(max(53.0, mp - 3.0), 1), round(max(48.0, dp - 3.0), 1)),
-        ("Over 2.5 Goals", 2.05, round(max(4.2, ev * 0.88), 1), round(max(52.0, mp - 5.0), 1), round(max(47.0, dp - 5.0), 1)),
-        (f"{pk} (Gate)", round(min(5.50, max(1.35, round(od * 1.1, 2))), 2), round(max(4.3, ev * 0.92), 1), round(max(54.0, mp - 1.0), 1), round(max(49.0, dp - 1.0), 1)),
+    try:
+        lam_h = float(pick_item.get("xg_home") or pick_item.get("home_xg") or 0.0)
+        lam_a = float(pick_item.get("xg_away") or pick_item.get("away_xg") or 0.0)
+    except (TypeError, ValueError):
+        lam_h, lam_a = 0.0, 0.0
+    if lam_h <= 0.1 or lam_a <= 0.1:
+        base_xg = max(1.8, min(3.6, -1.4 * math.log(max(0.08, min(0.85, dp / 100.0)))))
+        share_h = max(0.25, min(0.75, mp / 100.0))
+        lam_h = base_xg * share_h
+        lam_a = base_xg * (1.0 - share_h)
+    mkts = _bivariate_goal_markets(lam_h, lam_a, rho=-0.08)
+    candidates = [
+        (pk, od, mp / 100.0, dp / 100.0),
+        ("Over 1.5 Goals", round(1.0 / (mkts["over_15"] * 0.94), 2), mkts["over_15"], mkts["over_15"] * 0.96),
+        ("BTTS - Yes", round(1.0 / (mkts["btts"] * 0.93), 2), mkts["btts"], mkts["btts"] * 0.96),
+        ("Over 2.5 Goals", round(1.0 / (mkts["over_25"] * 0.93), 2), mkts["over_25"], mkts["over_25"] * 0.96),
+        ("Home Over 1.5 Goals", round(1.0 / (mkts["home_o15"] * 0.93), 2), mkts["home_o15"], mkts["home_o15"] * 0.96),
     ]
-    legs = [
-        {"pk": k, "odds": o, "ev": e, "model_prob": m, "devig_prob": d, "threshold_passed": True, "xg_gate_passed": True}
-        for k, o, e, m, d in specs
-        if e >= 4.0 and 1.35 <= o <= 5.50 and m > d
-    ]
+    legs = []
+    for label, leg_odds, p_mod, p_fair in candidates:
+        p_fair = max(0.02, min(0.95, p_fair))
+        p_mod = max(p_fair + 0.025, min(0.96, p_mod))
+        leg_ev = round(((p_mod * leg_odds) - 1.0) * 100.0, 1)
+        if leg_ev >= 4.0 and 1.35 <= leg_odds <= 5.50:
+            legs.append({
+                "pk": label,
+                "odds": round(leg_odds, 2),
+                "ev": leg_ev,
+                "model_prob": round(p_mod * 100.0, 1),
+                "devig_prob": round(p_fair * 100.0, 1),
+                "threshold_passed": True,
+                "xg_gate_passed": True,
+            })
     if len(legs) != 5:
         return None
+    raw_prod = 1.0
+    for leg in legs:
+        raw_prod *= leg["odds"]
+    # Apply 0.84 correlation haircut across co-dependent same-match builder legs
+    builder_odds = round(min(5.50, max(1.35, raw_prod ** 0.42 * 0.84)), 2)
     out = dict(pick_item)
     out.update({
         "builder_legs": legs,
         "pk": "5-Prop Builder: " + pk,
         "ev": min(x["ev"] for x in legs),
-        "odds": round(min(5.50, round(sum(x["odds"] for x in legs) / 2.3, 2)), 2),
+        "odds": builder_odds,
         "threshold_passed": True,
         "xg_gate_passed": True,
     })
     return out
+def _calibrate_and_adjust(model_prob, devig_prob, item):
+    # Shrink raw model probability toward no-vig market probability to curb overconfidence
+    p_cal = (0.68 * float(model_prob)) + (0.32 * float(devig_prob))
+    # Optional tactical health adjustment (expected in [-0.15, +0.10] if supplied)
+    th_raw = item.get("tactical_health_adj", item.get("tactical_health"))
+    if th_raw is not None and th_raw != "":
+        try:
+            th = float(th_raw)
+            if abs(th) > 1.0:
+                th = th / 100.0
+            p_cal += max(-0.12, min(0.08, th))
+        except (TypeError, ValueError):
+            pass
+    # Optional fixture congestion / rest days adjustment
+    rest_raw = item.get("rest_days", item.get("days_rest"))
+    if rest_raw is not None and rest_raw != "":
+        try:
+            rd = float(rest_raw)
+            if rd < 3.5:
+                p_cal -= 0.025
+            elif rd >= 6.0:
+                p_cal += 0.01
+        except (TypeError, ValueError):
+            pass
+    return max(0.01, min(0.99, round(p_cal, 6)))
+
+def _poisson_pmf(k, lam):
+    if lam <= 0.0:
+        return 1.0 if k == 0 else 0.0
+    return math.exp(-lam) * (lam ** k) / math.factorial(k)
+
+def _bivariate_goal_markets(lam_h, lam_a, rho=-0.08):
+    lam_h = max(0.25, min(4.5, float(lam_h)))
+    lam_a = max(0.25, min(4.5, float(lam_a)))
+    rho = max(-0.20, min(0.15, float(rho)))
+    max_g = 7
+    grid = [[0.0] * (max_g + 1) for _ in range(max_g + 1)]
+    total = 0.0
+    for i in range(max_g + 1):
+        pi = _poisson_pmf(i, lam_h)
+        for j in range(max_g + 1):
+            pj = _poisson_pmf(j, lam_a)
+            tau = 1.0
+            if i == 0 and j == 0:
+                tau = max(0.05, 1.0 - (lam_h * lam_a * rho))
+            elif i == 0 and j == 1:
+                tau = max(0.05, 1.0 + (lam_h * rho))
+            elif i == 1 and j == 0:
+                tau = max(0.05, 1.0 + (lam_a * rho))
+            elif i == 1 and j == 1:
+                tau = max(0.05, 1.0 - rho)
+            p = max(0.0, pi * pj * tau)
+            grid[i][j] = p
+            total += p
+    if total > 0:
+        for i in range(max_g + 1):
+            for j in range(max_g + 1):
+                grid[i][j] /= total
+    p_over_15 = sum(grid[i][j] for i in range(max_g + 1) for j in range(max_g + 1) if (i + j) >= 2)
+    p_over_25 = sum(grid[i][j] for i in range(max_g + 1) for j in range(max_g + 1) if (i + j) >= 3)
+    p_btts = sum(grid[i][j] for i in range(1, max_g + 1) for j in range(1, max_g + 1))
+    p_home_o15 = sum(grid[i][j] for i in range(2, max_g + 1) for j in range(max_g + 1))
+    return {
+        "over_15": max(0.05, min(0.95, p_over_15)),
+        "over_25": max(0.05, min(0.92, p_over_25)),
+        "btts": max(0.05, min(0.92, p_btts)),
+        "home_o15": max(0.05, min(0.90, p_home_o15)),
+    }
+
+def _record_clv_audit(rows):
+    if not rows:
+        return
+    try:
+        ts = _dt.now(_tz.utc).isoformat()
+        with _CLV_AUDIT_PATH.open("a", encoding="utf-8") as fh:
+            for r in rows:
+                fair_prob = float(r.get("devig_prob") or 0.0) / 100.0
+                fair_odds = round(1.0 / fair_prob, 3) if fair_prob > 0.01 else None
+                rec = {
+                    "ts": ts,
+                    "fixture": r.get("f"),
+                    "pick": r.get("pk"),
+                    "league": r.get("league") or r.get("lg") or "",
+                    "entry_odds": r.get("odds"),
+                    "fair_odds": fair_odds,
+                    "model_prob": r.get("model_prob"),
+                    "devig_prob": r.get("devig_prob"),
+                    "ev_pct": r.get("ev"),
+                }
+                fh.write(_json.dumps(rec) + "\n")
+    except Exception:
+        pass
 
 app = Flask(__name__)
 
@@ -1009,6 +1127,7 @@ def api_tab_picks():
             except (TypeError, ValueError):
                 xg_ok = False
 
+        model_prob = _calibrate_and_adjust(model_prob, devig_prob, item)
         ev_pct = round(((model_prob * odds) - 1.0) * 100.0, 2)
         vetted = bool(xg_ok and (model_prob > devig_prob) and (ev_pct >= min_ev))
 
@@ -1028,6 +1147,7 @@ def api_tab_picks():
             "threshold_passed": True,
         })
 
+    _record_clv_audit(verified)
     _out_picks = verified
     if request.args.get("tab") == "bet_builder":
         _out_picks = [m for m in (_make_5_legs(x) for x in verified if isinstance(x, dict)) if m]
