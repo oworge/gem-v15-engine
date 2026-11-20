@@ -1164,22 +1164,22 @@ setInterval(injectRegionToggle,900);
     const reg = String((item && item.region) || "").toLowerCase();
     const text = `${lg} ${fx}`;
 
-    if (/(premier league|championship|league one|league two|fa cup|efl|scottish|spfl|cymru|irish|northern irish|\buk\b|england|wales|scotland)/.test(text) || reg === "uk") {
+    if (/(premier league|championship|league one|league two|fa cup|efl|scottish|spfl|cymru|irish|northern irish|\buk\b|england|wales|scotland|arsenal|chelsea|liverpool|manchester|tottenham|newcastle|aston villa|west ham|everton|brighton|brentford|fulham|bournemouth|wolves|crystal palace|nottingham|leicester|southampton|ipswich|leeds|burnley|sheffield|sunderland|celtic|rangers)/.test(text) || reg === "uk") {
       return "uk";
     }
     if (/(champions league|europa league|conference league|uefa|super cup)/.test(text)) {
       return "europe";
     }
-    if (/(ligue 1|ligue 2|coupe de france|france|french)/.test(text)) {
+    if (/(ligue 1|ligue 2|coupe de france|france|french|paris saint-germain|psg|marseille|lyon|monaco|lille|nice|lens|rennes|strasbourg|nantes|toulouse|reims|brest|montpellier|auxerre|angers|saint-etienne|le havre)/.test(text)) {
       return "france";
     }
-    if (/(serie a|serie b|coppa italia|italy|italian)/.test(text)) {
+    if (/(serie a|serie b|coppa italia|italy|italian|inter|ac milan|milan|juventus|napoli|roma|lazio|atalanta|fiorentina|bologna|torino|udinese|genoa|cagliari|verona|lecce|empoli|parma|como|venezia|monza)/.test(text)) {
       return "italy";
     }
-    if (/(bundesliga|2\. bundesliga|dfb-pokal|germany|german)/.test(text)) {
+    if (/(bundesliga|2\. bundesliga|dfb-pokal|germany|german|bayern|dortmund|leverkusen|leipzig|stuttgart|frankfurt|freiburg|hoffenheim|wolfsburg|werder|bremen|mainz|augsburg|union berlin|gladbach|monchengladbach|bochum|heidenheim|st\. pauli|holstein kiel|cologne|koln|hamburger|schalke|hertha)/.test(text)) {
       return "german";
     }
-    if (/(la liga|segunda|copa del rey|spain|spanish)/.test(text)) {
+    if (/(la liga|segunda|copa del rey|spain|spanish|real madrid|barcelona|atletico|sevilla|betis|sociedad|villarreal|athletic|bilbao|valencia|girona|celta|osasuna|mallorca|getafe|rayo|alaves|las palmas|espanyol|leganes|valladolid)/.test(text)) {
       return "spain";
     }
     return "row";
@@ -1225,7 +1225,7 @@ setInterval(injectRegionToggle,900);
           x.model_prob > x.devig_prob &&
           typeof x.ev === "number" &&
           (key === "bet_builder" ? x.ev >= 4.0 : x.ev >= 2.5) &&
-          (key === "bet_builder" ? (Array.isArray(x.builder_legs) && x.builder_legs.length === 5) : routeKey(x) === key)
+          (key === "bet_builder" ? (Array.isArray(x.builder_legs) && x.builder_legs.length === 5) : (key === "global" || key === "all" ? routeKey(x) !== "uk" : routeKey(x) === key))
         )
       : [];
 
@@ -1279,6 +1279,28 @@ setInterval(injectRegionToggle,900);
   setInterval(() => {
     if (!document.getElementById("gem-v208-bar")) ensureBarAndPanel();
   }, 1000);
+
+  (function gemAutoPopulateTabs(){
+    function boot(){
+      try {
+        ensureBarAndPanel();
+        const defaultKey = (typeof TABS !== "undefined" && Array.isArray(TABS) && TABS.length) ? TABS[0].key : "uk";
+        void showTab(defaultKey);
+        if (!window.__gemTabRefreshTimer) {
+          window.__gemTabRefreshTimer = setInterval(function(){
+            const active = document.querySelector("#gem-v202-tab-bar button[data-active='1'], #gem-v202-tab-bar .active");
+            const k = (active && active.getAttribute("data-tab-key")) || defaultKey;
+            try { void showTab(k); } catch (e) {}
+          }, 120000);
+        }
+      } catch (e) {}
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function(){ setTimeout(boot, 250); });
+    } else {
+      setTimeout(boot, 250);
+    }
+  })();
 })();
 
 if (!window.__GEM_V219_DELEGATED__) {
