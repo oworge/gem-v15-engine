@@ -278,10 +278,11 @@ def _record_clv_audit(rows):
                             "UPDATE odds_snapshots SET last_odds=?, updated_at=? WHERE fixture=? AND market=?",
                             (_od, ts, _fx, _mk),
                         )
+            _c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_odds_snap_fm ON odds_snapshots(fixture, market)")
             _c.commit()
             _c.close()
-        except Exception:
-            pass
+        except Exception as _clv_exc:
+            print("CLV_DB_ERR:", _clv_exc)
     except Exception:
         pass
 
