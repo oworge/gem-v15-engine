@@ -757,8 +757,8 @@ def build_calibrated_feed():
             build_calibrated_feed._mkt_cnts = _cnts
         def _div_score(q):
             b = _mkt_bucket(q[1])
-            base_w = {"O25": 1.30, "U25": 1.35, "BTTS": 1.45, "1X2": 1.10, "DNB": 1.00, "DRAW": 1.40, "HTD": 1.45, "HTFT": 1.40, "DRAW": 1.40, "HTD": 1.45, "HTFT": 1.40, "COMBO": 0.55}[b]
-            penalty = 1.0 / (1.0 + (0.85 if b == "COMBO" else 0.30) * _cnts[b])
+            base_w = {"O25": 1.25, "U25": 1.25, "BTTS": 1.30, "1X2": 1.25, "DNB": 1.20, "DRAW": 1.20, "HTD": 1.20, "HTFT": 1.20, "DC": 0.65}[b]
+            penalty = 1.0 / (1.0 + (0.95 if b == "DC" else 0.65) * _cnts[b])
             return q[4] * base_w * penalty
         _near.sort(key=_div_score, reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = _near[0]
