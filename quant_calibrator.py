@@ -563,7 +563,7 @@ def _sanitize_acca10_all_markets_v167(feed_dict):
     return _sanitize_acca10_all_markets_v167(feed_dict)
 
 def build_calibrated_feed():
-    build_calibrated_feed._mkt_cnts = {"O25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
+    build_calibrated_feed._mkt_cnts = {"O25": 0, "U25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
     w["odds_source"] = "football-data.co.uk"
@@ -732,17 +732,18 @@ def build_calibrated_feed():
         _near = [q for q in qualified if (_top_ev - q[4]) <= 8.0]
         def _mkt_bucket(lbl):
             if "Over 2.5" in lbl: return "O25"
+            if "Under 2.5" in lbl: return "U25"
             if "Both Teams" in lbl: return "BTTS"
             if "Draw No Bet" in lbl: return "DNB"
             if "Win (1X2)" in lbl: return "1X2"
             return "COMBO"
         _cnts = getattr(build_calibrated_feed, "_mkt_cnts", None)
         if _cnts is None:
-            _cnts = {"O25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
+            _cnts = {"O25": 0, "U25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
             build_calibrated_feed._mkt_cnts = _cnts
         def _div_score(q):
             b = _mkt_bucket(q[1])
-            base_w = {"O25": 1.35, "BTTS": 1.35, "1X2": 1.15, "DNB": 1.05, "COMBO": 0.55}[b]
+            base_w = {"O25": 1.30, "U25": 1.35, "BTTS": 1.45, "1X2": 1.15, "DNB": 1.05, "COMBO": 0.55}[b]
             penalty = 1.0 / (1.0 + (0.85 if b == "COMBO" else 0.30) * _cnts[b])
             return q[4] * base_w * penalty
         _near.sort(key=_div_score, reverse=True)
