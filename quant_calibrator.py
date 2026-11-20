@@ -726,11 +726,11 @@ def build_calibrated_feed():
             continue
 
         qualified.sort(key=lambda t: t[0], reverse=True)
-        # Balanced multi-market diversity when EVs are within 2.5% of top candidate
+        # Balanced multi-market diversity across all calibrated +EV markets
         _top_ev = qualified[0][4]
-        _near = [q for q in qualified if (_top_ev - q[4]) <= 2.5]
-        _mkt_weights = {"Over 2.5": 1.15, "Both Teams": 1.12, "Draw No Bet": 1.04, "Win (1X2)": 1.00}
-        _near.sort(key=lambda q: q[4] * next((w for k, w in _mkt_weights.items() if k in q[1]), 0.96), reverse=True)
+        _near = [q for q in qualified if (_top_ev - q[4]) <= 6.5]
+        _mkt_weights = {"Over 2.5": 1.22, "Both Teams": 1.20, "Draw No Bet": 1.06, "Win (1X2)": 1.02}
+        _near.sort(key=lambda q: q[4] * next((w for k, w in _mkt_weights.items() if k in q[1]), 0.82), reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = _near[0]
         best_ev = round(max(4.5, min(22.0, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
