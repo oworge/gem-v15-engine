@@ -554,7 +554,7 @@ setInterval(injectRegionToggle,900);
 (function() {
   async function syncDeskNow() {
     try {
-      const r = await fetch("/api/gem-feed?v=227", { cache: "no-store" });
+      const r = await fetch("/api/gem-feed?v=232", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
       if (!d || !Array.isArray(d.matches) || !d.matches.length) return;
@@ -1181,7 +1181,7 @@ setInterval(injectRegionToggle,900);
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 5000);
-      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=227&_t=" + Date.now(), {
+      const resp = await fetch("/api/tab-picks?min_ev=2.5&v=232&_t=" + Date.now(), {
         cache: "no-store",
         signal: ctrl.signal
       });
