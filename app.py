@@ -230,61 +230,65 @@ def _bivariate_goal_markets(lam_h, lam_a, rho=-0.08):
 def _record_clv_audit(rows):
     if not rows:
         return
+    from datetime import datetime as _p_dt, timezone as _p_tz
+    import json as _p_json
+    import sqlite3 as _p_sq
+    ts = _p_dt.now(_p_tz.utc).isoformat()
     try:
-        ts = _dt.now(_tz.utc).isoformat()
-        with _CLV_AUDIT_PATH.open("a", encoding="utf-8") as fh:
-            for r in rows:
-                fair_prob = float(r.get("devig_prob") or 0.0) / 100.0
-                fair_odds = round(1.0 / fair_prob, 3) if fair_prob > 0.01 else None
-                rec = {
-                    "ts": ts,
-                    "fixture": r.get("f"),
-                    "pick": r.get("pk"),
-                    "league": r.get("league") or r.get("lg") or "",
-                    "entry_odds": r.get("odds"),
-                    "fair_odds": fair_odds,
-                    "model_prob": r.get("model_prob"),
-                    "devig_prob": r.get("devig_prob"),
-                    "ev_pct": r.get("ev"),
-                }
-                fh.write(_json.dumps(rec) + "\n")
-        try:
-            import sqlite3 as _sq
-            _c = _sq.connect(DB_PATH)
-            _c.execute(
-                "CREATE TABLE IF NOT EXISTS odds_snapshots (fixture TEXT, market TEXT, open_odds REAL, last_odds REAL, updated_at TEXT, PRIMARY KEY (fixture, market))"
-            )
-            _cols = [x[1] for x in _c.execute("PRAGMA table_info(odds_snapshots)").fetchall()]
-            if "last_odds" not in _cols:
-                _c.execute("ALTER TABLE odds_snapshots ADD COLUMN last_odds REAL")
-                if "curr_odds" in _cols:
-                    _c.execute("UPDATE odds_snapshots SET last_odds = curr_odds WHERE last_odds IS NULL")
-            for r in rows:
-                _fx = str(r.get("f") or r.get("fixture") or "").strip()
-                _mk = str(r.get("pk") or r.get("pick") or "").strip()
-                try:
-                    _od = float(r.get("odds") or 0.0)
-                except (TypeError, ValueError):
-                    _od = 0.0
-                if _fx and _mk and _od > 1.01:
-                    _ex = _c.execute("SELECT open_odds FROM odds_snapshots WHERE fixture=? AND market=?", (_fx, _mk)).fetchone()
-                    if not _ex:
-                        _c.execute(
-                            "INSERT OR REPLACE INTO odds_snapshots (fixture, market, open_odds, last_odds, updated_at) VALUES (?, ?, ?, ?, ?)",
-                            (_fx, _mk, _od, _od, ts),
-                        )
-                    else:
-                        _c.execute(
-                            "UPDATE odds_snapshots SET last_odds=?, updated_at=? WHERE fixture=? AND market=?",
-                            (_od, ts, _fx, _mk),
-                        )
-            _c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_odds_snap_fm ON odds_snapshots(fixture, market)")
-            _c.commit()
-            _c.close()
-        except Exception as _clv_exc:
-            print("CLV_DB_ERR:", _clv_exc)
-    except Exception:
-        pass
+        _audit_file = globals().get("_CLV_AUDIT_PATH")
+        if _audit_file is not None:
+            with pathlib.Path(_audit_file).open("a", encoding="utf-8") as fh:
+                for r in rows:
+                    fair_prob = float(r.get("devig_prob") or 0.0) / 100.0
+                    fair_odds = round(1.0 / fair_prob, 3) if fair_prob > 0.01 else None
+                    rec = {
+                        "ts": ts,
+                        "fixture": r.get("f"),
+                        "pick": r.get("pk"),
+                        "league": r.get("league") or r.get("lg") or "",
+                        "entry_odds": r.get("odds"),
+                        "fair_odds": fair_odds,
+                        "model_prob": r.get("model_prob"),
+                        "devig_prob": r.get("devig_prob"),
+                        "ev_pct": r.get("ev"),
+                    }
+                    fh.write(_p_json.dumps(rec) + "\n")
+    except Exception as _f_exc:
+        print("CLV_FILE_ERR:", _f_exc)
+    try:
+        _c = _p_sq.connect(DB_PATH)
+        _c.execute(
+            "CREATE TABLE IF NOT EXISTS odds_snapshots (fixture TEXT, market TEXT, open_odds REAL, last_odds REAL, updated_at TEXT, PRIMARY KEY (fixture, market))"
+        )
+        _cols = [x[1] for x in _c.execute("PRAGMA table_info(odds_snapshots)").fetchall()]
+        if "last_odds" not in _cols:
+            _c.execute("ALTER TABLE odds_snapshots ADD COLUMN last_odds REAL")
+            if "curr_odds" in _cols:
+                _c.execute("UPDATE odds_snapshots SET last_odds = curr_odds WHERE last_odds IS NULL")
+        for r in rows:
+            _fx = str(r.get("f") or r.get("fixture") or "").strip()
+            _mk = str(r.get("pk") or r.get("pick") or "").strip()
+            try:
+                _od = float(r.get("odds") or 0.0)
+            except (TypeError, ValueError):
+                _od = 0.0
+            if _fx and _mk and _od > 1.01:
+                _ex = _c.execute("SELECT open_odds FROM odds_snapshots WHERE fixture=? AND market=?", (_fx, _mk)).fetchone()
+                if not _ex:
+                    _c.execute(
+                        "INSERT OR REPLACE INTO odds_snapshots (fixture, market, open_odds, last_odds, updated_at) VALUES (?, ?, ?, ?, ?)",
+                        (_fx, _mk, _od, _od, ts),
+                    )
+                else:
+                    _c.execute(
+                        "UPDATE odds_snapshots SET last_odds=?, updated_at=? WHERE fixture=? AND market=?",
+                        (_od, ts, _fx, _mk),
+                    )
+        _c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_odds_snap_fm ON odds_snapshots(fixture, market)")
+        _c.commit()
+        _c.close()
+    except Exception as _clv_exc:
+        print("CLV_DB_ERR:", _clv_exc)
 
 app = Flask(__name__)
 
