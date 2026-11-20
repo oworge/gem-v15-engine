@@ -563,7 +563,7 @@ def _sanitize_acca10_all_markets_v167(feed_dict):
     return _sanitize_acca10_all_markets_v167(feed_dict)
 
 def build_calibrated_feed():
-    build_calibrated_feed._mkt_cnts = {"O25": 0, "U25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0, "DRAW": 0, "HTD": 0, "HTFT": 0}
+    build_calibrated_feed._mkt_cnts = {k: 0 for k in ("O25", "U25", "BTTS", "1X2", "DNB", "DC", "DRAW", "HTD", "HTFT")}
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
     w["odds_source"] = "football-data.co.uk"
@@ -739,30 +739,46 @@ def build_calibrated_feed():
 
         qualified.sort(key=lambda t: t[0], reverse=True)
         # Quota-balanced multi-market diversity across all calibrated +EV markets
-        _top_ev = qualified[0][4]
-        _near = [q for q in qualified if (_top_ev - q[4]) <= 8.0]
         def _mkt_bucket(lbl):
+            if "HT/FT:" in lbl: return "HTFT"
+            if "Half-Time Result:" in lbl: return "HTD"
+            if "Match Result: Draw" in lbl: return "DRAW"
             if "Over 2.5" in lbl: return "O25"
             if "Under 2.5" in lbl: return "U25"
             if "Both Teams" in lbl: return "BTTS"
             if "Draw No Bet" in lbl: return "DNB"
-            if "HT/FT:" in lbl: return "HTFT"
-            if "Half-Time Result:" in lbl: return "HTD"
-            if "Match Result: Draw" in lbl: return "DRAW"
             if "Win (1X2)" in lbl: return "1X2"
-            return "COMBO"
+            return "DC"
+
+        _floors = {
+            "O25": 0.52, "U25": 0.52, "BTTS": 0.52, "1X2": 0.46,
+            "DNB": 0.54, "DC": 0.62, "DRAW": 0.26, "HTD": 0.38, "HTFT": 0.18
+        }
+        _vetted = [
+            q for q in qualified
+            if q[4] >= 4.0 and 1.35 <= q[3] <= 5.50
+            and q[2] >= _floors.get(_mkt_bucket(q[1]), 0.50)
+        ]
+        if not _vetted:
+            _vetted = [q for q in qualified if q[4] >= 3.0 and q[3] >= 1.30] or qualified
+
+        _top_ev = _vetted[0][4]
+        _near = [q for q in _vetted if (_top_ev - q[4]) <= 3.5]
+
         _cnts = getattr(build_calibrated_feed, "_mkt_cnts", None)
         if _cnts is None:
-            _cnts = {"O25": 0, "U25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
+            _cnts = {k: 0 for k in _floors}
             build_calibrated_feed._mkt_cnts = _cnts
+
         def _div_score(q):
             b = _mkt_bucket(q[1])
-            base_w = {"O25": 1.25, "U25": 1.25, "BTTS": 1.30, "1X2": 1.25, "DNB": 1.20, "DRAW": 1.20, "HTD": 1.20, "HTFT": 1.20, "DC": 0.65}[b]
-            penalty = 1.0 / (1.0 + (0.95 if b == "DC" else 0.65) * _cnts[b])
-            return q[4] * base_w * penalty
+            w = 0.80 if b == "DC" else 1.00
+            pen = 1.0 / (1.0 + (0.45 if b == "DC" else 0.18) * _cnts.get(b, 0))
+            return q[4] * w * pen
+
         _near.sort(key=_div_score, reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = _near[0]
-        _cnts[_mkt_bucket(best_pick)] += 1
+        _bk = _mkt_bucket(best_pick); _cnts[_bk] = _cnts.get(_bk, 0) + 1
         best_ev = round(max(4.5, min(22.0, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
 

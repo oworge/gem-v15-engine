@@ -735,7 +735,7 @@ def _enforce_v195(response):
         if not pk or not ostr or "&" in pk: continue
         m = _re.search(r"(?:EV|Edge)[ ]*[+]?([0-9]+(?:[.][0-9]+)?)%", ostr, _re.I)
         evn = float(m.group(1)) if m else float(it.get("ev") or it.get("edge") or 9.5)
-        if 0 < evn < 3.0: continue
+        if 0 < evn < 4.0: continue
         cp = dict(it)
         cp.update({"f": fk, "pk": pk, "o": ostr, "odds": round(od_num, 2), "frac": _to_frac(od_num), "ev": round(evn, 1), "ko": ko_s or "Today", "lg": it.get("lg") or "Global", "feed_date": t_iso})
         _stamp_date(cp, ko_s)
@@ -810,7 +810,7 @@ def _enforce_v195(response):
 @app.route("/api/tab-picks", methods=["GET"])
 def api_tab_picks():
     from flask import jsonify, request
-    min_ev = float(request.args.get("min_ev", 2.5))
+    min_ev = float(request.args.get("min_ev", 4.0))
     verified = []
     rejected = []
     raw_items = []
