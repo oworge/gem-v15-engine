@@ -160,9 +160,8 @@ def _make_5_legs(pick_item):
     })
     return out
 def _calibrate_and_adjust(model_prob, devig_prob, item):
-    # Shrink raw model probability toward no-vig market probability to curb overconfidence
-    p_cal = (0.68 * float(model_prob)) + (0.32 * float(devig_prob))
-    # Optional tactical health adjustment (expected in [-0.15, +0.10] if supplied)
+    # Blend calibrated model probability with de-vigged market probability
+    p_cal = (0.78 * float(model_prob)) + (0.22 * float(devig_prob))
     th_raw = item.get("tactical_health_adj", item.get("tactical_health"))
     if th_raw is not None and th_raw != "":
         try:
@@ -172,7 +171,6 @@ def _calibrate_and_adjust(model_prob, devig_prob, item):
             p_cal += max(-0.12, min(0.08, th))
         except (TypeError, ValueError):
             pass
-    # Optional fixture congestion / rest days adjustment
     rest_raw = item.get("rest_days", item.get("days_rest"))
     if rest_raw is not None and rest_raw != "":
         try:
@@ -184,7 +182,6 @@ def _calibrate_and_adjust(model_prob, devig_prob, item):
         except (TypeError, ValueError):
             pass
     return max(0.01, min(0.99, round(p_cal, 6)))
-
 def _poisson_pmf(k, lam):
     if lam <= 0.0:
         return 1.0 if k == 0 else 0.0
@@ -1108,7 +1105,9 @@ def api_tab_picks():
             continue
 
         raw_model = item.get("model_prob") if item.get("model_prob") is not None else (
-            item.get("prob") if item.get("prob") is not None else item.get("p_model")
+            item.get("prob") if item.get("prob") is not None else (
+                item.get("p_model") if item.get("p_model") is not None else item.get("p")
+            )
         )
         model_prob = to_prob(raw_model)
 
@@ -1116,6 +1115,17 @@ def api_tab_picks():
             item.get("p_mkt") if item.get("p_mkt") is not None else item.get("fair")
         )
         devig_prob = fair_to_prob(raw_devig)
+        if not devig_prob and isinstance(item.get("o"), str):
+            _fm = re.search(r"Fair\s+([0-9]+(?:\.[0-9]+)?)", item["o"])
+            if _fm:
+                try:
+                    _fo = float(_fm.group(1))
+                    if _fo > 1.01:
+                        devig_prob = round(1.0 / _fo, 6)
+                except ValueError:
+                    pass
+        if not devig_prob and odds > 1.01 and model_prob:
+            devig_prob = round(1.0 / odds, 6)
 
         if not (model_prob and devig_prob and 0.0 < model_prob < 1.0 and 0.0 < devig_prob < 1.0):
             rejected.append({"f": fixture, "pk": pick, "reason": "missing_calibration"})
