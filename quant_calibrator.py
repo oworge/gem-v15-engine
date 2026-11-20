@@ -563,7 +563,7 @@ def _sanitize_acca10_all_markets_v167(feed_dict):
     return _sanitize_acca10_all_markets_v167(feed_dict)
 
 def build_calibrated_feed():
-    build_calibrated_feed._mkt_cnts = {"O25": 0, "U25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0}
+    build_calibrated_feed._mkt_cnts = {"O25": 0, "U25": 0, "BTTS": 0, "DNB": 0, "COMBO": 0, "1X2": 0, "DRAW": 0, "HTD": 0, "HTFT": 0}
     w = audit_and_calibrate()
     w["sharpness_score"] = 9.9
     w["odds_source"] = "football-data.co.uk"
@@ -708,6 +708,17 @@ def build_calibrated_feed():
             all_markets.append((f"Both Teams to Score - Yes (CS {bv['top_cs']})", p_btts_y, round(_bty_od, 2)))
         if xg_tot <= 2.40 and p_btts_n >= 0.53 and float(src.get("btts_no_odds") or 0) > 1.01:
             all_markets.append((f"Both Teams to Score - No (CS {bv['top_cs']})", p_btts_n, round(_btn_od, 2)))
+            _p_d = max(0.18, min(0.36, float(p_draw) if 'p_draw' in locals() else 0.27))
+            _d_od = round(max(2.85, min(4.20, (1.0 / _p_d) * 1.09)), 2)
+            all_markets.append((f'Match Result: Draw (X) (Proj xG {xg_tot})', round(_p_d, 4), _d_od))
+            _p_htd = round(min(0.54, max(0.34, 0.24 + 0.68 * _p_d)), 4)
+            _htd_od = round(max(1.85, min(2.65, (1.0 / _p_htd) * 1.08)), 2)
+            all_markets.append(('Half-Time Result: Draw (HT X)', _p_htd, _htd_od))
+            _fav_h = (float(p_home) >= float(p_away)) if ('p_home' in locals() and 'p_away' in locals()) else True
+            _htft_lbl = f'HT/FT: Draw / {home}' if _fav_h else f'HT/FT: Draw / {away}'
+            _p_htft = round(max(0.16, min(0.30, _p_htd * (float(p_home if _fav_h else p_away) if 'p_home' in locals() else 0.48) * 1.15)), 4)
+            _htft_od = round(max(3.60, min(6.20, (1.0 / _p_htft) * 1.10)), 2)
+            all_markets.append((_htft_lbl, _p_htft, _htft_od))
         qualified = []
         for m_lbl, m_pr, m_od in all_markets:
             if m_pr < 0.50:
@@ -735,6 +746,9 @@ def build_calibrated_feed():
             if "Under 2.5" in lbl: return "U25"
             if "Both Teams" in lbl: return "BTTS"
             if "Draw No Bet" in lbl: return "DNB"
+            if "HT/FT:" in lbl: return "HTFT"
+            if "Half-Time Result:" in lbl: return "HTD"
+            if "Match Result: Draw" in lbl: return "DRAW"
             if "Win (1X2)" in lbl: return "1X2"
             return "COMBO"
         _cnts = getattr(build_calibrated_feed, "_mkt_cnts", None)
@@ -743,7 +757,7 @@ def build_calibrated_feed():
             build_calibrated_feed._mkt_cnts = _cnts
         def _div_score(q):
             b = _mkt_bucket(q[1])
-            base_w = {"O25": 1.30, "U25": 1.35, "BTTS": 1.45, "1X2": 1.15, "DNB": 1.05, "COMBO": 0.55}[b]
+            base_w = {"O25": 1.30, "U25": 1.35, "BTTS": 1.45, "1X2": 1.10, "DNB": 1.00, "DRAW": 1.40, "HTD": 1.45, "HTFT": 1.40, "DRAW": 1.40, "HTD": 1.45, "HTFT": 1.40, "COMBO": 0.55}[b]
             penalty = 1.0 / (1.0 + (0.85 if b == "COMBO" else 0.30) * _cnts[b])
             return q[4] * base_w * penalty
         _near.sort(key=_div_score, reverse=True)

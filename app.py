@@ -726,7 +726,7 @@ def _enforce_v195(response):
         if not d_s and fk in meta_by_fk: d_s, ko_s = meta_by_fk[fk]
         if d_s != t_iso: continue
         _orig_pk = str(it.get("pk") or "").strip()
-        if any(k in _orig_pk for k in ("Over 2.5", "Under 2.5", "Both Teams", "Win (1X2)", "Draw No Bet", "Double Chance")):
+        if any(k in _orig_pk for k in ("Over 2.5", "Under 2.5", "Both Teams", "Win (1X2)", "Match Result: Draw", "Half-Time Result:", "HT/FT:", "Draw No Bet", "Double Chance")):
             pk = _orig_pk
             ostr = str(it.get("o") or f"Odds {it.get('odds', 1.75)} | EV +{it.get('ev', 8.5)}%")
             od_num = float(it.get("odds") or 1.75)
@@ -746,7 +746,7 @@ def _enforce_v195(response):
         tms = _tms(cp["f"])
         if any(t in stm for t in tms): continue
         is_dnb = ("dnb" in cp["pk"].lower() or "draw no bet" in cp["pk"].lower())
-        if is_dnb and dnb_cnt >= 2 and not any(k in str(it.get("pk") or "") for k in ("Over 2.5", "Under 2.5", "Both Teams", "Win (1X2)")):
+        if is_dnb and dnb_cnt >= 2 and not any(k in str(it.get("pk") or "") for k in ("Over 2.5", "Under 2.5", "Both Teams", "Win (1X2)", "Match Result: Draw", "Half-Time Result:", "HT/FT:")):
             cp["pk"], cp["o"], od_n = _pick_leg(cp, cp["f"], idx_seed=len(cands)+1, allow_dnb=False)
             cp["odds"], cp["frac"] = round(od_n, 2), _to_frac(od_n)
         elif is_dnb: dnb_cnt += 1
