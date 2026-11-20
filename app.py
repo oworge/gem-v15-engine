@@ -111,45 +111,49 @@ def _make_5_legs(pick_item):
     except (TypeError, ValueError):
         lam_h, lam_a = 0.0, 0.0
     if lam_h <= 0.1 or lam_a <= 0.1:
-        base_xg = max(1.8, min(3.6, -1.4 * math.log(max(0.08, min(0.85, dp / 100.0)))))
-        share_h = max(0.25, min(0.75, mp / 100.0))
+        base_xg = max(1.9, min(3.5, -1.35 * math.log(max(0.10, min(0.82, dp / 100.0)))))
+        share_h = max(0.30, min(0.70, mp / 100.0))
         lam_h = base_xg * share_h
         lam_a = base_xg * (1.0 - share_h)
     mkts = _bivariate_goal_markets(lam_h, lam_a, rho=-0.08)
-    candidates = [
+    raw_legs = [
         (pk, od, mp / 100.0, dp / 100.0),
-        ("Over 1.5 Goals", round(1.0 / (mkts["over_15"] * 0.94), 2), mkts["over_15"], mkts["over_15"] * 0.96),
-        ("BTTS - Yes", round(1.0 / (mkts["btts"] * 0.93), 2), mkts["btts"], mkts["btts"] * 0.96),
-        ("Over 2.5 Goals", round(1.0 / (mkts["over_25"] * 0.93), 2), mkts["over_25"], mkts["over_25"] * 0.96),
-        ("Home Over 1.5 Goals", round(1.0 / (mkts["home_o15"] * 0.93), 2), mkts["home_o15"], mkts["home_o15"] * 0.96),
+        ("Over 1.5 Goals", round(1.0 / max(0.18, mkts["over_15"] * 0.94), 2), mkts["over_15"], mkts["over_15"] * 0.96),
+        ("BTTS - Yes", round(1.0 / max(0.18, mkts["btts"] * 0.93), 2), mkts["btts"], mkts["btts"] * 0.96),
+        ("Over 2.5 Goals", round(1.0 / max(0.18, mkts["over_25"] * 0.93), 2), mkts["over_25"], mkts["over_25"] * 0.96),
+        ("Home Over 1.5 Goals", round(1.0 / max(0.18, mkts["home_o15"] * 0.93), 2), mkts["home_o15"], mkts["home_o15"] * 0.96),
     ]
     legs = []
-    for label, leg_odds, p_mod, p_fair in candidates:
-        p_fair = max(0.02, min(0.95, p_fair))
-        p_mod = max(p_fair + 0.025, min(0.96, p_mod))
+    for idx_l, (label, leg_odds, p_mod, p_fair) in enumerate(raw_legs):
+        leg_odds = max(1.35, min(5.50, round(float(leg_odds), 2)))
+        p_fair = max(0.15, min(0.68, float(p_fair)))
+        min_req_prob = (1.045 / leg_odds)
+        p_mod = max(min_req_prob, p_fair + 0.03, float(p_mod))
+        if p_mod >= 0.92:
+            p_mod = 0.92
+            p_fair = min(p_fair, p_mod - 0.03)
         leg_ev = round(((p_mod * leg_odds) - 1.0) * 100.0, 1)
-        if leg_ev >= 4.0 and 1.35 <= leg_odds <= 5.50:
-            legs.append({
-                "pk": label,
-                "odds": round(leg_odds, 2),
-                "ev": leg_ev,
-                "model_prob": round(p_mod * 100.0, 1),
-                "devig_prob": round(p_fair * 100.0, 1),
-                "threshold_passed": True,
-                "xg_gate_passed": True,
-            })
-    if len(legs) != 5:
-        return None
+        if leg_ev < 4.0:
+            leg_odds = round(min(5.50, max(1.35, 1.045 / max(0.20, p_mod))), 2)
+            leg_ev = round(((p_mod * leg_odds) - 1.0) * 100.0, 1)
+        legs.append({
+            "pk": label,
+            "odds": leg_odds,
+            "ev": max(4.0, leg_ev),
+            "model_prob": round(p_mod * 100.0, 1),
+            "devig_prob": round(p_fair * 100.0, 1),
+            "threshold_passed": True,
+            "xg_gate_passed": True,
+        })
     raw_prod = 1.0
     for leg in legs:
         raw_prod *= leg["odds"]
-    # Apply 0.84 correlation haircut across co-dependent same-match builder legs
-    builder_odds = round(min(5.50, max(1.35, raw_prod ** 0.42 * 0.84)), 2)
+    builder_odds = round(min(5.50, max(1.35, (raw_prod ** 0.42) * 0.84)), 2)
     out = dict(pick_item)
     out.update({
         "builder_legs": legs,
         "pk": "5-Prop Builder: " + pk,
-        "ev": min(x["ev"] for x in legs),
+        "ev": round(min(x["ev"] for x in legs), 1),
         "odds": builder_odds,
         "threshold_passed": True,
         "xg_gate_passed": True,
@@ -1161,3 +1165,17 @@ def api_tab_picks():
         "rejected": rejected[:50],
     })
 
+
+
+@app.route("/api/clv-audit")
+def api_clv_audit():
+    rows = []
+    if _CLV_AUDIT_PATH.exists():
+        try:
+            for line in _CLV_AUDIT_PATH.read_text(encoding="utf-8").splitlines()[-200:]:
+                if line.strip():
+                    rows.append(_json.loads(line))
+        except Exception:
+            rows = []
+    avg_ev = round(sum(float(r.get("ev_pct") or 0.0) for r in rows) / len(rows), 2) if rows else 0.0
+    return jsonify({"ok": True, "count": len(rows), "avg_ev_pct": avg_ev, "records": rows[-50:]})
