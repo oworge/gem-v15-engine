@@ -726,12 +726,23 @@ def build_calibrated_feed():
             continue
 
         qualified.sort(key=lambda t: t[0], reverse=True)
-        # Balanced multi-market diversity across all calibrated +EV markets
+        # Quota-balanced multi-market diversity across all calibrated +EV markets
         _top_ev = qualified[0][4]
-        _near = [q for q in qualified if (_top_ev - q[4]) <= 6.5]
-        _mkt_weights = {"Over 2.5": 1.22, "Both Teams": 1.20, "Draw No Bet": 1.06, "Win (1X2)": 1.02}
-        _near.sort(key=lambda q: q[4] * next((w for k, w in _mkt_weights.items() if k in q[1]), 0.82), reverse=True)
+        _near = [q for q in qualified if (_top_ev - q[4]) <= 8.0]
+        def _mkt_bucket(lbl):
+            if "Over 2.5" in lbl: return "O25"
+            if "Both Teams" in lbl: return "BTTS"
+            if "Draw No Bet" in lbl: return "DNB"
+            if "Win (1X2)" in lbl: return "1X2"
+            return "COMBO"
+        def _div_score(q):
+            b = _mkt_bucket(q[1])
+            base_w = {"O25": 1.25, "BTTS": 1.25, "1X2": 1.10, "DNB": 1.00, "COMBO": 0.90}[b]
+            penalty = 1.0 / (1.0 + 0.35 * _seen_mkt_counts[b])
+            return q[4] * base_w * penalty
+        _near.sort(key=_div_score, reverse=True)
         _, best_pick, best_prob, best_odds, raw_ev = _near[0]
+        _seen_mkt_counts[_mkt_bucket(best_pick)] += 1
         best_ev = round(max(4.5, min(22.0, raw_ev)), 2)
         fair = round(1.0 / max(0.05, best_prob), 2)
 
