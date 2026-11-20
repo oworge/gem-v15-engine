@@ -1008,7 +1008,8 @@ setInterval(injectRegionToggle,900);
     { key: "italy", label: "Italy" },
     { key: "german", label: "German" },
     { key: "spain", label: "Spain" },
-    { key: "row", label: "The rest of the world" }
+    { key: "row", label: "The rest of the world" },
+    { key: "bet_builder", label: "Bet Builder" }
   ];
 
   const DATE_MAP = {
@@ -1223,8 +1224,8 @@ setInterval(injectRegionToggle,900);
           typeof x.devig_prob === "number" &&
           x.model_prob > x.devig_prob &&
           typeof x.ev === "number" &&
-          x.ev >= 2.5 &&
-          routeKey(x) === key
+          (key === "bet_builder" ? x.ev >= 4.0 : x.ev >= 2.5) &&
+          (key === "bet_builder" ? (Array.isArray(x.builder_legs) && x.builder_legs.length === 5) : routeKey(x) === key)
         )
       : [];
 
@@ -1242,7 +1243,10 @@ setInterval(injectRegionToggle,900);
             const fixtureDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : (dm.fixture_date || "2026-11-21");
             const ko = String(x.ko || dm.ko || "15:00");
             const lg = String(x.lg || dm.lg || tab.label);
-            const mkt = inferMarket(x.pk, x.mkt);
+            const mkt = (key === "bet_builder") ? "5-PROP BUILDER" : inferMarket(x.pk, x.mkt);
+            const legSummary = (key === "bet_builder" && Array.isArray(x.builder_legs))
+              ? `<div style="color:#34d399;font-size:11px;margin-top:2px;">${x.builder_legs.map((l, idx) => `Leg ${idx+1}: ${l.pk} (${Number(l.odds).toFixed(2)} | +${Number(l.ev).toFixed(1)}% EV)`).join(" · ")}</div>`
+              : "";
             const od = parseFloat(x.odds);
             const ev = parseFloat(x.ev);
             const st = Math.max(1, +(bankroll * Math.min(0.05, Math.max(0.005, (ev / 100) * frac))).toFixed(2));
@@ -1252,7 +1256,8 @@ setInterval(injectRegionToggle,900);
                 <span style="background:#1e1b4b;color:#c4b5fd;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px;">${mkt}</span>
                 <span style="color:#94a3b8;">[${ko} GMT]</span>
                 <b>#${i + 1} ${x.f}</b> — <span style="color:#34d399;font-weight:700;">${x.pk}</span>
-                <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${lg} · +${ev.toFixed(1)}% EV · Model ${x.model_prob}% vs Devig ${x.devig_prob}% · xG Gate Passed · Stake £${st.toFixed(2)}</div>
+                <div style="color:#94a3b8;font-size:11px;margin-top:2px;">${lg} · +${ev.toFixed(1)}% EV · Model ${x.model_prob}% vs Devig ${x.devig_prob}% · xG Gate Passed · Stake £${st.toFixed(2)}${legSummary}
+              </div>
               </div>
               <div style="text-align:right;white-space:nowrap;">
                 <b>${od.toFixed(2)}</b> <span style="color:#93c5fd;">(${x.frac || ""})</span>
