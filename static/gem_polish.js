@@ -1303,6 +1303,29 @@ setInterval(injectRegionToggle,900);
       setTimeout(boot, 250);
     }
   })();
+
+  (function gemAutoPopulateAllVetted(){
+    function runAllTabs(){
+      try {
+        if (typeof ensureBarAndPanel === "function") ensureBarAndPanel();
+        if (typeof TABS !== "undefined" && Array.isArray(TABS) && typeof showTab === "function") {
+          const activeBtn = document.querySelector("#gem-v208-panel") && window.getComputedStyle(document.getElementById("gem-v208-panel")).display !== "none"
+            ? document.querySelector("#gem-v202-tab-bar button[data-v208]")
+            : null;
+          const targetKey = (activeBtn && activeBtn.getAttribute("data-v208")) || (TABS[0] && TABS[0].key) || "uk";
+          void showTab(targetKey);
+        }
+      } catch (e) {}
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function(){ setTimeout(runAllTabs, 250); });
+    } else {
+      setTimeout(runAllTabs, 250);
+    }
+    if (!window.__gemAllVettedInterval) {
+      window.__gemAllVettedInterval = setInterval(runAllTabs, 120000);
+    }
+  })();
 })();
 
 if (!window.__GEM_V219_DELEGATED__) {
