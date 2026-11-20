@@ -926,7 +926,7 @@ def api_tab_picks():
         if not isinstance(item, dict):
             continue
         fixture = str(item.get("f") or item.get("fixture") or item.get("match") or "").strip()
-        pick = str(item.get("pk") or item.get("pick") or item.get("combo_pick") or item.get("best_pick") or "").strip()
+        pick = str(item.get("pick") or item.get("best_pick") or item.get("pk") or item.get("combo_pick") or item.get("best_pick") or "").strip()
         if not fixture or not pick:
             continue
         sig = f"{fixture.lower()}|{pick.lower()}"
