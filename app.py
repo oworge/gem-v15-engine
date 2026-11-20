@@ -1167,7 +1167,6 @@ def api_tab_picks():
 
 
 
-@app.route("/api/clv-audit")
 def api_clv_audit():
     rows = []
     if _CLV_AUDIT_PATH.exists():
