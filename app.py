@@ -1053,12 +1053,25 @@ def api_tab_picks():
     elif isinstance(feed, list):
         raw_items.extend(feed)
 
-    def to_prob(val):
+    def _parse_num(val):
         if val is None or val == "":
             return None
+        if isinstance(val, str):
+            s = val.strip().rstrip("%").strip()
+            if not s:
+                return None
+            try:
+                return float(s)
+            except ValueError:
+                return None
         try:
-            x = float(val)
+            return float(val)
         except (TypeError, ValueError):
+            return None
+
+    def to_prob(val):
+        x = _parse_num(val)
+        if x is None:
             return None
         if 1.0 < x <= 100.0:
             return x / 100.0
@@ -1067,11 +1080,8 @@ def api_tab_picks():
         return None
 
     def fair_to_prob(val):
-        if val is None or val == "":
-            return None
-        try:
-            x = float(val)
-        except (TypeError, ValueError):
+        x = _parse_num(val)
+        if x is None:
             return None
         if 0.0 < x < 1.0:
             return x
