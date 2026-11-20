@@ -50,6 +50,33 @@ import os
 from flask import Flask, render_template, request
 import data_generator as dg
 
+
+def _enforce_vetting_integrity(items):
+    """Hard runtime firewall: ensures pk never diverges from vetted pick and meets EV/odds/prob floors."""
+    if not isinstance(items, list):
+        return []
+    clean = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        fix = str(it.get("f") or it.get("fixture") or "").strip()
+        pk = str(it.get("pk") or "").strip()
+        raw_pick = str(it.get("pick") or it.get("best_pick") or "").strip()
+        if raw_pick and pk and raw_pick != pk and " v " in fix:
+            home, away = [t.strip() for t in fix.split(" v ", 1)]
+            if (home in raw_pick and away in pk) or (away in raw_pick and home in pk):
+                pk = raw_pick
+                it["pk"] = pk
+        try:
+            ev_v = float(str(it.get("ev", 0)).replace("%", "").replace("+", "").strip() or 0)
+            od_v = float(it.get("odds") or it.get("od") or 0)
+        except Exception:
+            continue
+        if ev_v < 4.0 or not (1.35 <= od_v <= 5.50):
+            continue
+        clean.append(it)
+    return clean
+
 app = Flask(__name__)
 
 def get_perfect_value_alerts(picks):

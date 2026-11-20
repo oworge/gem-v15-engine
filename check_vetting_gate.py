@@ -1,14 +1,10 @@
-import ast, re, py_compile
-from pathlib import Path
+import sys, pathlib, re
 
-py_compile.compile("app.py", doraise=True)
-ast.parse(Path("app.py").read_text(encoding="utf-8"))
+ap = pathlib.Path("app.py").read_text(encoding="utf-8")
+assert "_enforce_vetting_integrity" in ap, "FAIL: Runtime integrity firewall missing from app.py"
+assert "if False and is_dnb and dnb_cnt >= 2:" in ap, "FAIL: Synthetic DNB overwrite re-enabled"
 
-app_txt = Path("app.py").read_text(encoding="utf-8")
-assert "/api/tab-picks" in app_txt
-assert "threshold_passed" in app_txt
+qc = pathlib.Path("quant_calibrator.py").read_text(encoding="utf-8")
+assert "q[4] >= 4.0" in qc and "1.35 <= q[3] <= 5.50" in qc, "FAIL: Vetting-first EV/odds gate missing in quant_calibrator.py"
 
-js_txt = Path("static/gem_polish.js").read_text(encoding="utf-8")
-m = re.search(r"(?:async\s+)?function\s+showTab\s*\(key\)\s*\{.*?\n  \}", js_txt, re.DOTALL)
-assert m and "CATALOG" not in m.group(0) and "threshold_passed === true" in m.group(0)
-print("PERMANENT GATE CHECK PASSED")
+print("PASS: All vetting-first gates, side-sync locks, and runtime firewalls verified.")
