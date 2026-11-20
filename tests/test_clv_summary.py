@@ -4,6 +4,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import app
 import learner
 
 def test_compute_clv_summary_math():
@@ -36,6 +37,20 @@ def test_compute_clv_summary_math():
         if tmp_db.exists():
             tmp_db.unlink()
 
+def test_api_endpoints_smoke():
+    client = app.app.test_client()
+    picks_resp = client.get("/api/tab-picks?min_ev=4.0")
+    assert picks_resp.status_code == 200
+    picks_data = picks_resp.get_json() or {}
+    assert len(picks_data.get("picks") or []) > 0
+
+    clv_resp = client.get("/api/clv-audit")
+    assert clv_resp.status_code == 200
+    clv_data = clv_resp.get_json() or {}
+    assert "clv" in clv_data
+    assert clv_data["clv"].get("tracked", 0) >= 0
+
 if __name__ == "__main__":
     test_compute_clv_summary_math()
+    test_api_endpoints_smoke()
     print("OK: test_clv_summary.py")
