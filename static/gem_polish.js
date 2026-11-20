@@ -1021,70 +1021,7 @@ setInterval(injectRegionToggle,900);
     uk: [
       { f: "Manchester City v Fulham", lg: "Premier League", fixture_date: "2026-11-21", ko: "12:30", mkt: "1X2", pk: "Manchester City Win (1)", odds: 1.44, frac: "4/9", ev: 10.2 },
       { f: "Bournemouth v Nottingham Forest", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.78, frac: "4/5", ev: 9.4 },
-      { f: "Coventry City v Crystal Palace", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "DNB", pk: "Crystal Palace Draw No Bet (DNB)", odds: 1.72, frac: "8/11", ev: 8.8 },
-      { f: "Tottenham Hotspur v Ipswich Town", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "1X2", pk: "Tottenham Hotspur Win (1)", odds: 1.50, frac: "1/2", ev: 9.9 },
-      { f: "Chelsea v Leeds United", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "DNB", pk: "Chelsea Draw No Bet (DNB)", odds: 1.53, frac: "8/15", ev: 9.1 },
-      { f: "Aston Villa v Sunderland", lg: "Premier League", fixture_date: "2026-11-21", ko: "15:00", mkt: "1X2", pk: "Aston Villa Win (1)", odds: 1.57, frac: "4/7", ev: 9.5 },
-      { f: "Newcastle United v Arsenal", lg: "Premier League", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.4 },
-      { f: "Hull City v Brighton & Hove Albion", lg: "Premier League", fixture_date: "2026-11-22", ko: "14:00", mkt: "DNB", pk: "Brighton Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 8.7 },
-      { f: "Liverpool v Manchester United", lg: "Premier League", fixture_date: "2026-11-22", ko: "16:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.67, frac: "2/3", ev: 11.1 }
-    ],
-    europe: [
-      { f: "Bayern Munich v 1. FC Koln", lg: "Bundesliga (European Slate)", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 10.8 },
-      { f: "Athletic Club v Espanyol", lg: "LaLiga (European Slate)", fixture_date: "2026-11-20", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.67, frac: "2/3", ev: 8.9 },
-      { f: "Nice v PSG", lg: "Ligue 1 (European Slate)", fixture_date: "2026-11-21", ko: "16:15", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.7 },
-      { f: "Parma v Roma", lg: "Serie A (European Slate)", fixture_date: "2026-11-21", ko: "17:00", mkt: "DNB", pk: "Roma Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 9.2 },
-      { f: "Real Madrid v Celta de Vigo", lg: "LaLiga (European Slate)", fixture_date: "2026-11-21", ko: "20:00", mkt: "1X2", pk: "Real Madrid Win (1)", odds: 1.36, frac: "4/11", ev: 10.4 },
-      { f: "Atalanta v Inter Milan", lg: "Serie A (European Slate)", fixture_date: "2026-11-22", ko: "19:45", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.6 }
-    ],
-    france: [
-      { f: "Troyes v Le Havre", lg: "Ligue 1", fixture_date: "2026-11-20", ko: "19:45", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 8.8 },
-      { f: "Nice v PSG", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "16:15", mkt: "DNB", pk: "PSG Draw No Bet (DNB)", odds: 1.45, frac: "9/20", ev: 10.1 },
-      { f: "Lille v Lyon", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.78, frac: "4/5", ev: 9.1 },
-      { f: "Lens v Toulouse", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "DNB", pk: "Lens Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 8.9 },
-      { f: "Monaco v Auxerre", lg: "Ligue 1", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Monaco Win (1)", odds: 1.55, frac: "11/20", ev: 9.6 },
-      { f: "Paris FC v Angers", lg: "Ligue 1", fixture_date: "2026-11-22", ko: "14:00", mkt: "DNB", pk: "Paris FC Draw No Bet (DNB)", odds: 1.67, frac: "2/3", ev: 8.6 },
-      { f: "Lorient v Rennes", lg: "Ligue 1", fixture_date: "2026-11-22", ko: "16:15", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.0 },
-      { f: "Marseille v Le Mans", lg: "Ligue 1", fixture_date: "2026-11-22", ko: "19:45", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.70, frac: "7/10", ev: 9.0 }
-    ],
-    italy: [
-      { f: "Como v Cagliari", lg: "Serie A", fixture_date: "2026-11-21", ko: "14:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.0 },
-      { f: "Lazio v Lecce", lg: "Serie A", fixture_date: "2026-11-21", ko: "14:00", mkt: "1X2", pk: "Lazio Win (1)", odds: 1.53, frac: "8/15", ev: 9.4 },
-      { f: "Parma v Roma", lg: "Serie A", fixture_date: "2026-11-21", ko: "17:00", mkt: "DNB", pk: "Roma Draw No Bet (DNB)", odds: 1.62, frac: "8/13", ev: 9.7 },
-      { f: "Napoli v Torino", lg: "Serie A", fixture_date: "2026-11-21", ko: "19:45", mkt: "1X2", pk: "Napoli Win (1)", odds: 1.62, frac: "8/13", ev: 10.8 },
-      { f: "Juventus v Venezia", lg: "Serie A", fixture_date: "2026-11-22", ko: "11:30", mkt: "1X2", pk: "Juventus Win (1)", odds: 1.40, frac: "2/5", ev: 9.8 },
-      { f: "Sassuolo v Genoa", lg: "Serie A", fixture_date: "2026-11-22", ko: "14:00", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.83, frac: "5/6", ev: 8.6 },
-      { f: "Bologna v Udinese", lg: "Serie A", fixture_date: "2026-11-22", ko: "14:00", mkt: "DNB", pk: "Bologna Draw No Bet (DNB)", odds: 1.57, frac: "4/7", ev: 9.2 },
-      { f: "AC Milan v Frosinone", lg: "Serie A", fixture_date: "2026-11-22", ko: "17:00", mkt: "1X2", pk: "AC Milan Win (1)", odds: 1.44, frac: "4/9", ev: 10.0 },
-      { f: "Atalanta v Inter Milan", lg: "Serie A", fixture_date: "2026-11-22", ko: "19:45", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.85, frac: "17/20", ev: 9.5 }
-    ],
-    german: [
-      { f: "Bayern Munich v 1. FC Koln", lg: "Bundesliga", fixture_date: "2026-11-20", ko: "19:30", mkt: "1X2", pk: "Bayern Munich Win (1)", odds: 1.33, frac: "1/3", ev: 11.2 },
-      { f: "Borussia Monchengladbach v Borussia Dortmund", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.67, frac: "2/3", ev: 9.9 },
-      { f: "Bayer Leverkusen v Paderborn", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "1X2", pk: "Bayer Leverkusen Win (1)", odds: 1.44, frac: "4/9", ev: 10.3 },
-      { f: "Eintracht Frankfurt v Hoffenheim", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 9.4 },
-      { f: "Elversberg v Freiburg", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "DNB", pk: "Freiburg Draw No Bet (DNB)", odds: 1.60, frac: "3/5", ev: 8.8 },
-      { f: "Union Berlin v RB Leipzig", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "14:30", mkt: "DNB", pk: "RB Leipzig Draw No Bet (DNB)", odds: 1.65, frac: "13/20", ev: 8.7 },
-      { f: "Schalke v Stuttgart", lg: "Bundesliga", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.75, frac: "3/4", ev: 9.2 },
-      { f: "Augsburg v Mainz", lg: "Bundesliga", fixture_date: "2026-11-22", ko: "14:30", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.72, frac: "8/11", ev: 8.6 },
-      { f: "Werder Bremen v Hamburger SV", lg: "Bundesliga", fixture_date: "2026-11-22", ko: "16:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.73, frac: "8/11", ev: 9.5 }
-    ],
-    spain: [
-      { f: "Athletic Club v Espanyol", lg: "LaLiga", fixture_date: "2026-11-20", ko: "20:00", mkt: "1X2", pk: "Athletic Club Win (1)", odds: 1.50, frac: "1/2", ev: 10.1 },
-      { f: "Deportivo Alaves v Deportivo La Coruna", lg: "LaLiga", fixture_date: "2026-11-21", ko: "13:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.62, frac: "8/13", ev: 8.7 },
-      { f: "Rayo Vallecano v Valencia", lg: "LaLiga", fixture_date: "2026-11-21", ko: "15:15", mkt: "DNB", pk: "Rayo Vallecano Draw No Bet (DNB)", odds: 1.67, frac: "2/3", ev: 8.9 },
-      { f: "Sevilla v Real Betis", lg: "LaLiga", fixture_date: "2026-11-21", ko: "17:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.80, frac: "4/5", ev: 9.3 },
-      { f: "Real Madrid v Celta de Vigo", lg: "LaLiga", fixture_date: "2026-11-21", ko: "20:00", mkt: "1X2", pk: "Real Madrid Win (1)", odds: 1.36, frac: "4/11", ev: 10.4 },
-      { f: "Barcelona v Villarreal", lg: "LaLiga", fixture_date: "2026-11-22", ko: "13:00", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.50, frac: "1/2", ev: 10.6 },
-      { f: "Real Racing Club v Real Sociedad", lg: "LaLiga", fixture_date: "2026-11-22", ko: "15:15", mkt: "DNB", pk: "Real Sociedad Draw No Bet (DNB)", odds: 1.72, frac: "8/11", ev: 8.8 },
-      { f: "Osasuna v Malaga", lg: "LaLiga", fixture_date: "2026-11-22", ko: "17:30", mkt: "1X2", pk: "Osasuna Win (1)", odds: 1.67, frac: "2/3", ev: 9.0 },
-      { f: "Getafe v Atletico Madrid", lg: "LaLiga", fixture_date: "2026-11-22", ko: "20:00", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.65, frac: "13/20", ev: 8.9 }
-    ],
-    row: [
-      { f: "Sao Paulo v Fluminense", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-20", ko: "00:30", mkt: "1X2", pk: "Sao Paulo Win (1)", odds: 2.20, frac: "6/5", ev: 9.1 },
-      { f: "Palmeiras v Flamengo", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-21", ko: "19:30", mkt: "BTTS", pk: "Both Teams to Score (BTTS - Yes)", odds: 1.85, frac: "17/20", ev: 9.6 },
-      { f: "Bahia v Coritiba", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-21", ko: "20:30", mkt: "1X2", pk: "Bahia Win (1)", odds: 1.75, frac: "3/4", ev: 9.2 },
-      { f: "Chapecoense v Cruzeiro", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "00:00", mkt: "DNB", pk: "Cruzeiro Draw No Bet (DNB)", odds: 1.60, frac: "3/5", ev: 8.8 },
+      
       { f: "Athletico Paranaense v Remo", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "19:00", mkt: "1X2", pk: "Athletico Paranaense Win (1)", odds: 1.70, frac: "7/10", ev: 9.0 },
       { f: "Fluminense v Mirassol", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "21:30", mkt: "O/U 2.5", pk: "Over 2.5 Match Goals", odds: 1.90, frac: "9/10", ev: 8.9 },
       { f: "Red Bull Bragantino v Vasco da Gama", lg: "Campeonato Brasileiro Serie A", fixture_date: "2026-11-22", ko: "22:30", mkt: "U/2.5", pk: "Under 2.5 Match Goals", odds: 1.75, frac: "3/4", ev: 8.7 }
