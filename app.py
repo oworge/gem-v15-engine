@@ -1217,6 +1217,18 @@ def api_tab_picks():
     if request.args.get("tab") == "bet_builder":
         _out_picks = [m for m in (_make_5_legs(x) for x in verified if isinstance(x, dict)) if m]
 
+    
+    # gem_v263_meta: normalize lg and scope on returned picks
+    for _p in (picks if isinstance(picks, list) else []):
+        if isinstance(_p, dict):
+            _fx = str(_p.get("f") or _p.get("fixture") or _p.get("match") or "").lower()
+            _slate = str(_p.get("m") or "").lower()
+            if not _p.get("lg"):
+                _p["lg"] = _p.get("league") or _p.get("competition") or ("Global Football" if "global" in _slate else "Football")
+            if not _p.get("scope"):
+                _uk_keys = ("premier", "championship", "league one", "league two", "fa cup", "efl", "scottish", "spfl", "arsenal", "chelsea", "liverpool", "manchester", "tottenham", "newcastle", "villa", "west ham", "everton", "brighton", "brentford", "fulham", "bournemouth", "wolves", "palace", "nottingham", "leicester", "southampton", "ipswich", "leeds", "burnley", "sheffield", "sunderland", "barnet", "port vale", "middlesbrough", "bristol city", "newport", "swindon", "wolverhampton", "charlton", "preston", "watford", "celtic", "rangers")
+                _p["scope"] = "uk" if any(k in f"{_p.get('lg','').lower()} {_fx}" for k in _uk_keys) else "global"
+
     return jsonify({
         "version": "v223",
         "min_ev": min_ev,

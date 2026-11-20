@@ -1002,6 +1002,7 @@ setInterval(injectRegionToggle,900);
   window.__GEM_V208_ALL_MARKETS = true;
 
   const TABS = [
+    { key: "all", label: "All Vetted" },
     { key: "uk", label: "UK Leagues" },
     { key: "europe", label: "Europe" },
     { key: "france", label: "France" },
@@ -1231,6 +1232,7 @@ setInterval(injectRegionToggle,900);
         )
       : [];
 
+    vettedPicks.sort((a, b) => (parseFloat(b && b.ev) || 0) - (parseFloat(a && a.ev) || 0));
     const rejectedCount = (payload && typeof payload.rejected_count === "number") ? payload.rejected_count : 0;
 
     panel.innerHTML = `
