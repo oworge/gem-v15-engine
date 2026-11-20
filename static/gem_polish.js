@@ -336,7 +336,7 @@ function syncAll(){
   fetch("/api/ledger").then(function(r){return r.json();}).then(function(d){p1Bets=d.bets||[];renderP1();renderDesk();}).catch(function(){});
   Promise.all([
     fetch("/api/gem-feed").then(function(r){return r.json();}).catch(function(){return {};}),
-    fetch("/api/tab-picks?min_ev=4.0&v=241").then(function(r){return r.json();}).catch(function(){return {};})
+    fetch("/api/tab-picks?min_ev=4.0&v=242").then(function(r){return r.json();}).catch(function(){return {};})
   ]).then(function(res){
     var live=res[0]||{}, tp=(res[1]&&res[1].picks)||[];
     p1Feed=live;
