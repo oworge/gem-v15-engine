@@ -77,6 +77,19 @@ def _enforce_vetting_integrity(items):
         clean.append(it)
     return clean
 
+
+def _sanitize_feed_dict(d):
+    if not isinstance(d, dict):
+        return d
+    for k in ("todaysValue", "likely", "ai", "arbs", "acca10", "matches", "uk_picks", "global_picks", "all_picks"):
+        if isinstance(d.get(k), list):
+            d[k] = _enforce_vetting_integrity(d[k])
+    if isinstance(d.get("days"), list):
+        for day in d["days"]:
+            if isinstance(day, dict) and isinstance(day.get("picks"), list):
+                day["picks"] = _enforce_vetting_integrity(day["picks"])
+    return d
+
 app = Flask(__name__)
 
 def get_perfect_value_alerts(picks):

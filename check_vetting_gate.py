@@ -1,7 +1,7 @@
 import sys, pathlib, re
 
 ap = pathlib.Path("app.py").read_text(encoding="utf-8")
-assert "_enforce_vetting_integrity" in ap, "FAIL: Runtime integrity firewall missing from app.py"
+assert "_enforce_vetting_integrity" in ap and "_sanitize_feed_dict" in ap, "FAIL: Runtime integrity firewall missing from app.py"
 assert "if False and is_dnb and dnb_cnt >= 2:" in ap, "FAIL: Synthetic DNB overwrite re-enabled"
 
 qc = pathlib.Path("quant_calibrator.py").read_text(encoding="utf-8")
