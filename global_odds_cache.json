@@ -131,13 +131,13 @@
     "away_team": "Deportivo",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T13:00Z",
-    "home_odds": 2.2,
-    "draw_odds": 3.25,
-    "away_odds": 3.55,
+    "home_odds": 2.15,
+    "draw_odds": 3.3,
+    "away_odds": 3.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.2,
-    "xg_away": 0.75
+    "xg_home": 1.23,
+    "xg_away": 0.74
   },
   {
     "sport_key": "soccer_all",
@@ -272,12 +272,12 @@
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.05,
-    "draw_odds": 3.4,
-    "away_odds": 3.75,
+    "draw_odds": 3.5,
+    "away_odds": 3.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 1.29,
-    "xg_away": 0.71
+    "xg_away": 0.72
   },
   {
     "sport_key": "soccer_all",
@@ -943,12 +943,12 @@
     "away_team": "Heerenveen",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T20:00Z",
-    "home_odds": 2.75,
+    "home_odds": 2.65,
     "draw_odds": 3.8,
     "away_odds": 2.35,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.96,
+    "xg_home": 1.0,
     "xg_away": 1.13
   },
   {

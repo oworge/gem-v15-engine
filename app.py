@@ -161,12 +161,50 @@ def _make_5_legs(pick_item):
         "xg_gate_passed": True,
     })
     return out
+def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
+    # Compute exact 1X & Over 1.5 Goals probability from bivariate Poisson with Dixon-Coles low-score adjustment
+    lh = max(0.25, float(xg_home))
+    la = max(0.25, float(xg_away))
+    total_p = 0.0
+    for h in range(7):
+        ph = (math.exp(-lh) * (lh ** h)) / math.factorial(h)
+        for a in range(7):
+            pa = (math.exp(-la) * (la ** a)) / math.factorial(a)
+            tau = 1.0
+            if h == 0 and a == 0:
+                tau = 1.0 - (lh * la * rho)
+            elif h == 1 and a == 0:
+                tau = 1.0 + (la * rho)
+            elif h == 0 and a == 1:
+                tau = 1.0 + (lh * rho)
+            elif h == 1 and a == 1:
+                tau = 1.0 - rho
+            cell_p = max(0.0, ph * pa * tau)
+            if h >= a and (h + a) >= 2:
+                total_p += cell_p
+    return min(0.94, max(0.05, total_p))
+
 def _calibrate_and_adjust(model_prob, devig_prob, item=None):
-    # Shrink raw model probability toward devigged market consensus to prevent overconfidence
-    w_model = 0.40
-    calibrated = (w_model * float(model_prob)) + ((1.0 - w_model) * float(devig_prob))
-    # Cap maximum edge over devigged price at +8.5% probability points to eliminate synthetic outliers
-    max_allowed = min(0.92, float(devig_prob) + 0.085)
+    # Log-odds (logit) Bayesian pooling anchored to devigged sharp market probabilities
+    eps = 1e-4
+    pm = min(1.0 - eps, max(eps, float(model_prob)))
+    pd = min(1.0 - eps, max(eps, float(devig_prob)))
+
+    # Dynamic weight scaled by fixture sharpness and xG backing
+    sharpness = float((item or {}).get("sharpness") or 7.5)
+    xg_sum = float((item or {}).get("xg_sum") or 2.2)
+    w_model = 0.30 + (0.012 * min(10.0, max(0.0, sharpness)))
+    if xg_sum < 1.8:
+        w_model *= 0.75
+    w_model = min(0.45, max(0.22, w_model))
+
+    logit_m = math.log(pm / (1.0 - pm))
+    logit_d = math.log(pd / (1.0 - pd))
+    blended_logit = (w_model * logit_m) + ((1.0 - w_model) * logit_d)
+    calibrated = 1.0 / (1.0 + math.exp(-blended_logit))
+
+    # Cap edge over devigged consensus at +7.5% probability points to eliminate synthetic inflation
+    max_allowed = min(0.92, pd + 0.075)
     calibrated = min(calibrated, max_allowed)
     return round(calibrated, 4)
 

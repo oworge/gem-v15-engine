@@ -7,7 +7,7 @@
   "slip": [
     {
       "country": "UK",
-      "ev_pct": 17.3,
+      "ev_pct": 17.37,
       "fixture": "Burton Albion v Luton Town",
       "league": "Global",
       "odds": 1.78,
@@ -16,7 +16,7 @@
     },
     {
       "country": "France",
-      "ev_pct": 16.92,
+      "ev_pct": 16.9,
       "fixture": "Lille v Lyon",
       "league": "Global",
       "odds": 1.82,
@@ -25,7 +25,7 @@
     },
     {
       "country": "Germany",
-      "ev_pct": 16.19,
+      "ev_pct": 16.17,
       "fixture": "Bayer Leverkusen v SC Paderborn 07",
       "league": "Global",
       "odds": 1.82,
