@@ -6,31 +6,31 @@
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "France",
+      "country": "UK Leagues",
       "ev_pct": 14.5,
-      "fixture": "Nice v Paris Saint-Germain",
+      "fixture": "Barnet v Port Vale",
       "league": "Football",
       "odds": 4.0,
-      "region": "france",
-      "selection": "Nice Win to Nil"
+      "region": "uk",
+      "selection": "Port Vale Win (1X2)"
     },
     {
-      "country": "Italy",
+      "country": "UK Leagues",
       "ev_pct": 14.5,
-      "fixture": "Lazio v Lecce",
+      "fixture": "Newport County v Swindon Town",
       "league": "Football",
       "odds": 4.0,
-      "region": "italy",
-      "selection": "Lecce Win (1X2)"
+      "region": "uk",
+      "selection": "Swindon Town Win (1X2)"
     },
     {
-      "country": "German",
+      "country": "Europe",
       "ev_pct": 14.5,
-      "fixture": "VfB Stuttgart v Borussia Dortmund",
+      "fixture": "FC Groningen v Heerenveen",
       "league": "Football",
       "odds": 4.0,
-      "region": "germany",
-      "selection": "VfB Stuttgart Win to Nil"
+      "region": "europe",
+      "selection": "FC Groningen Win to Nil"
     }
   ]
 }

@@ -1,3 +1,4 @@
+from help_engines import blend_probabilities
 import math
 import re
 def _sanitize_acca10_all_markets_v167(feed_dict):
@@ -1589,6 +1590,11 @@ def _gem_recalibrate_all_markets(item):
     item["vetting_removed"] = True
     item["cleared"] = True
     item["markets_evaluated"] = 19
+    item["ensemble"] = blend_probabilities(
+        dc_prob=best_cal_p,
+        kalshi_prob=item.get("kalshi_prob"),
+        scoreai_prob=item.get("scoreai_prob"),
+    )
     item["cleared_markets"] = all_markets
     return item
 
