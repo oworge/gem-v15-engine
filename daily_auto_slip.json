@@ -6,13 +6,13 @@
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "France",
+      "country": "UK Leagues",
       "ev_pct": 15.5,
-      "fixture": "Nice v Paris Saint-Germain",
+      "fixture": "Barnet v Port Vale",
       "league": "Football",
       "odds": 2.04,
-      "region": "france",
-      "selection": "Nice Win to Nil",
+      "region": "uk",
+      "selection": "Port Vale Win (1X2)",
       "_orig_pk": "Over 2.5 Match Goals",
       "_orig_odds": 4.0,
       "_inferred_split": true,
@@ -45,37 +45,37 @@
           "ev": 3.22
         },
         {
-          "market": "Nice or Draw (1X) & Over 1.5 Goals",
+          "market": "Barnet or Draw (1X) & Over 1.5 Goals",
           "prob": 45.7,
           "odds": 2.26,
           "ev": 3.19
         },
         {
-          "market": "Paris Saint-Germain or Draw (X2) & Over 1.5 Goals",
+          "market": "Port Vale or Draw (X2) & Over 1.5 Goals",
           "prob": 43.8,
           "odds": 2.36,
           "ev": 3.3
         },
         {
-          "market": "Nice Draw No Bet (DNB)",
+          "market": "Barnet Draw No Bet (DNB)",
           "prob": 49.3,
           "odds": 2.09,
           "ev": 3.08
         },
         {
-          "market": "Paris Saint-Germain Draw No Bet (DNB)",
+          "market": "Port Vale Draw No Bet (DNB)",
           "prob": 46.1,
           "odds": 2.24,
           "ev": 3.26
         },
         {
-          "market": "Nice or Draw (1X)",
+          "market": "Barnet or Draw (1X)",
           "prob": 63.0,
           "odds": 1.64,
           "ev": 3.27
         },
         {
-          "market": "Paris Saint-Germain or Draw (X2)",
+          "market": "Port Vale or Draw (X2)",
           "prob": 60.7,
           "odds": 1.7,
           "ev": 3.19
@@ -111,19 +111,19 @@
           "ev": 0.16
         },
         {
-          "market": "Nice Win to Nil",
+          "market": "Barnet Win to Nil",
           "prob": 23.0,
           "odds": 4.0,
           "ev": -8.16
         },
         {
-          "market": "Paris Saint-Germain Win to Nil",
+          "market": "Port Vale Win to Nil",
           "prob": 23.0,
           "odds": 4.0,
           "ev": -8.16
         },
         {
-          "market": "Nice Win (1X2)",
+          "market": "Barnet Win (1X2)",
           "prob": 34.7,
           "odds": 2.97,
           "ev": 3.15
@@ -135,7 +135,7 @@
           "ev": 3.14
         },
         {
-          "market": "Paris Saint-Germain Win (1X2)",
+          "market": "Port Vale Win (1X2)",
           "prob": 32.5,
           "odds": 3.18,
           "ev": 3.25
@@ -185,13 +185,13 @@
       "_gem_passed_engine": true
     },
     {
-      "country": "Italy",
+      "country": "UK Leagues",
       "ev_pct": 15.5,
-      "fixture": "Lazio v Lecce",
+      "fixture": "Newport County v Swindon Town",
       "league": "Football",
       "odds": 2.04,
-      "region": "italy",
-      "selection": "Lecce Win (1X2)",
+      "region": "uk",
+      "selection": "Swindon Town Win (1X2)",
       "_orig_pk": "Over 2.5 Match Goals",
       "_orig_odds": 4.0,
       "_inferred_split": true,
@@ -224,37 +224,37 @@
           "ev": 3.22
         },
         {
-          "market": "Lazio or Draw (1X) & Over 1.5 Goals",
+          "market": "Newport County or Draw (1X) & Over 1.5 Goals",
           "prob": 45.7,
           "odds": 2.26,
           "ev": 3.19
         },
         {
-          "market": "Lecce or Draw (X2) & Over 1.5 Goals",
+          "market": "Swindon Town or Draw (X2) & Over 1.5 Goals",
           "prob": 43.8,
           "odds": 2.36,
           "ev": 3.3
         },
         {
-          "market": "Lazio Draw No Bet (DNB)",
+          "market": "Newport County Draw No Bet (DNB)",
           "prob": 49.3,
           "odds": 2.09,
           "ev": 3.08
         },
         {
-          "market": "Lecce Draw No Bet (DNB)",
+          "market": "Swindon Town Draw No Bet (DNB)",
           "prob": 46.1,
           "odds": 2.24,
           "ev": 3.26
         },
         {
-          "market": "Lazio or Draw (1X)",
+          "market": "Newport County or Draw (1X)",
           "prob": 63.0,
           "odds": 1.64,
           "ev": 3.27
         },
         {
-          "market": "Lecce or Draw (X2)",
+          "market": "Swindon Town or Draw (X2)",
           "prob": 60.7,
           "odds": 1.7,
           "ev": 3.19
@@ -290,19 +290,19 @@
           "ev": 0.16
         },
         {
-          "market": "Lazio Win to Nil",
+          "market": "Newport County Win to Nil",
           "prob": 23.0,
           "odds": 4.0,
           "ev": -8.16
         },
         {
-          "market": "Lecce Win to Nil",
+          "market": "Swindon Town Win to Nil",
           "prob": 23.0,
           "odds": 4.0,
           "ev": -8.16
         },
         {
-          "market": "Lazio Win (1X2)",
+          "market": "Newport County Win (1X2)",
           "prob": 34.7,
           "odds": 2.97,
           "ev": 3.15
@@ -314,7 +314,7 @@
           "ev": 3.14
         },
         {
-          "market": "Lecce Win (1X2)",
+          "market": "Swindon Town Win (1X2)",
           "prob": 32.5,
           "odds": 3.18,
           "ev": 3.25
@@ -364,13 +364,13 @@
       "_gem_passed_engine": true
     },
     {
-      "country": "German",
+      "country": "Europe",
       "ev_pct": 15.5,
-      "fixture": "VfB Stuttgart v Borussia Dortmund",
+      "fixture": "FC Groningen v Heerenveen",
       "league": "Football",
       "odds": 2.04,
-      "region": "germany",
-      "selection": "VfB Stuttgart Win to Nil",
+      "region": "europe",
+      "selection": "FC Groningen Win to Nil",
       "_orig_pk": "Over 2.5 Match Goals",
       "_orig_odds": 4.0,
       "_inferred_split": true,
@@ -403,37 +403,37 @@
           "ev": 3.22
         },
         {
-          "market": "VfB Stuttgart or Draw (1X) & Over 1.5 Goals",
+          "market": "FC Groningen or Draw (1X) & Over 1.5 Goals",
           "prob": 45.7,
           "odds": 2.26,
           "ev": 3.19
         },
         {
-          "market": "Borussia Dortmund or Draw (X2) & Over 1.5 Goals",
+          "market": "Heerenveen or Draw (X2) & Over 1.5 Goals",
           "prob": 43.8,
           "odds": 2.36,
           "ev": 3.3
         },
         {
-          "market": "VfB Stuttgart Draw No Bet (DNB)",
+          "market": "FC Groningen Draw No Bet (DNB)",
           "prob": 49.3,
           "odds": 2.09,
           "ev": 3.08
         },
         {
-          "market": "Borussia Dortmund Draw No Bet (DNB)",
+          "market": "Heerenveen Draw No Bet (DNB)",
           "prob": 46.1,
           "odds": 2.24,
           "ev": 3.26
         },
         {
-          "market": "VfB Stuttgart or Draw (1X)",
+          "market": "FC Groningen or Draw (1X)",
           "prob": 63.0,
           "odds": 1.64,
           "ev": 3.27
         },
         {
-          "market": "Borussia Dortmund or Draw (X2)",
+          "market": "Heerenveen or Draw (X2)",
           "prob": 60.7,
           "odds": 1.7,
           "ev": 3.19
@@ -469,19 +469,19 @@
           "ev": 0.16
         },
         {
-          "market": "VfB Stuttgart Win to Nil",
+          "market": "FC Groningen Win to Nil",
           "prob": 23.0,
           "odds": 4.0,
           "ev": -8.16
         },
         {
-          "market": "Borussia Dortmund Win to Nil",
+          "market": "Heerenveen Win to Nil",
           "prob": 23.0,
           "odds": 4.0,
           "ev": -8.16
         },
         {
-          "market": "VfB Stuttgart Win (1X2)",
+          "market": "FC Groningen Win (1X2)",
           "prob": 34.7,
           "odds": 2.97,
           "ev": 3.15
@@ -493,7 +493,7 @@
           "ev": 3.14
         },
         {
-          "market": "Borussia Dortmund Win (1X2)",
+          "market": "Heerenveen Win (1X2)",
           "prob": 32.5,
           "odds": 3.18,
           "ev": 3.25
