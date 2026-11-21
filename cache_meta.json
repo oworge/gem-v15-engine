@@ -1,6 +1,6 @@
 {
   "date": "2026-11-21",
-  "count": 51,
+  "count": 48,
   "leagues": [
     "English Premier League",
     "UEFA Champions League",
@@ -11,5 +11,5 @@
     "Brazilian Serie A"
   ],
   "source": "espn_keyless_live",
-  "updated": "Sat 21 Nov, 15:50 UTC"
+  "updated": "Sat 21 Nov, 15:52 UTC"
 }
