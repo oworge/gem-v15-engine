@@ -70,6 +70,26 @@ def predigoal_predict(
     }
 
 
+def forebet_math_signal(
+    xg_home: float,
+    xg_away: float,
+    dc_prob: float,
+    market_label: str = "Over 2.5 Match Goals",
+    forebet_prob: Optional[float] = None,
+    forebet_score: Optional[str] = None,
+) -> dict:
+    """Forebet pure-math model: mathematical scoreline and probability without human bias."""
+    pg = predigoal_predict(xg_home, xg_away, market_label)
+    math_p = float(forebet_prob) if (forebet_prob is not None and 0.0 < float(forebet_prob) < 1.0) else (
+        0.55 * float(dc_prob) + 0.45 * pg["predigoal_prob"]
+    )
+    return {
+        "forebet_score": forebet_score or pg["predicted_score"],
+        "forebet_prob": round(max(0.03, min(0.96, math_p)), 4),
+        "pure_math_mode": True,
+    }
+
+
 def opta_signal(
     xg_home: float,
     xg_away: float,
@@ -87,7 +107,6 @@ def opta_signal(
     if opta_prob is not None and 0.0 < float(opta_prob) < 1.0:
         p_out = float(opta_prob)
     else:
-        # Slight xG-ratio adjustment around Dixon-Coles baseline
         base_xg = max(0.40, float(xg_home or 1.35) + float(xg_away or 1.15))
         opta_xg = oh + oa
         delta = max(-0.08, min(0.08, (opta_xg - base_xg) * 0.05))
@@ -126,32 +145,35 @@ def blend_probabilities(
     predigoal_prob: Optional[float] = None,
     opta_prob: Optional[float] = None,
     sportsbook_prob: Optional[float] = None,
-    weights: tuple[float, float, float, float, float, float] = (
-        0.35,
-        0.15,
-        0.10,
-        0.15,
-        0.15,
-        0.10,
-    ),
+    forebet_prob: Optional[float] = None,
+    olbg_prob: Optional[float] = None,
+    betmines_prob: Optional[float] = None,
+    football_ai_prob: Optional[float] = None,
+    sofascore_prob: Optional[float] = None,
+    tipstrr_prob: Optional[float] = None,
 ) -> dict:
-    """Blend Dixon-Coles, Kalshi, ScoreAI, Predigoal, Opta, and Sportsbook probabilities."""
-    w_dc, w_k, w_s, w_p, w_o, w_sb = weights
-    parts: list[tuple[float, float, str]] = []
-
-    p_dc = max(0.02, min(0.98, float(dc_prob)))
-    parts.append((p_dc, w_dc, "dixon_coles"))
-
-    candidates = [
-        (kalshi_prob, w_k, "kalshi"),
-        (scoreai_prob, w_s, "scoreai"),
-        (predigoal_prob, w_p, "predigoal"),
-        (opta_prob, w_o, "opta"),
-        (sportsbook_prob, w_sb, "sportsbook"),
+    """Blend all available predictive engines with clean fallbacks and zero filtering."""
+    weighted_sources: list[tuple[Optional[float], float, str]] = [
+        (dc_prob, 0.30, "dixon_coles"),
+        (forebet_prob, 0.14, "forebet"),
+        (opta_prob, 0.14, "opta"),
+        (predigoal_prob, 0.12, "predigoal"),
+        (kalshi_prob, 0.08, "kalshi"),
+        (sportsbook_prob, 0.06, "sportsbook"),
+        (football_ai_prob, 0.04, "football_ai"),
+        (betmines_prob, 0.03, "betmines"),
+        (sofascore_prob, 0.02, "sofascore"),
+        (olbg_prob, 0.01, "olbg"),
+        (tipstrr_prob, 0.01, "tipstrr"),
     ]
-    for val, weight, name in candidates:
+
+    parts: list[tuple[float, float, str]] = []
+    for val, weight, name in weighted_sources:
         if val is not None and 0.0 < float(val) < 1.0:
             parts.append((max(0.02, min(0.98, float(val))), weight, name))
+
+    if not parts:
+        parts.append((max(0.02, min(0.98, float(dc_prob))), 1.0, "dixon_coles"))
 
     total_w = sum(w for _, w, _ in parts)
     blended_prob = sum(p * w for p, w, _ in parts) / total_w

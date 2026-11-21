@@ -1,4 +1,4 @@
-from help_engines import blend_probabilities, predigoal_predict, opta_signal, sportsbook_implied_prob
+from help_engines import blend_probabilities, predigoal_predict, opta_signal, sportsbook_implied_prob, forebet_math_signal
 import math
 import re
 def _sanitize_acca10_all_markets_v167(feed_dict):
@@ -1605,6 +1605,26 @@ def _gem_recalibrate_all_markets(item):
     item["predicted_score"] = pg_out["predicted_score"]
     item["opta"] = opta_out
     item["sportsbook_prob"] = sb_prob
+    opta_out = opta_signal(
+        xg_home=xg_h,
+        xg_away=xg_a,
+        dc_prob=best_cal_p,
+        opta_xg_home=item.get("opta_xg_home"),
+        opta_xg_away=item.get("opta_xg_away"),
+        opta_prob=item.get("opta_prob"),
+    )
+    fb_out = forebet_math_signal(
+        xg_home=xg_h,
+        xg_away=xg_a,
+        dc_prob=best_cal_p,
+        market_label=best_label,
+        forebet_prob=item.get("forebet_prob"),
+        forebet_score=item.get("forebet_score"),
+    )
+    sb_prob = item.get("sportsbook_prob") or sportsbook_implied_prob(item.get("book_odds") or raw_odds)
+    item["opta"] = opta_out
+    item["forebet"] = fb_out
+    item["sportsbook_prob"] = sb_prob
     item["ensemble"] = blend_probabilities(
         dc_prob=best_cal_p,
         kalshi_prob=item.get("kalshi_prob"),
@@ -1612,6 +1632,12 @@ def _gem_recalibrate_all_markets(item):
         predigoal_prob=item.get("predigoal_prob") or pg_out["predigoal_prob"],
         opta_prob=opta_out["opta_prob"],
         sportsbook_prob=sb_prob,
+        forebet_prob=fb_out["forebet_prob"],
+        olbg_prob=item.get("olbg_prob"),
+        betmines_prob=item.get("betmines_prob"),
+        football_ai_prob=item.get("football_ai_prob"),
+        sofascore_prob=item.get("sofascore_prob"),
+        tipstrr_prob=item.get("tipstrr_prob"),
     )
     return item
 
