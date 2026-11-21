@@ -159,12 +159,12 @@
     "away_team": "Lecce",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:00Z",
-    "home_odds": 1.48,
-    "draw_odds": 4.2,
-    "away_odds": 6.0,
+    "home_odds": 1.5,
+    "draw_odds": 4.1,
+    "away_odds": 5.75,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.79,
+    "xg_home": 1.77,
     "xg_away": 0.65
   },
   {
@@ -467,13 +467,13 @@
     "away_team": "Leicester City",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.77,
-    "draw_odds": 3.95,
-    "away_odds": 4.1,
+    "home_odds": 1.8,
+    "draw_odds": 3.85,
+    "away_odds": 4.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.5,
-    "xg_away": 0.65
+    "xg_home": 1.47,
+    "xg_away": 0.66
   },
   {
     "sport_key": "soccer_eng.3",

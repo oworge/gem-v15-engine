@@ -1,34 +1,34 @@
 {
-  "combined_odds": 4.91,
+  "combined_odds": 5.7,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
     {
+      "country": "Germany",
+      "ev_pct": 3.43,
+      "fixture": "Bayer Leverkusen v SC Paderborn 07",
+      "league": "Global",
+      "odds": 1.8,
+      "region": "german",
+      "selection": "Bayer Leverkusen or Draw (1X) & Over 1.5 Goals"
+    },
+    {
       "country": "UK",
-      "ev_pct": 3.49,
+      "ev_pct": 3.38,
       "fixture": "Barnet v Port Vale",
       "league": "Global",
-      "odds": 1.65,
+      "odds": 1.78,
       "region": "uk",
       "selection": "Barnet or Draw (1X) & Over 1.5 Goals"
     },
     {
-      "country": "Italy",
-      "ev_pct": 3.37,
-      "fixture": "Napoli v Torino",
-      "league": "Global",
-      "odds": 1.72,
-      "region": "italy",
-      "selection": "Napoli or Draw (1X) & Over 1.5 Goals"
-    },
-    {
       "country": "UK",
-      "ev_pct": 3.3,
+      "ev_pct": 3.38,
       "fixture": "Middlesbrough v Bristol City",
       "league": "Global",
-      "odds": 1.73,
+      "odds": 1.78,
       "region": "uk",
       "selection": "Middlesbrough or Draw (1X) & Over 1.5 Goals"
     }
