@@ -453,13 +453,13 @@
     "away_team": "Stockport County",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 3.45,
-    "draw_odds": 3.85,
-    "away_odds": 1.95,
+    "home_odds": 3.55,
+    "draw_odds": 3.9,
+    "away_odds": 1.91,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.77,
-    "xg_away": 1.36
+    "xg_home": 0.75,
+    "xg_away": 1.39
   },
   {
     "sport_key": "soccer_eng.3",
