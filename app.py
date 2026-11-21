@@ -694,7 +694,7 @@ def _gem_after_request_recalibrate(response):
                         m2 = cm[1]["market"] if len(cm) > 1 else "Over 1.5 Match Goals"
                         bb["pk"] = f"{row.get('pk')} + {m2}"
                         bb["pick"] = bb["pk"]
-                        bb["builder_legs"] = [row.get("pk"), m2]
+                        bb["builder_legs"] = [row.get("pk"), m2, "Over 1.5 Match Goals", "Under 3.5 Match Goals", "Either Team to Win (12)"]
                         bb["odds"] = round(min(4.50, max(1.85, float(row.get("odds") or 1.75) * 1.42)), 2)
                         bb["tab_title"] = tab_title
                         tab_picks.append(bb)

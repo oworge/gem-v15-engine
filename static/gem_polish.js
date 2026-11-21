@@ -1230,9 +1230,12 @@ setInterval(injectRegionToggle,900);
           x.model_prob > x.devig_prob &&
           typeof x.ev === "number" &&
           (key === "bet_builder" ? x.ev >= 4.0 : x.ev >= 2.5) &&
-          (key === "bet_builder" ? (Array.isArray(x.builder_legs) && x.builder_legs.length === 5) : (key === "global" || key === "all" ? routeKey(x) !== "uk" : routeKey(x) === key))
+          (key === "bet_builder" ? (Array.isArray(x.builder_legs) && x.builder_legs.length >= 2) : (key === "global" || key === "all" ? true : (routeKey(x) === key || String(x.region || "").toLowerCase() === key)))
         )
       : [];
+    if (vettedPicks.length === 0 && payload && Array.isArray(payload.picks) && payload.picks.length > 0) {
+      vettedPicks.push(...payload.picks);
+    }
 
     vettedPicks.sort((a, b) => (parseFloat(b && b.ev) || 0) - (parseFloat(a && a.ev) || 0));
     const rejectedCount = (payload && typeof payload.rejected_count === "number") ? payload.rejected_count : 0;
