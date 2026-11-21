@@ -299,12 +299,12 @@
     "away_team": "Ipswich Town",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.5,
+    "home_odds": 1.53,
     "draw_odds": 4.6,
-    "away_odds": 6.0,
+    "away_odds": 5.75,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.77,
+    "xg_home": 1.73,
     "xg_away": 0.65
   },
   {
@@ -481,12 +481,12 @@
     "away_team": "AFC Wimbledon",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.69,
-    "draw_odds": 4.1,
-    "away_odds": 4.5,
+    "home_odds": 1.77,
+    "draw_odds": 3.9,
+    "away_odds": 4.2,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.57,
+    "xg_home": 1.5,
     "xg_away": 0.65
   },
   {

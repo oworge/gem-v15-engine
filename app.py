@@ -467,32 +467,41 @@ def _gem_after_request_recalibrate(response):
             raw_text = response.get_data(as_text=True)
             payload = json.loads(raw_text)
             if isinstance(payload, dict):
+                def _prep(row):
+                    if not isinstance(row, dict) or row.get("approved") is False:
+                        return None
+                    fx_low = str(row.get("f") or row.get("fixture") or "").lower()
+                    if "schalke" in fx_low:
+                        return None
+                    out = _gem_recalibrate_all_markets(dict(row))
+                    c_val = str(out.get("country") or out.get("region") or "Europe").strip()
+                    if c_val.lower() in ("uk", "england", "scotland", "wales", "uk leagues"):
+                        out["country"] = "UK Leagues"
+                        out["region"] = "uk"
+                    elif c_val.lower() in ("germany", "german", "bundesliga"):
+                        out["country"] = "German"
+                        out["region"] = "germany"
+                    elif c_val.lower() in ("europe (other)", "other europe", "europe"):
+                        out["country"] = "Europe"
+                        out["region"] = "europe"
+                    elif c_val.lower() in ("rest of the world", "world", "global", "mls"):
+                        out["country"] = "The rest of the world"
+                        out["region"] = "world"
+                    return out
+
                 if isinstance(payload.get("picks"), list):
-                    cleaned = []
-                    for p in payload["picks"]:
-                        if not isinstance(p, dict) or p.get("approved") is False:
-                            continue
-                        fx_low = str(p.get("f") or p.get("fixture") or "").lower()
-                        if "schalke" in fx_low:
-                            continue
-                        cleaned.append(_gem_recalibrate_all_markets(dict(p)))
+                    cleaned = [x for x in (_prep(p) for p in payload["picks"]) if x is not None]
                     payload["picks"] = cleaned
                     payload["count"] = len(cleaned)
                 for list_key in ("todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
                     if isinstance(payload.get(list_key), list):
-                        sub_clean = []
-                        for p in payload[list_key]:
-                            if not isinstance(p, dict) or p.get("approved") is False:
-                                continue
-                            fx_low = str(p.get("f") or p.get("fixture") or "").lower()
-                            if "schalke" in fx_low:
-                                continue
-                            sub_clean.append(_gem_recalibrate_all_markets(dict(p)))
+                        sub_clean = [x for x in (_prep(p) for p in payload[list_key]) if x is not None]
                         payload[list_key] = sub_clean
                 response.set_data(json.dumps(payload, default=str))
         except Exception:
             pass
     return response
+
 
 
 
