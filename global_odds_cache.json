@@ -188,8 +188,8 @@
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
     "home_odds": 1.29,
-    "draw_odds": 6.0,
-    "away_odds": 7.0,
+    "draw_odds": 5.75,
+    "away_odds": 7.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 2.05,
@@ -201,13 +201,13 @@
     "away_team": "Borussia Dortmund",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 4.5,
-    "draw_odds": 4.1,
-    "away_odds": 1.62,
+    "home_odds": 4.4,
+    "draw_odds": 4.0,
+    "away_odds": 1.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.64
+    "xg_away": 1.61
   },
   {
     "sport_key": "soccer_all",
@@ -215,13 +215,13 @@
     "away_team": "TSG Hoffenheim",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 2.4,
-    "draw_odds": 3.8,
-    "away_odds": 2.5,
+    "home_odds": 2.45,
+    "draw_odds": 3.75,
+    "away_odds": 2.45,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.1,
-    "xg_away": 1.06
+    "xg_home": 1.08,
+    "xg_away": 1.08
   },
   {
     "sport_key": "soccer_all",
@@ -229,13 +229,13 @@
     "away_team": "SC Freiburg",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 3.45,
-    "draw_odds": 3.5,
-    "away_odds": 1.95,
+    "home_odds": 3.4,
+    "draw_odds": 3.45,
+    "away_odds": 2.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.77,
-    "xg_away": 1.36
+    "xg_home": 0.78,
+    "xg_away": 1.32
   },
   {
     "sport_key": "soccer_all",
@@ -257,12 +257,12 @@
     "away_team": "Sunderland",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.77,
+    "home_odds": 1.74,
     "draw_odds": 3.9,
-    "away_odds": 4.4,
+    "away_odds": 4.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.5,
+    "xg_home": 1.52,
     "xg_away": 0.65
   },
   {
@@ -397,12 +397,12 @@
     "away_team": "Preston North End",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.26,
+    "home_odds": 1.25,
     "draw_odds": 6.5,
-    "away_odds": 10.0,
+    "away_odds": 10.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.1,
+    "xg_home": 2.12,
     "xg_away": 0.65
   },
   {
@@ -425,12 +425,12 @@
     "away_team": "Doncaster Rovers",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.61,
-    "draw_odds": 4.2,
+    "home_odds": 1.62,
+    "draw_odds": 4.1,
     "away_odds": 5.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.65,
+    "xg_home": 1.64,
     "xg_away": 0.65
   },
   {
@@ -467,13 +467,13 @@
     "away_team": "Leicester City",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.87,
-    "draw_odds": 3.8,
-    "away_odds": 3.85,
+    "home_odds": 1.91,
+    "draw_odds": 3.75,
+    "away_odds": 3.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.42,
-    "xg_away": 0.69
+    "xg_home": 1.39,
+    "xg_away": 0.72
   },
   {
     "sport_key": "soccer_eng.3",
@@ -551,12 +551,12 @@
     "away_team": "Salford City",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 3.4,
+    "home_odds": 3.45,
     "draw_odds": 3.6,
     "away_odds": 2.05,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.78,
+    "xg_home": 0.77,
     "xg_away": 1.29
   },
   {
@@ -579,13 +579,13 @@
     "away_team": "Bristol Rovers",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.55,
+    "home_odds": 2.65,
     "draw_odds": 3.45,
-    "away_odds": 2.65,
+    "away_odds": 2.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.04,
-    "xg_away": 1.0
+    "xg_home": 1.0,
+    "xg_away": 1.02
   },
   {
     "sport_key": "soccer_eng.4",
@@ -733,13 +733,13 @@
     "away_team": "AS Roma",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T17:00Z",
-    "home_odds": 10.5,
+    "home_odds": 11.0,
     "draw_odds": 6.0,
-    "away_odds": 1.22,
+    "away_odds": 1.21,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 2.17
+    "xg_away": 2.19
   },
   {
     "sport_key": "soccer_all",
