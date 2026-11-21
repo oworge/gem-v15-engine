@@ -75,12 +75,12 @@
     "away_team": "Bromley",
     "league": "English League One",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.38,
+    "home_odds": 1.4,
     "draw_odds": 5.0,
     "away_odds": 7.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.92,
+    "xg_home": 1.89,
     "xg_away": 0.65
   },
   {
@@ -131,13 +131,13 @@
     "away_team": "Deportivo",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T13:00Z",
-    "home_odds": 2.3,
-    "draw_odds": 3.25,
-    "away_odds": 3.25,
+    "home_odds": 2.35,
+    "draw_odds": 3.15,
+    "away_odds": 3.3,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.15,
-    "xg_away": 0.82
+    "xg_home": 1.13,
+    "xg_away": 0.8
   },
   {
     "sport_key": "soccer_all",
@@ -187,12 +187,12 @@
     "away_team": "SC Paderborn 07",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 1.26,
+    "home_odds": 1.27,
     "draw_odds": 6.0,
-    "away_odds": 8.0,
+    "away_odds": 7.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.1,
+    "xg_home": 2.09,
     "xg_away": 0.65
   },
   {
@@ -467,13 +467,13 @@
     "away_team": "Leicester City",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.8,
-    "draw_odds": 3.9,
-    "away_odds": 4.0,
+    "home_odds": 1.77,
+    "draw_odds": 3.95,
+    "away_odds": 4.1,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.47,
-    "xg_away": 0.66
+    "xg_home": 1.5,
+    "xg_away": 0.65
   },
   {
     "sport_key": "soccer_eng.3",
@@ -635,12 +635,12 @@
     "away_team": "Rochdale",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.74,
-    "draw_odds": 3.75,
-    "away_odds": 4.6,
+    "home_odds": 1.71,
+    "draw_odds": 3.85,
+    "away_odds": 4.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.52,
+    "xg_home": 1.55,
     "xg_away": 0.65
   },
   {
@@ -831,13 +831,13 @@
     "away_team": "Philadelphia Union",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T19:00Z",
-    "home_odds": 2.9,
-    "draw_odds": 3.55,
-    "away_odds": 2.2,
+    "home_odds": 2.95,
+    "draw_odds": 3.6,
+    "away_odds": 2.15,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.91,
-    "xg_away": 1.2
+    "xg_home": 0.9,
+    "xg_away": 1.23
   },
   {
     "sport_key": "soccer_bra.1",
@@ -902,12 +902,12 @@
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T19:45Z",
     "home_odds": 2.3,
-    "draw_odds": 3.25,
-    "away_odds": 3.3,
+    "draw_odds": 3.2,
+    "away_odds": 3.35,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 1.15,
-    "xg_away": 0.8
+    "xg_away": 0.79
   },
   {
     "sport_key": "soccer_all",

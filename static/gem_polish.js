@@ -1160,6 +1160,7 @@ setInterval(injectRegionToggle,900);
   }
 
   function routeKey(item){
+    if (item && item.region) return String(item.region).toLowerCase();
     const fxRaw = String((item && (item.f || item.fixture || item.match)) || "");
     const dmEntry = (typeof DATE_MAP !== "undefined" && typeof normKey === "function") ? (DATE_MAP[normKey(fxRaw)] || {}) : {};
     const lg = String((item && (item.league || item.lg)) || dmEntry.lg || "").toLowerCase();

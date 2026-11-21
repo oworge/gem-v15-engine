@@ -1051,25 +1051,58 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
     if payload is None:
         return {}
     if isinstance(payload, dict) and isinstance(payload.get("picks"), list):
-        uk_keys = (
-            "premier", "championship", "league one", "league two", "fa cup", "efl",
-            "scottish", "spfl", "arsenal", "chelsea", "liverpool", "manchester",
-            "tottenham", "newcastle", "villa", "west ham", "everton", "brighton",
-            "brentford", "fulham", "bournemouth", "wolves", "palace", "nottingham",
-            "leicester", "southampton", "ipswich", "leeds", "burnley", "sheffield",
-            "sunderland", "barnet", "port vale", "middlesbrough", "bristol city",
-            "newport", "swindon", "wolverhampton", "charlton", "preston", "watford",
-            "celtic", "rangers", "blackpool", "wigan", "bolton", "derby", "coventry",
-            "norwich", "hull", "stoke", "millwall", "qpr", "blackburn", "luton",
-            "cardiff", "swansea", "plymouth", "oxford", "portsmouth", "exeter",
-            "lincoln", "reading", "peterborough", "huddersfield", "rotherham",
-            "stockport", "wrexham", "wycombe", "mansfield", "leyton", "charlton"
-        )
-        fr_keys = ("ligue 1", "ligue 2", "paris saint-germain", "psg", "nice", "marseille", "lyon", "monaco", "lille", "lens", "rennes", "strasbourg", "brest", "toulouse", "nantes", "reims", "montpellier", "auxerre", "angers", "saint-etienne", "le havre")
-        it_keys = ("serie a", "serie b", "napoli", "torino", "inter", "ac milan", "juventus", "atalanta", "roma", "lazio", "fiorentina", "bologna", "udinese", "genoa", "cagliari", "parma", "como", "verona", "lecce", "empoli", "monza", "venezia")
-        de_keys = ("bundesliga", "bayern", "dortmund", "leipzig", "leverkusen", "frankfurt", "stuttgart", "freiburg", "wolfsburg", "union berlin", "gladbach", "monchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum", "heidenheim", "st. pauli", "kiel")
-        es_keys = ("la liga", "segunda", "real madrid", "barcelona", "atletico", "athletic", "sociedad", "betis", "sevilla", "villarreal", "valencia", "celta", "girona", "mallorca", "osasuna", "getafe", "rayo", "alaves", "las palmas", "espanyol", "leganes", "valladolid")
-        eu_keys = ("champions league", "europa", "conference league", "eredivisie", "primeira", "jupiler", "super lig", "ajax", "psv", "feyenoord", "benfica", "porto", "sporting", "galatasaray", "fenerbahce", "besiktas", "brugge", "anderlecht")
+        country_rules = [
+            ("UK", "uk", "uk", (
+                "england", "scotland", "wales", "northern ireland", "uk", "britain",
+                "premier league", "championship", "league one", "league two", "fa cup", "efl", "spfl", "scottish",
+                "arsenal", "chelsea", "liverpool", "manchester", "tottenham", "newcastle", "aston villa", "villa",
+                "west ham", "everton", "brighton", "brentford", "fulham", "bournemouth", "wolves", "wolverhampton",
+                "crystal palace", "palace", "nottingham", "leicester", "southampton", "ipswich", "leeds", "burnley",
+                "sheffield", "sunderland", "middlesbrough", "bristol city", "coventry", "norwich", "hull", "stoke",
+                "millwall", "qpr", "blackburn", "luton", "cardiff", "swansea", "plymouth", "oxford", "portsmouth",
+                "derby", "preston", "watford", "blackpool", "wigan", "bolton", "barnsley", "charlton", "reading",
+                "peterborough", "huddersfield", "rotherham", "stockport", "wrexham", "wycombe", "mansfield",
+                "leyton", "barnet", "port vale", "newport", "swindon", "exeter", "lincoln", "celtic", "rangers",
+                "aberdeen", "hearts", "hibernian", "motherwell", "kilmarnock", "dundee"
+            )),
+            ("France", "france", "global", (
+                "france", "french", "ligue 1", "ligue 2", "coupe de france",
+                "paris saint-germain", "paris saint germain", "psg", "nice", "marseille", "lyon", "monaco",
+                "lille", "lens", "rennes", "strasbourg", "brest", "toulouse", "nantes", "reims", "montpellier",
+                "auxerre", "angers", "saint-etienne", "le havre", "lorient", "metz", "bordeaux", "caen"
+            )),
+            ("Italy", "italy", "global", (
+                "italy", "italian", "serie a", "serie b", "coppa italia",
+                "napoli", "torino", "inter", "inter milan", "ac milan", "milan", "juventus", "atalanta",
+                "roma", "lazio", "fiorentina", "bologna", "udinese", "genoa", "cagliari", "parma", "como",
+                "verona", "hellas verona", "lecce", "empoli", "monza", "venezia", "sassuolo", "sampdoria", "palermo"
+            )),
+            ("Germany", "german", "global", (
+                "germany", "german", "bundesliga", "2. bundesliga", "dfb-pokal",
+                "bayern", "dortmund", "borussia", "leipzig", "rb leipzig", "leverkusen", "bayer leverkusen",
+                "frankfurt", "eintracht", "stuttgart", "freiburg", "wolfsburg", "union berlin", "gladbach",
+                "monchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum",
+                "heidenheim", "st. pauli", "kiel", "schalke", "hamburg", "hertha", "koln", "cologne"
+            )),
+            ("Spain", "spain", "global", (
+                "spain", "spanish", "la liga", "laliga", "segunda", "copa del rey",
+                "real madrid", "barcelona", "atletico", "athletic bilbao", "athletic club", "real sociedad",
+                "sociedad", "real betis", "betis", "sevilla", "villarreal", "valencia", "celta", "celta vigo",
+                "girona", "mallorca", "osasuna", "getafe", "rayo vallecano", "rayo", "alaves", "las palmas",
+                "espanyol", "leganes", "valladolid", "zaragoza", "sporting gijon", "levante", "elche"
+            )),
+            ("Europe (Other)", "europe", "global", (
+                "champions league", "europa league", "conference league", "uefa",
+                "eredivisie", "netherlands", "dutch", "ajax", "psv", "feyenoord", "az alkmaar", "twente",
+                "primeira", "portugal", "portuguese", "benfica", "porto", "sporting cp", "braga",
+                "jupiler", "belgium", "belgian", "club brugge", "brugge", "anderlecht", "genk", "union sg",
+                "super lig", "turkey", "turkish", "galatasaray", "fenerbahce", "besiktas", "trabzonspor",
+                "austria", "salzburg", "sturm graz", "rapid wien", "switzerland", "young boys", "basel",
+                "denmark", "copenhagen", "midtjylland", "brondby", "norway", "bodo", "molde", "rosenborg",
+                "sweden", "malmo", "djurgarden", "greece", "olympiacos", "panathinaikos", "paok", "aek",
+                "poland", "legia", "lech", "czech", "slavia prague", "sparta prague", "croatia", "dinamo zagreb"
+            )),
+        ]
 
         tab_norm = str(tab or "all").strip().lower()
         filtered = []
@@ -1082,50 +1115,25 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
                 _p["lg"] = _p.get("league") or _p.get("competition") or ("Global Football" if "global" in _slate else "Football")
             _hay = f"{_p.get('lg','').lower()} {_fx} {_slate}"
 
-            is_uk = any(k in _hay for k in uk_keys)
-            is_fr = any(k in _hay for k in fr_keys)
-            is_it = any(k in _hay for k in it_keys)
-            is_de = any(k in _hay for k in de_keys)
-            is_es = any(k in _hay for k in es_keys)
-            is_eu = is_fr or is_it or is_de or is_es or any(k in _hay for k in eu_keys)
+            matched_country = "Rest of World"
+            matched_region = "row"
+            matched_scope = "global"
+            for cname, reg_key, sc_key, kw_tuple in country_rules:
+                if any(k in _hay for k in kw_tuple):
+                    matched_country = cname
+                    matched_region = reg_key
+                    matched_scope = sc_key
+                    break
 
-            if is_uk:
-                _p["scope"] = "uk"
-                _p["region"] = "uk"
-            elif is_fr:
-                _p["scope"] = "global"
-                _p["region"] = "france"
-            elif is_it:
-                _p["scope"] = "global"
-                _p["region"] = "italy"
-            elif is_de:
-                _p["scope"] = "global"
-                _p["region"] = "german"
-            elif is_es:
-                _p["scope"] = "global"
-                _p["region"] = "spain"
-            elif is_eu:
-                _p["scope"] = "global"
-                _p["region"] = "europe"
-            else:
-                _p["scope"] = "global"
-                _p["region"] = "row"
+            _p["country"] = matched_country
+            _p["region"] = matched_region
+            _p["scope"] = matched_scope
 
             if tab_norm in ("all", "", "bet_builder"):
                 filtered.append(_p)
-            elif tab_norm == "uk" and is_uk:
+            elif tab_norm == "europe" and matched_region in ("europe", "france", "italy", "german", "spain"):
                 filtered.append(_p)
-            elif tab_norm == "france" and is_fr:
-                filtered.append(_p)
-            elif tab_norm == "italy" and is_it:
-                filtered.append(_p)
-            elif tab_norm == "german" and is_de:
-                filtered.append(_p)
-            elif tab_norm == "spain" and is_es:
-                filtered.append(_p)
-            elif tab_norm == "europe" and is_eu:
-                filtered.append(_p)
-            elif tab_norm == "row" and (not is_uk and not is_eu):
+            elif tab_norm == matched_region:
                 filtered.append(_p)
 
         payload["picks"] = filtered
