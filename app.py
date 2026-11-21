@@ -1049,7 +1049,9 @@ def _enforce_v195(response):
 
 @app.route("/api/tab-picks", methods=["GET"])
 
-def _gem_normalize_tab_picks(payload):
+def _gem_normalize_tab_picks(payload=None):
+    if payload is None:
+        return {}
     if isinstance(payload, dict) and isinstance(payload.get("picks"), list):
         uk_keys = (
             "premier", "championship", "league one", "league two", "fa cup", "efl",
