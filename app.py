@@ -474,31 +474,65 @@ def _gem_after_request_recalibrate(response):
                         return None
                     out = _gem_recalibrate_all_markets(dict(row))
                     c_val = str(out.get("country") or out.get("region") or "Europe").strip()
-                    if c_val.lower() in ("uk", "england", "scotland", "wales", "uk leagues"):
-                        out["country"] = "UK Leagues"
+                    cl = c_val.lower()
+                    if cl in ("uk", "england", "scotland", "wales", "uk leagues"):
+                        out["country"] = "UK"
+                        out["tab_label"] = "UK Leagues"
                         out["region"] = "uk"
-                    elif c_val.lower() in ("germany", "german", "bundesliga"):
-                        out["country"] = "German"
+                    elif cl in ("germany", "german", "bundesliga"):
+                        out["country"] = "Germany"
+                        out["tab_label"] = "German"
                         out["region"] = "germany"
-                    elif c_val.lower() in ("europe (other)", "other europe", "europe"):
+                    elif cl in ("europe (other)", "other europe", "europe"):
                         out["country"] = "Europe"
+                        out["tab_label"] = "Europe"
                         out["region"] = "europe"
-                    elif c_val.lower() in ("rest of the world", "world", "global", "mls"):
+                    elif cl in ("rest of the world", "the rest of the world", "world", "global", "mls"):
                         out["country"] = "The rest of the world"
+                        out["tab_label"] = "The rest of the world"
                         out["region"] = "world"
                     return out
 
-                pool = []
                 for list_key in ("picks", "todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
                     if isinstance(payload.get(list_key), list):
-                        sub_clean = [x for x in (_prep(p) for p in payload[list_key]) if x is not None]
-                        payload[list_key] = sub_clean
-                        pool.extend(sub_clean)
+                        payload[list_key] = [x for x in (_prep(p) for p in payload[list_key]) if x is not None]
 
-                if isinstance(payload.get("picks"), list) and len(payload["picks"]) == 0 and pool:
-                    payload["picks"] = pool[:12]
-                    payload["count"] = len(payload["picks"])
-                elif isinstance(payload.get("picks"), list):
+                # If /api/tab-picks returned 0 picks for a specific tab, populate from master vetted feed
+                if request.path == "/api/tab-picks" and isinstance(payload.get("picks"), list) and len(payload["picks"]) == 0:
+                    master_rows = []
+                    for fn_name in ("_load_feed", "load_feed", "_get_feed"):
+                        fn = globals().get(fn_name)
+                        if callable(fn):
+                            fobj = fn() or {}
+                            for bk in ("todaysValue", "all_picks", "global_picks", "global", "likely"):
+                                if isinstance(fobj.get(bk), list):
+                                    master_rows.extend(fobj[bk])
+                            break
+                    if not master_rows:
+                        import pathlib as _pl, json as _js
+                        for jf in ("gem_feed.json", "feed_cache.json", "todays_value.json"):
+                            jp = _pl.Path(jf)
+                            if jp.exists():
+                                fobj = _js.loads(jp.read_text(encoding="utf-8"))
+                                if isinstance(fobj, dict):
+                                    for bk in ("todaysValue", "all_picks", "global_picks", "global", "likely"):
+                                        if isinstance(fobj.get(bk), list):
+                                            master_rows.extend(fobj[bk])
+                                elif isinstance(fobj, list):
+                                    master_rows.extend(fobj)
+                                break
+                    seen_fx = set()
+                    fallback_picks = []
+                    for r in master_rows:
+                        pr = _prep(r)
+                        if pr is not None:
+                            fk = str(pr.get("f") or pr.get("fixture") or "").lower()
+                            if fk and fk not in seen_fx:
+                                seen_fx.add(fk)
+                                fallback_picks.append(pr)
+                    payload["picks"] = fallback_picks[:12]
+
+                if isinstance(payload.get("picks"), list):
                     payload["count"] = len(payload["picks"])
 
                 response.set_data(json.dumps(payload, default=str))
