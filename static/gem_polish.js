@@ -1189,6 +1189,7 @@ setInterval(injectRegionToggle,900);
   }
 
   async function showTab(key){
+    currentKey = key;
     const { panel } = ensureBarAndPanel();
     const tab = TABS.find(t => t.key === key) || { key, label: key };
     const bankroll = parseFloat(localStorage.getItem("gem_bankroll_gbp") || "500") || 500;
