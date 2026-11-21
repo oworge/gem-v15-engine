@@ -184,6 +184,29 @@ def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
                 total_p += cell_p
     return min(0.94, max(0.05, total_p))
 
+def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
+    # Compute exact 1X & Over 1.5 Goals probability from bivariate Poisson with Dixon-Coles low-score adjustment
+    lh = max(0.25, float(xg_home))
+    la = max(0.25, float(xg_away))
+    total_p = 0.0
+    for h in range(7):
+        ph = (math.exp(-lh) * (lh ** h)) / math.factorial(h)
+        for a in range(7):
+            pa = (math.exp(-la) * (la ** a)) / math.factorial(a)
+            tau = 1.0
+            if h == 0 and a == 0:
+                tau = 1.0 - (lh * la * rho)
+            elif h == 1 and a == 0:
+                tau = 1.0 + (la * rho)
+            elif h == 0 and a == 1:
+                tau = 1.0 + (lh * rho)
+            elif h == 1 and a == 1:
+                tau = 1.0 - rho
+            cell_p = max(0.0, ph * pa * tau)
+            if h >= a and (h + a) >= 2:
+                total_p += cell_p
+    return min(0.94, max(0.05, total_p))
+
 def _calibrate_and_adjust(model_prob, devig_prob, item=None):
     # Log-odds (logit) Bayesian pooling anchored to devigged sharp market probabilities
     eps = 1e-4
