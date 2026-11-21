@@ -1051,10 +1051,16 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
     if payload is None:
         return {}
     if isinstance(payload, dict) and isinstance(payload.get("picks"), list):
+        row_override_keys = (
+            "brasileirao", "brazil", "bahia", "coritiba", "flamengo", "palmeiras", "corinthians",
+            "sao paulo", "botafogo", "gremio", "internacional", "cruzeiro", "atletico mineiro",
+            "fluminense", "vasco", "santos", "fortaleza", "athletico paranaense",
+            "mls", "argentina", "boca juniors", "river plate", "j-league", "k-league", "a-league", "saudi"
+        )
         country_rules = [
             ("UK", "uk", "uk", (
                 "england", "scotland", "wales", "northern ireland", "uk", "britain",
-                "premier league", "championship", "league one", "league two", "fa cup", "efl", "spfl", "scottish",
+                "premier league", "championship", "league one", "league two", "fa cup", "efl", "spfl", "scottish", "national league",
                 "arsenal", "chelsea", "liverpool", "manchester", "tottenham", "newcastle", "aston villa", "villa",
                 "west ham", "everton", "brighton", "brentford", "fulham", "bournemouth", "wolves", "wolverhampton",
                 "crystal palace", "palace", "nottingham", "leicester", "southampton", "ipswich", "leeds", "burnley",
@@ -1062,8 +1068,11 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
                 "millwall", "qpr", "blackburn", "luton", "cardiff", "swansea", "plymouth", "oxford", "portsmouth",
                 "derby", "preston", "watford", "blackpool", "wigan", "bolton", "barnsley", "charlton", "reading",
                 "peterborough", "huddersfield", "rotherham", "stockport", "wrexham", "wycombe", "mansfield",
-                "leyton", "barnet", "port vale", "newport", "swindon", "exeter", "lincoln", "celtic", "rangers",
-                "aberdeen", "hearts", "hibernian", "motherwell", "kilmarnock", "dundee"
+                "leyton", "barnet", "port vale", "newport", "swindon", "exeter", "lincoln", "york city", "walsall",
+                "burton", "burton albion", "carlisle", "cheltenham", "colchester", "crawley", "crewe", "doncaster",
+                "fleetwood", "gillingham", "grimsby", "harrogate", "mk dons", "morecambe", "notts county", "salford",
+                "shrewsbury", "stevenage", "tranmere", "wimbledon", "accrington", "bradford", "cambridge",
+                "celtic", "rangers", "aberdeen", "hearts", "hibernian", "motherwell", "kilmarnock", "dundee"
             )),
             ("France", "france", "global", (
                 "france", "french", "ligue 1", "ligue 2", "coupe de france",
@@ -1073,15 +1082,15 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
             )),
             ("Italy", "italy", "global", (
                 "italy", "italian", "serie a", "serie b", "coppa italia",
-                "napoli", "torino", "inter", "inter milan", "ac milan", "milan", "juventus", "atalanta",
-                "roma", "lazio", "fiorentina", "bologna", "udinese", "genoa", "cagliari", "parma", "como",
+                "napoli", "torino", "inter milan", "fc internazionale", "ac milan", "juventus", "atalanta",
+                "as roma", "lazio", "fiorentina", "bologna", "udinese", "genoa", "cagliari", "parma", "como",
                 "verona", "hellas verona", "lecce", "empoli", "monza", "venezia", "sassuolo", "sampdoria", "palermo"
             )),
             ("Germany", "german", "global", (
                 "germany", "german", "bundesliga", "2. bundesliga", "dfb-pokal",
                 "bayern", "dortmund", "borussia", "leipzig", "rb leipzig", "leverkusen", "bayer leverkusen",
                 "frankfurt", "eintracht", "stuttgart", "freiburg", "wolfsburg", "union berlin", "gladbach",
-                "monchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum",
+                "monchengladbach", "mönchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum",
                 "heidenheim", "st. pauli", "kiel", "schalke", "hamburg", "hertha", "koln", "cologne"
             )),
             ("Spain", "spain", "global", (
@@ -1094,10 +1103,11 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
             ("Europe (Other)", "europe", "global", (
                 "champions league", "europa league", "conference league", "uefa",
                 "eredivisie", "netherlands", "dutch", "ajax", "psv", "feyenoord", "az alkmaar", "twente",
-                "primeira", "portugal", "portuguese", "benfica", "porto", "sporting cp", "braga",
-                "jupiler", "belgium", "belgian", "club brugge", "brugge", "anderlecht", "genk", "union sg",
+                "groningen", "heerenveen", "utrecht", "sparta rotterdam", "nec nijmegen", "go ahead eagles",
+                "primeira", "portugal", "portuguese", "benfica", "porto", "sporting cp", "braga", "vitoria",
+                "jupiler", "belgium", "belgian", "club brugge", "brugge", "anderlecht", "genk", "union sg", "gent", "antwerp",
                 "super lig", "turkey", "turkish", "galatasaray", "fenerbahce", "besiktas", "trabzonspor",
-                "austria", "salzburg", "sturm graz", "rapid wien", "switzerland", "young boys", "basel",
+                "austria", "salzburg", "sturm graz", "rapid wien", "switzerland", "young boys", "basel", "zurich",
                 "denmark", "copenhagen", "midtjylland", "brondby", "norway", "bodo", "molde", "rosenborg",
                 "sweden", "malmo", "djurgarden", "greece", "olympiacos", "panathinaikos", "paok", "aek",
                 "poland", "legia", "lech", "czech", "slavia prague", "sparta prague", "croatia", "dinamo zagreb"
@@ -1118,12 +1128,13 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
             matched_country = "Rest of World"
             matched_region = "row"
             matched_scope = "global"
-            for cname, reg_key, sc_key, kw_tuple in country_rules:
-                if any(k in _hay for k in kw_tuple):
-                    matched_country = cname
-                    matched_region = reg_key
-                    matched_scope = sc_key
-                    break
+            if not any(k in _hay for k in row_override_keys):
+                for cname, reg_key, sc_key, kw_tuple in country_rules:
+                    if any(k in _hay for k in kw_tuple):
+                        matched_country = cname
+                        matched_region = reg_key
+                        matched_scope = sc_key
+                        break
 
             _p["country"] = matched_country
             _p["region"] = matched_region

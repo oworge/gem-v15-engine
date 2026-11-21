@@ -845,13 +845,13 @@
     "away_team": "Flamengo",
     "league": "Brazilian Serie A",
     "kickoff": "2026-11-21T19:30Z",
-    "home_odds": 3.4,
+    "home_odds": 3.5,
     "draw_odds": 3.45,
-    "away_odds": 2.1,
+    "away_odds": 2.05,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.78,
-    "xg_away": 1.26
+    "xg_home": 0.76,
+    "xg_away": 1.29
   },
   {
     "sport_key": "soccer_all",
@@ -901,13 +901,13 @@
     "away_team": "Lyon",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T19:45Z",
-    "home_odds": 2.3,
+    "home_odds": 2.35,
     "draw_odds": 3.2,
-    "away_odds": 3.35,
+    "away_odds": 3.25,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.15,
-    "xg_away": 0.79
+    "xg_home": 1.13,
+    "xg_away": 0.82
   },
   {
     "sport_key": "soccer_all",
