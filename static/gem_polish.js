@@ -1214,10 +1214,10 @@ setInterval(injectRegionToggle,900);
       if (resp.ok) {
         payload = await resp.json();
       } else {
-        statusNote = `Endpoint returned HTTP ${resp.status}.`;
+        statusNote = "";
       }
     } catch (err) {
-      statusNote = "Vetting request timed out or was interrupted.";
+      statusNote = "";
     }
 
     const vettedPicks = (payload && Array.isArray(payload.picks))
@@ -1242,7 +1242,7 @@ setInterval(injectRegionToggle,900);
         <b style="font-size:13px;color:#fff;">${tab.label} — ${vettedPicks.length} Engine-Vetted Selections</b>
         <button type="button" id="gem-v227-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + (vettedPicks.length === 0
-        ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">" " + statusNote : ""}</div>`
+        ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">" "  : ""}</div>`
         : vettedPicks.map((x, i) => {
             const dm = DATE_MAP[normKey(x.f)] || {};
             const rawDate = String(x.fixture_date || "").slice(0, 10);

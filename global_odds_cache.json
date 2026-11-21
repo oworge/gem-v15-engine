@@ -173,12 +173,12 @@
     "away_team": "Ipswich Town",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.56,
-    "draw_odds": 4.4,
-    "away_odds": 5.5,
+    "home_odds": 1.53,
+    "draw_odds": 4.5,
+    "away_odds": 5.75,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.7,
+    "xg_home": 1.73,
     "xg_away": 0.65
   },
   {
