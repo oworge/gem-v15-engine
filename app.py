@@ -1248,7 +1248,7 @@ def api_tab_picks():
         "rejected_count": len(rejected),
         "picks": _out_picks,
         "rejected": rejected[:50],
-    })))
+    }))))
 
 
 
