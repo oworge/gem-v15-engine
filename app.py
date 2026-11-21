@@ -1715,3 +1715,26 @@ def api_auto_slip():
         "recommended_stake_gbp": round(bankroll * (kelly_pct / 100.0), 2),
         "slip": selected,
     })
+
+
+@app.after_request
+def _gem_after_request_recalibrate(response):
+    try:
+        from flask import request
+        if request.path == "/api/tab-picks" and response.status_code == 200:
+            payload = response.get_json(silent=True)
+            if isinstance(payload, dict) and isinstance(payload.get("picks"), list):
+                cleaned = []
+                for p in payload["picks"]:
+                    if not isinstance(p, dict) or p.get("approved") is False:
+                        continue
+                    fx_low = str(p.get("f") or p.get("fixture") or "").lower()
+                    if "schalke" in fx_low:
+                        continue
+                    cleaned.append(_gem_recalibrate_all_markets(p))
+                payload["picks"] = cleaned
+                payload["count"] = len(cleaned)
+                response.set_data(json.dumps(payload))
+    except Exception:
+        pass
+    return response
