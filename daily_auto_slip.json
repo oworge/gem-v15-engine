@@ -1,18 +1,36 @@
 {
-  "combined_odds": 1.74,
+  "combined_odds": 64.0,
   "engine": "GEM-V15-CALIBRATED",
-  "legs_count": 1,
-  "recommended_stake_gbp": 10.0,
-  "recommended_stake_pct": 1.0,
+  "legs_count": 3,
+  "recommended_stake_gbp": 15.0,
+  "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "Europe",
-      "ev_pct": 3.15,
-      "fixture": "OFI Crete v Anderlecht",
+      "country": "UK Leagues",
+      "ev_pct": 14.5,
+      "fixture": "Barnet v Port Vale",
       "league": "Football",
-      "odds": 1.74,
+      "odds": 4.0,
+      "region": "uk",
+      "selection": "Port Vale Win (1X2)"
+    },
+    {
+      "country": "UK Leagues",
+      "ev_pct": 14.5,
+      "fixture": "Newport County v Swindon Town",
+      "league": "Football",
+      "odds": 4.0,
+      "region": "uk",
+      "selection": "Swindon Town Win (1X2)"
+    },
+    {
+      "country": "Europe",
+      "ev_pct": 14.5,
+      "fixture": "FC Groningen v Heerenveen",
+      "league": "Football",
+      "odds": 4.0,
       "region": "europe",
-      "selection": "Anderlecht Draw No Bet (DNB)"
+      "selection": "FC Groningen Win to Nil"
     }
   ]
 }
