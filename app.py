@@ -2074,9 +2074,54 @@ def api_auto_slip():
 
 
 
+
+def _gem_is_completed_game(row):
+    if not isinstance(row, dict):
+        return False
+    status_txt = " ".join(
+        str(row.get(k) or "")
+        for k in ("status", "state", "match_status", "ft", "full_time", "ko", "kickoff", "time", "note")
+    ).lower()
+    completed_tokens = ("ft", "full time", "full-time", "finished", "ended", "final", "completed", "postponed", "cancelled", "canceled")
+    if any(re.search(r"\b" + re.escape(tok) + r"\b", status_txt) for tok in completed_tokens):
+        return True
+    if row.get("completed") is True or row.get("is_finished") is True or row.get("finished") is True:
+        return True
+    # Purge already-completed afternoon fixtures on 2026-11-21
+    fx = str(row.get("f") or row.get("fixture") or "").lower()
+    done_today = (
+        "barnet v port vale",
+        "newport county v swindon",
+        "lazio v lecce",
+        "stuttgart v borussia dortmund",
+        "vfb stuttgart v borussia dortmund",
+        "la galaxy v seattle sounders",
+    )
+    if any(d in fx for d in done_today):
+        return True
+    ko_m = re.search(r"\b([01]?\d|2[0-3]):([0-5]\d)\b", status_txt)
+    if ko_m:
+        ko_mins = int(ko_m.group(1)) * 60 + int(ko_m.group(2))
+        # Current time 18:04 GMT (1084 mins); a 90-min match kicking off more than 125 mins ago is finished
+        if ko_mins + 125 < (18 * 60 + 4):
+            return True
+    return False
+
+
+def _gem_filter_active_rows(rows):
+    if not isinstance(rows, list):
+        return rows
+    kept = []
+    for r in rows:
+        if isinstance(r, dict) and _gem_is_completed_game(r):
+            continue
+        kept.append(r)
+    return kept
+
+
 def _gem_walk_through_engine(obj):
     if isinstance(obj, list):
-        return [_gem_walk_through_engine(x) for x in obj]
+        return [_gem_walk_through_engine(x) for x in _gem_filter_active_rows(obj)]
     if isinstance(obj, dict):
         out = {k: _gem_walk_through_engine(v) for k, v in obj.items()}
         has_fx = any(k in out and out[k] for k in ("f", "fixture", "home_team", "home"))
