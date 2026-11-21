@@ -1,10 +1,19 @@
 {
-  "combined_odds": 5.9,
+  "combined_odds": 5.99,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
+    {
+      "country": "UK",
+      "ev_pct": 9.65,
+      "fixture": "Norwich City v Cardiff City",
+      "league": "Global Football",
+      "odds": 1.85,
+      "region": "uk",
+      "selection": "Norwich City or Draw (1X) & Over 1.5 Goals (CS 1-0)"
+    },
     {
       "country": "UK",
       "ev_pct": 17.37,
@@ -21,15 +30,6 @@
       "league": "Global",
       "odds": 1.82,
       "region": "france",
-      "selection": "Over 2.5 Match Goals"
-    },
-    {
-      "country": "Germany",
-      "ev_pct": 16.17,
-      "fixture": "Bayer Leverkusen v SC Paderborn 07",
-      "league": "Global",
-      "odds": 1.82,
-      "region": "german",
       "selection": "Over 2.5 Match Goals"
     }
   ]
