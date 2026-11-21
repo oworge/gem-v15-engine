@@ -145,12 +145,12 @@
     "away_team": "Cagliari",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:00Z",
-    "home_odds": 1.26,
-    "draw_odds": 5.5,
-    "away_odds": 9.0,
+    "home_odds": 1.28,
+    "draw_odds": 5.25,
+    "away_odds": 8.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.1,
+    "xg_home": 2.07,
     "xg_away": 0.65
   },
   {

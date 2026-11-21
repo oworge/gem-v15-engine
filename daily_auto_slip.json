@@ -1,36 +1,36 @@
 {
-  "combined_odds": 3.18,
+  "combined_odds": 4.91,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "Germany",
+      "country": "UK",
       "ev_pct": 3.49,
-      "fixture": "Bayer Leverkusen v SC Paderborn 07",
+      "fixture": "Barnet v Port Vale",
       "league": "Global",
-      "odds": 1.42,
-      "region": "german",
-      "selection": "Over 1.5 Match Goals"
+      "odds": 1.65,
+      "region": "uk",
+      "selection": "Barnet or Draw (1X) & Over 1.5 Goals"
+    },
+    {
+      "country": "Italy",
+      "ev_pct": 3.37,
+      "fixture": "Napoli v Torino",
+      "league": "Global",
+      "odds": 1.72,
+      "region": "italy",
+      "selection": "Napoli or Draw (1X) & Over 1.5 Goals"
     },
     {
       "country": "UK",
-      "ev_pct": 3.48,
-      "fixture": "West Ham United v Preston North End",
+      "ev_pct": 3.3,
+      "fixture": "Middlesbrough v Bristol City",
       "league": "Global",
-      "odds": 1.41,
+      "odds": 1.73,
       "region": "uk",
-      "selection": "Over 1.5 Match Goals"
-    },
-    {
-      "country": "UK",
-      "ev_pct": 3.48,
-      "fixture": "Blackpool v Wigan Athletic",
-      "league": "Global",
-      "odds": 1.59,
-      "region": "uk",
-      "selection": "Both Teams to Score (BTTS Yes)"
+      "selection": "Middlesbrough or Draw (1X) & Over 1.5 Goals"
     }
   ]
 }
