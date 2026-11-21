@@ -1,33 +1,36 @@
 {
-  "combined_odds": 5.99,
-  "engine": "GEM-V15-AUTO",
+  "combined_odds": 5.9,
+  "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "ev_pct": 36.32,
-      "fixture": "Barnet v Port Vale",
+      "country": "UK",
+      "ev_pct": 17.3,
+      "fixture": "Burton Albion v Luton Town",
       "league": "Global",
-      "odds": 1.75,
+      "odds": 1.78,
       "region": "uk",
-      "selection": "Barnet Draw No Bet (DNB)"
+      "selection": "Both Teams to Score (BTTS Yes)"
     },
     {
-      "ev_pct": 33.11,
-      "fixture": "London City Lionesses v Crystal Palace",
-      "league": "Global Football",
-      "odds": 1.85,
-      "region": "uk",
-      "selection": "Both Teams to Score - Yes (Proj xG 2.95)"
+      "country": "France",
+      "ev_pct": 16.92,
+      "fixture": "Lille v Lyon",
+      "league": "Global",
+      "odds": 1.82,
+      "region": "france",
+      "selection": "Over 2.5 Match Goals"
     },
     {
-      "ev_pct": 31.3,
-      "fixture": "Middlesbrough v Bristol City",
+      "country": "Germany",
+      "ev_pct": 16.19,
+      "fixture": "Bayer Leverkusen v SC Paderborn 07",
       "league": "Global",
-      "odds": 1.85,
-      "region": "uk",
-      "selection": "Middlesbrough Win (1X2)"
+      "odds": 1.82,
+      "region": "german",
+      "selection": "Over 2.5 Match Goals"
     }
   ]
 }

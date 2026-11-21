@@ -161,29 +161,15 @@ def _make_5_legs(pick_item):
         "xg_gate_passed": True,
     })
     return out
-def _calibrate_and_adjust(model_prob, devig_prob, item):
-    # Blend calibrated model probability with de-vigged market probability
-    p_cal = (0.78 * float(model_prob)) + (0.22 * float(devig_prob))
-    th_raw = item.get("tactical_health_adj", item.get("tactical_health"))
-    if th_raw is not None and th_raw != "":
-        try:
-            th = float(th_raw)
-            if abs(th) > 1.0:
-                th = th / 100.0
-            p_cal += max(-0.12, min(0.08, th))
-        except (TypeError, ValueError):
-            pass
-    rest_raw = item.get("rest_days", item.get("days_rest"))
-    if rest_raw is not None and rest_raw != "":
-        try:
-            rd = float(rest_raw)
-            if rd < 3.5:
-                p_cal -= 0.025
-            elif rd >= 6.0:
-                p_cal += 0.01
-        except (TypeError, ValueError):
-            pass
-    return max(0.01, min(0.99, round(p_cal, 6)))
+def _calibrate_and_adjust(model_prob, devig_prob, item=None):
+    # Shrink raw model probability toward devigged market consensus to prevent overconfidence
+    w_model = 0.40
+    calibrated = (w_model * float(model_prob)) + ((1.0 - w_model) * float(devig_prob))
+    # Cap maximum edge over devigged price at +8.5% probability points to eliminate synthetic outliers
+    max_allowed = min(0.92, float(devig_prob) + 0.085)
+    calibrated = min(calibrated, max_allowed)
+    return round(calibrated, 4)
+
 def _poisson_pmf(k, lam):
     if lam <= 0.0:
         return 1.0 if k == 0 else 0.0
@@ -516,7 +502,7 @@ def api_gem_feed():
         data = build_calibrated_feed()
         en = data["enriched"]
     if not en:
-        return jsonify(_gem_purge_unapproved_and_sync_sides({"live": False, "weights": data["weights"]}))
+        return jsonify({"live": False, "weights": data["weights"]})
     val = sorted([x for x in en if x["ev"] >= 4.0], key=lambda z: z["ev"], reverse=True)[:28]
     lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:20]
     ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:20]
@@ -543,13 +529,13 @@ def api_gem_feed():
         "days": days_list,
         "upd": data["updated"],
         "weights": data["weights"],
-        "matches": data.get("enriched", [])),
+        "matches": data.get("enriched", []),
         "todaysValue": [{"k":f"BEST VALUE #{i+1} | +{x['ev']:.1f}% EV","p":f"{x['prob']:.0f}%","b":"Calibrated +EV Edge","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["pick"],"o":f"Bookie {x['odds']:.2f} vs Fair {x['fair']:.2f} | EV +{x['ev']:.1f}%","n":f"Kelly Stake: {x['kelly']:.2f}u | Proj xG {x['xg_sum']} | Top CS {x['top_cs']}"} for i,x in enumerate(val)],
         "likely": [{"k":f"MOST LIKELY #{i+1} | {x['prob']:.0f}% HIT RATE","p":f"{x['prob']:.0f}%","b":"High-Confidence Banker","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["combo_pick"],"o":f"Odds {x['odds']:.2f} | Calibrated Hit Prob {x['prob']:.1f}%","n":f"Dixon-Coles low-variance combo | Proj xG {x['xg_sum']}"} for i,x in enumerate(lik)],
         "ai": [{"k":f"AI BIVARIATE POISSON | SYN-9.6","p":f"{x['prob']:.0f}%","b":"AI Calibrated Engine","t":"ai","f":x["fixture"],"m":f"Dixon-Coles + Logit Pool | xG {x['xg_sum']}","pk":f"AI Pick: {x['pick']} (Proj CS {x['top_cs']})","o":f"Fair {x['fair']:.2f} vs Market {x['odds']:.2f} | Edge +{x['ev']:.1f}%","n":"Platt/Log-Odds sharp market prior + time-decayed npxG."} for x in ai_list],
         "arbs": data["arbs"],
         "acca10": [{"f":f"{i+1}. {x['fixture']}","pk":x["combo_pick"],"od":x["odds"],"ev":f"+{x['ev']:.1f}%"} for i,x in enumerate(acca)]
-    })
+    }))
 
 
 @app.route("/api/ledger")
@@ -1368,6 +1354,68 @@ def api_clv_audit():
 
 
 @app.route("/api/auto-slip", methods=["GET"])
+def api_auto_slip():
+    from flask import jsonify, request
+    min_ev = float(request.args.get("min_ev", 2.5))
+    legs_max = min(int(request.args.get("legs", 3)), 3)
+    bankroll = float(request.args.get("bankroll", 1000.0))
+    with app.test_client() as client:
+        resp = client.get(f"/api/tab-picks?min_ev={min_ev}&tab=all")
+        data = resp.get_json(silent=True) or {}
+    picks = data.get("picks") or []
+
+    def _market_priority(p):
+        pk = str(p.get("pk") or p.get("pick") or "").lower()
+        ev = float(p.get("ev") or 0.0)
+        # Filter out extreme synthetic EV outliers (> 18%) and default unpriced 1.85 1X2 fallbacks
+        odds = float(p.get("odds") or 0.0)
+        if odds == 1.85 and "(1x2)" in pk:
+            return (-1, 0.0)
+        if ev > 18.0:
+            return (0, ev)
+        if ("1x" in pk or "x2" in pk) and "1.5" in pk:
+            return (3, ev)
+        if "both teams to score" in pk or "btts" in pk or "over 1.5" in pk:
+            return (2, ev)
+        return (1, ev)
+
+    ranked = sorted(picks, key=_market_priority, reverse=True)
+    selected = []
+    seen_fixtures = set()
+    for p in ranked:
+        prio, _ = _market_priority(p)
+        if prio < 0:
+            continue
+        fx = str(p.get("f") or "").strip()
+        if not fx or fx.lower() in seen_fixtures:
+            continue
+        seen_fixtures.add(fx.lower())
+        odds = float(p.get("odds") or 1.75)
+        ev_pct = float(p.get("ev") or 0.0)
+        selected.append({
+            "fixture": fx,
+            "league": p.get("lg", "Football"),
+            "country": p.get("country", "All"),
+            "region": p.get("region", "all"),
+            "selection": p.get("pk") or "1X/X2 & Over 1.5 Goals",
+            "odds": round(odds, 2),
+            "ev_pct": round(ev_pct, 2),
+        })
+        if len(selected) >= legs_max:
+            break
+    combined_odds = 1.0
+    for leg in selected:
+        combined_odds *= leg["odds"]
+    kelly_pct = 1.5 if len(selected) >= 3 else 1.0
+    return jsonify({
+        "engine": "GEM-V15-CALIBRATED",
+        "legs_count": len(selected),
+        "combined_odds": round(combined_odds, 2) if selected else 0.0,
+        "recommended_stake_pct": kelly_pct,
+        "recommended_stake_gbp": round(bankroll * (kelly_pct / 100.0), 2),
+        "slip": selected,
+    })
+
 def api_auto_slip():
     from flask import jsonify, request
     min_ev = float(request.args.get("min_ev", 2.5))
