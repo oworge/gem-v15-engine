@@ -1,36 +1,36 @@
 {
-  "combined_odds": 5.99,
+  "combined_odds": 2.63,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "UK",
-      "ev_pct": 9.65,
-      "fixture": "Norwich City v Cardiff City",
-      "league": "Global Football",
-      "odds": 1.85,
-      "region": "uk",
-      "selection": "Norwich City or Draw (1X) & Over 1.5 Goals (CS 1-0)"
-    },
-    {
-      "country": "UK",
-      "ev_pct": 17.37,
-      "fixture": "Burton Albion v Luton Town",
-      "league": "Global",
-      "odds": 1.78,
-      "region": "uk",
-      "selection": "Both Teams to Score (BTTS Yes)"
-    },
-    {
       "country": "France",
-      "ev_pct": 16.9,
-      "fixture": "Lille v Lyon",
+      "ev_pct": 2.6,
+      "fixture": "Nice v Paris Saint-Germain",
       "league": "Global",
-      "odds": 1.82,
+      "odds": 1.41,
       "region": "france",
-      "selection": "Over 2.5 Match Goals"
+      "selection": "Over 1.5 Match Goals"
+    },
+    {
+      "country": "UK",
+      "ev_pct": 2.6,
+      "fixture": "York City v Walsall",
+      "league": "Global",
+      "odds": 1.37,
+      "region": "uk",
+      "selection": "Over 1.5 Match Goals"
+    },
+    {
+      "country": "UK",
+      "ev_pct": 2.6,
+      "fixture": "Aston Villa v Sunderland",
+      "league": "Global",
+      "odds": 1.36,
+      "region": "uk",
+      "selection": "Over 1.5 Match Goals"
     }
   ]
 }

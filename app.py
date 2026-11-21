@@ -1238,12 +1238,6 @@ def _enforce_v195(response):
 def _gem_recalibrate_all_markets(item):
     if not isinstance(item, dict) or item.get("approved") is False:
         return item
-    xg_sum = float(item.get("xg_sum") or 0.0)
-    if xg_sum <= 0.0:
-        return item
-    xg_h = float(item.get("xg_home") or (xg_sum * 0.54))
-    xg_a = float(item.get("xg_away") or (xg_sum * 0.46))
-    dc = _dixon_coles_markets(xg_h, xg_a)
 
     fx = str(item.get("f") or item.get("fixture") or "").strip()
     parts = [s.strip() for s in re.split(r"\s+v\s+|\s+vs\.?\s+", fx) if s.strip()]
@@ -1253,22 +1247,34 @@ def _gem_recalibrate_all_markets(item):
     raw_odds = float(item.get("odds") or 1.80)
     if raw_odds <= 1.01:
         raw_odds = 1.80
-    # Estimate devigged implied market probability (removing ~5.5% bookmaker overround)
-    devig_prob = min(0.90, max(0.10, (1.0 / raw_odds) * 0.945))
+    devig_prob = min(0.88, max(0.25, (1.0 / raw_odds) * 0.945))
 
-    # Map all 19 Dixon-Coles markets with human-readable selection labels and confluence priority
+    xg_sum = float(item.get("xg_sum") or 0.0)
+    if xg_sum <= 0.1:
+        # Extract Proj xG from pk string if present, otherwise derive from raw_ev
+        xg_m = re.search(r"xg\s*([0-9]+(?:\.[0-9]+)?)", str(item.get("pk") or ""), flags=re.I)
+        if xg_m:
+            xg_sum = float(xg_m.group(1))
+        else:
+            raw_ev = float(item.get("ev") or 5.0)
+            xg_sum = round(min(3.35, max(2.15, 2.40 + (min(20.0, raw_ev) * 0.018))), 2)
+
+    xg_h = float(item.get("xg_home") or round(xg_sum * 0.54, 3))
+    xg_a = float(item.get("xg_away") or round(xg_sum * 0.46, 3))
+    dc = _dixon_coles_markets(xg_h, xg_a)
+
     candidates = [
-        (f"{home_team} or Draw (1X) & Over 1.5 Goals", dc["1x_o15"], 1.32),
-        (f"{away_team} or Draw (X2) & Over 1.5 Goals", dc["x2_o15"], 1.32),
-        ("Both Teams to Score (BTTS Yes)", dc["btts_yes"], 1.24),
+        (f"{home_team} or Draw (1X) & Over 1.5 Goals", dc["1x_o15"], 1.34),
+        (f"{away_team} or Draw (X2) & Over 1.5 Goals", dc["x2_o15"], 1.34),
+        ("Both Teams to Score (BTTS Yes)", dc["btts_yes"], 1.25),
         ("Both Teams to Score (BTTS No)", dc["btts_no"], 1.18),
         ("Over 1.5 Match Goals", dc["o15"], 1.20),
-        ("Over 2.5 Match Goals", dc["o25"], 1.10),
+        ("Over 2.5 Match Goals", dc["o25"], 1.08),
         ("Under 2.5 Match Goals", dc["u25"], 1.12),
-        ("Over 3.5 Match Goals", dc["o35"], 1.05),
+        ("Over 3.5 Match Goals", dc["o35"], 1.04),
         ("Under 3.5 Match Goals", dc["u35"], 1.14),
-        (f"{home_team} Draw No Bet (DNB)", dc["home_dnb"], 1.16),
-        (f"{away_team} Draw No Bet (DNB)", dc["away_dnb"], 1.16),
+        (f"{home_team} Draw No Bet (DNB)", dc["home_dnb"], 1.17),
+        (f"{away_team} Draw No Bet (DNB)", dc["away_dnb"], 1.17),
         (f"{home_team} or Draw (1X)", dc["1x"], 1.15),
         (f"{away_team} or Draw (X2)", dc["x2"], 1.15),
         (f"{home_team} Win to Nil", dc["home_wtn"], 1.04),
@@ -1278,21 +1284,17 @@ def _gem_recalibrate_all_markets(item):
         (f"{away_team} Win (1X2)", dc["away"], 1.00),
     ]
 
-    # Check if item already specifies a valid market; otherwise select highest-confluence market near bookmaker price band
-    cur_pk = str(item.get("pk") or item.get("pick") or "").strip()
-    cal_prob = _calibrate_and_adjust(float(item.get("prob") or 55.0) / 100.0, devig_prob, item)
-
-    # Pick the best-calibrated market whose implied fair odds sit cleanly in the [1.35, 2.35] value band
-    best_label = cur_pk
+    best_label = str(item.get("pk") or item.get("pick") or "Over 2.5 Match Goals").strip()
     best_score = -1.0
-    best_cal_p = cal_prob
+    best_cal_p = _calibrate_and_adjust(devig_prob + 0.04, devig_prob, item)
+
     for label, m_prob, weight in candidates:
-        fair_p = min(0.88, max(0.38, m_prob * 0.96))
+        fair_p = min(0.86, max(0.40, m_prob * 0.965))
         c_p = _calibrate_and_adjust(m_prob, fair_p, item)
         est_odds = round(1.0 / max(0.15, fair_p), 2)
-        if 1.35 <= est_odds <= 2.35 and c_p >= 0.56:
+        if 1.35 <= est_odds <= 2.30 and c_p >= 0.56:
             edge = (c_p * est_odds) - 1.0
-            score = (c_p * weight) + (edge * 1.5)
+            score = (c_p * weight) + (edge * 1.4)
             if score > best_score:
                 best_score = score
                 best_label = label
@@ -1300,9 +1302,10 @@ def _gem_recalibrate_all_markets(item):
                 raw_odds = est_odds
 
     fair_odds = round(1.0 / max(0.05, best_cal_p), 2)
-    ev_pct = round(((best_cal_p * raw_odds) - 1.0) * 100.0, 2)
-    kelly_pct = round(max(0.5, min(3.0, ((best_cal_p * raw_odds - 1.0) / max(0.1, raw_odds - 1.0)) * 25.0)), 2)
+    ev_pct = round(min(14.5, max(2.6, ((best_cal_p * raw_odds) - 1.0) * 100.0)), 2)
+    kelly_pct = round(max(0.5, min(2.5, ((best_cal_p * raw_odds - 1.0) / max(0.1, raw_odds - 1.0)) * 25.0)), 2)
 
+    item["xg_sum"] = xg_sum
     item["pk"] = best_label
     item["pick"] = best_label
     item["combo_pick"] = best_label
