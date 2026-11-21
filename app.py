@@ -516,7 +516,7 @@ def api_gem_feed():
         data = build_calibrated_feed()
         en = data["enriched"]
     if not en:
-        return jsonify({"live": False, "weights": data["weights"]})
+        return jsonify(_gem_purge_unapproved_and_sync_sides({"live": False, "weights": data["weights"]}))
     val = sorted([x for x in en if x["ev"] >= 4.0], key=lambda z: z["ev"], reverse=True)[:28]
     lik = sorted(en, key=lambda z: z["prob"], reverse=True)[:20]
     ai_list = sorted(en, key=lambda z: (z["ev"] * 0.6 + z["prob"] * 0.4), reverse=True)[:20]
@@ -538,12 +538,12 @@ def api_gem_feed():
     days_list = [{"label": f"{d} ({len(by_day[d])})", "picks": by_day[d]} for d in sorted(by_day)[:5]]
     if not days_list:
         days_list = [{"label": "Upcoming (0)", "picks": []}]
-    return jsonify({
+    return jsonify(_gem_purge_unapproved_and_sync_sides({
         "live": True,
         "days": days_list,
         "upd": data["updated"],
         "weights": data["weights"],
-        "matches": data.get("enriched", []),
+        "matches": data.get("enriched", [])),
         "todaysValue": [{"k":f"BEST VALUE #{i+1} | +{x['ev']:.1f}% EV","p":f"{x['prob']:.0f}%","b":"Calibrated +EV Edge","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["pick"],"o":f"Bookie {x['odds']:.2f} vs Fair {x['fair']:.2f} | EV +{x['ev']:.1f}%","n":f"Kelly Stake: {x['kelly']:.2f}u | Proj xG {x['xg_sum']} | Top CS {x['top_cs']}"} for i,x in enumerate(val)],
         "likely": [{"k":f"MOST LIKELY #{i+1} | {x['prob']:.0f}% HIT RATE","p":f"{x['prob']:.0f}%","b":"High-Confidence Banker","f":x["fixture"],"m":f"{x['league']} | {x['kickoff']}","pk":x["combo_pick"],"o":f"Odds {x['odds']:.2f} | Calibrated Hit Prob {x['prob']:.1f}%","n":f"Dixon-Coles low-variance combo | Proj xG {x['xg_sum']}"} for i,x in enumerate(lik)],
         "ai": [{"k":f"AI BIVARIATE POISSON | SYN-9.6","p":f"{x['prob']:.0f}%","b":"AI Calibrated Engine","t":"ai","f":x["fixture"],"m":f"Dixon-Coles + Logit Pool | xG {x['xg_sum']}","pk":f"AI Pick: {x['pick']} (Proj CS {x['top_cs']})","o":f"Fair {x['fair']:.2f} vs Market {x['odds']:.2f} | Edge +{x['ev']:.1f}%","n":"Platt/Log-Odds sharp market prior + time-decayed npxG."} for x in ai_list],
@@ -1046,6 +1046,25 @@ def _enforce_v195(response):
     response.set_data(_json.dumps(p))
     return response
 
+
+def _gem_purge_unapproved_and_sync_sides(feed):
+    if not isinstance(feed, dict):
+        return feed
+    for k, v in list(feed.items()):
+        if isinstance(v, list):
+            clean_list = []
+            for item in v:
+                if not isinstance(item, dict):
+                    clean_list.append(item)
+                    continue
+                if item.get("approved") is False:
+                    continue
+                real_pick = str(item.get("combo_pick") or item.get("pick") or "").strip()
+                if real_pick and item.get("pk") and ("(1X2)" in str(item.get("pk")) and ("(X2)" in real_pick or "(1X)" in real_pick or "Over" in real_pick)):
+                    item["pk"] = real_pick
+                clean_list.append(item)
+            feed[k] = clean_list
+    return feed
 
 def _gem_normalize_tab_picks(payload=None, tab="all"):
     if payload is None:

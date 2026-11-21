@@ -19,13 +19,13 @@
     "away_team": "Queens Park Rangers",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 2.75,
-    "draw_odds": 3.55,
-    "away_odds": 2.5,
+    "home_odds": 2.6,
+    "draw_odds": 3.5,
+    "away_odds": 2.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.96,
-    "xg_away": 1.06
+    "xg_home": 1.02,
+    "xg_away": 1.0
   },
   {
     "sport_key": "soccer_all",
@@ -33,13 +33,13 @@
     "away_team": "Cardiff City",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.77,
-    "draw_odds": 4.4,
-    "away_odds": 3.9,
+    "home_odds": 1.62,
+    "draw_odds": 4.6,
+    "away_odds": 4.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.5,
-    "xg_away": 0.68
+    "xg_home": 1.64,
+    "xg_away": 0.65
   },
   {
     "sport_key": "soccer_all",
@@ -47,12 +47,12 @@
     "away_team": "Derby County",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.38,
-    "draw_odds": 5.25,
-    "away_odds": 8.0,
+    "home_odds": 1.47,
+    "draw_odds": 4.7,
+    "away_odds": 6.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.92,
+    "xg_home": 1.8,
     "xg_away": 0.65
   },
   {
@@ -89,13 +89,13 @@
     "away_team": "Crewe Alexandra",
     "league": "English League Two",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 2.5,
-    "draw_odds": 3.3,
-    "away_odds": 2.8,
+    "home_odds": 2.3,
+    "draw_odds": 3.35,
+    "away_odds": 3.05,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.06,
-    "xg_away": 0.95
+    "xg_home": 1.15,
+    "xg_away": 0.87
   },
   {
     "sport_key": "soccer_eng.4",
@@ -187,12 +187,12 @@
     "away_team": "SC Paderborn 07",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 1.27,
+    "home_odds": 1.29,
     "draw_odds": 6.0,
     "away_odds": 7.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.09,
+    "xg_home": 2.05,
     "xg_away": 0.65
   },
   {
@@ -202,12 +202,12 @@
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
     "home_odds": 5.0,
-    "draw_odds": 4.3,
-    "away_odds": 1.54,
+    "draw_odds": 4.4,
+    "away_odds": 1.53,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.72
+    "xg_away": 1.73
   },
   {
     "sport_key": "soccer_all",
@@ -215,12 +215,12 @@
     "away_team": "TSG Hoffenheim",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 2.45,
-    "draw_odds": 3.8,
+    "home_odds": 2.4,
+    "draw_odds": 3.85,
     "away_odds": 2.45,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.08,
+    "xg_home": 1.1,
     "xg_away": 1.08
   },
   {
@@ -425,12 +425,12 @@
     "away_team": "Doncaster Rovers",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.65,
-    "draw_odds": 4.1,
+    "home_odds": 1.62,
+    "draw_odds": 4.2,
     "away_odds": 4.9,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.61,
+    "xg_home": 1.64,
     "xg_away": 0.65
   },
   {
@@ -439,13 +439,13 @@
     "away_team": "Luton Town",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 5.75,
-    "draw_odds": 4.5,
-    "away_odds": 1.51,
+    "home_odds": 6.0,
+    "draw_odds": 4.6,
+    "away_odds": 1.48,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.75
+    "xg_away": 1.79
   },
   {
     "sport_key": "soccer_eng.3",
@@ -454,7 +454,7 @@
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 3.45,
-    "draw_odds": 3.95,
+    "draw_odds": 3.85,
     "away_odds": 1.95,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
@@ -509,13 +509,13 @@
     "away_team": "Stevenage",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.1,
-    "draw_odds": 3.5,
-    "away_odds": 3.4,
+    "home_odds": 2.05,
+    "draw_odds": 3.55,
+    "away_odds": 3.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.26,
-    "xg_away": 0.78
+    "xg_home": 1.29,
+    "xg_away": 0.76
   },
   {
     "sport_key": "soccer_eng.3",
@@ -537,13 +537,13 @@
     "away_team": "Peterborough United",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.83,
+    "home_odds": 1.87,
     "draw_odds": 4.0,
-    "away_odds": 3.7,
+    "away_odds": 3.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.45,
-    "xg_away": 0.72
+    "xg_home": 1.42,
+    "xg_away": 0.74
   },
   {
     "sport_key": "soccer_eng.4",
@@ -579,13 +579,13 @@
     "away_team": "Bristol Rovers",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.8,
+    "home_odds": 2.65,
     "draw_odds": 3.5,
-    "away_odds": 2.4,
+    "away_odds": 2.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.95,
-    "xg_away": 1.1
+    "xg_home": 1.0,
+    "xg_away": 1.06
   },
   {
     "sport_key": "soccer_eng.4",
@@ -593,12 +593,12 @@
     "away_team": "Shrewsbury Town",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.67,
+    "home_odds": 1.69,
     "draw_odds": 3.95,
-    "away_odds": 4.9,
+    "away_odds": 4.8,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.59,
+    "xg_home": 1.57,
     "xg_away": 0.65
   },
   {
@@ -747,7 +747,7 @@
     "away_team": "Crystal Palace",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T17:15Z",
-    "home_odds": 1.13,
+    "home_odds": 1.14,
     "draw_odds": 8.0,
     "away_odds": 13.0,
     "over_25_odds": 1.85,
@@ -761,13 +761,13 @@
     "away_team": "Arsenal",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T17:30Z",
-    "home_odds": 5.75,
-    "draw_odds": 4.2,
-    "away_odds": 1.57,
+    "home_odds": 6.0,
+    "draw_odds": 4.1,
+    "away_odds": 1.56,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.69
+    "xg_away": 1.7
   },
   {
     "sport_key": "soccer_all",
@@ -873,12 +873,12 @@
     "away_team": "AJ Auxerre",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T19:45Z",
-    "home_odds": 1.44,
-    "draw_odds": 4.8,
-    "away_odds": 7.0,
+    "home_odds": 1.41,
+    "draw_odds": 4.9,
+    "away_odds": 7.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.84,
+    "xg_home": 1.88,
     "xg_away": 0.65
   },
   {
