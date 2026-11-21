@@ -187,12 +187,12 @@
     "away_team": "SC Paderborn 07",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 1.3,
+    "home_odds": 1.29,
     "draw_odds": 6.0,
     "away_odds": 7.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.04,
+    "xg_home": 2.05,
     "xg_away": 0.65
   },
   {

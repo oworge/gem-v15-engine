@@ -1,36 +1,36 @@
 {
-  "combined_odds": 2.63,
+  "combined_odds": 3.18,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "France",
-      "ev_pct": 2.6,
-      "fixture": "Nice v Paris Saint-Germain",
+      "country": "Germany",
+      "ev_pct": 3.49,
+      "fixture": "Bayer Leverkusen v SC Paderborn 07",
+      "league": "Global",
+      "odds": 1.42,
+      "region": "german",
+      "selection": "Over 1.5 Match Goals"
+    },
+    {
+      "country": "UK",
+      "ev_pct": 3.48,
+      "fixture": "West Ham United v Preston North End",
       "league": "Global",
       "odds": 1.41,
-      "region": "france",
-      "selection": "Over 1.5 Match Goals"
-    },
-    {
-      "country": "UK",
-      "ev_pct": 2.6,
-      "fixture": "York City v Walsall",
-      "league": "Global",
-      "odds": 1.37,
       "region": "uk",
       "selection": "Over 1.5 Match Goals"
     },
     {
       "country": "UK",
-      "ev_pct": 2.6,
-      "fixture": "Aston Villa v Sunderland",
+      "ev_pct": 3.48,
+      "fixture": "Blackpool v Wigan Athletic",
       "league": "Global",
-      "odds": 1.36,
+      "odds": 1.59,
       "region": "uk",
-      "selection": "Over 1.5 Match Goals"
+      "selection": "Both Teams to Score (BTTS Yes)"
     }
   ]
 }

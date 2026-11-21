@@ -1289,12 +1289,13 @@ def _gem_recalibrate_all_markets(item):
     best_cal_p = _calibrate_and_adjust(devig_prob + 0.04, devig_prob, item)
 
     for label, m_prob, weight in candidates:
-        fair_p = min(0.86, max(0.40, m_prob * 0.965))
-        c_p = _calibrate_and_adjust(m_prob, fair_p, item)
-        est_odds = round(1.0 / max(0.15, fair_p), 2)
-        if 1.35 <= est_odds <= 2.30 and c_p >= 0.56:
+        # Anchor devigged market prior with standard bookmaker margin (~5.5% overround)
+        market_p = min(0.84, max(0.38, m_prob * 0.925))
+        c_p = _calibrate_and_adjust(m_prob, market_p, item)
+        est_odds = round(1.0 / max(0.15, market_p), 2)
+        if 1.38 <= est_odds <= 2.35 and c_p >= 0.56:
             edge = (c_p * est_odds) - 1.0
-            score = (c_p * weight) + (edge * 1.4)
+            score = (c_p * weight) + (edge * 2.2)
             if score > best_score:
                 best_score = score
                 best_label = label
