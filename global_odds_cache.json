@@ -1,19 +1,5 @@
 [
   {
-    "sport_key": "soccer_esp.1",
-    "home_team": "Alav\u00e9s",
-    "away_team": "Deportivo",
-    "league": "Spanish LALIGA",
-    "kickoff": "2026-11-21T13:00Z",
-    "home_odds": 2.15,
-    "draw_odds": 3.3,
-    "away_odds": 3.6,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.23,
-    "xg_away": 0.74
-  },
-  {
     "sport_key": "soccer_ita.1",
     "home_team": "Como",
     "away_team": "Cagliari",
@@ -117,13 +103,13 @@
     "away_team": "Nottingham Forest",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.1,
-    "draw_odds": 3.4,
-    "away_odds": 3.65,
+    "home_odds": 2.15,
+    "draw_odds": 3.35,
+    "away_odds": 3.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.26,
-    "xg_away": 0.73
+    "xg_home": 1.23,
+    "xg_away": 0.74
   },
   {
     "sport_key": "soccer_eng.1",
@@ -131,12 +117,12 @@
     "away_team": "Sunderland",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.71,
-    "draw_odds": 3.9,
-    "away_odds": 4.7,
+    "home_odds": 1.69,
+    "draw_odds": 3.95,
+    "away_odds": 5.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.55,
+    "xg_home": 1.57,
     "xg_away": 0.65
   },
   {
@@ -147,11 +133,11 @@
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.95,
     "draw_odds": 3.6,
-    "away_odds": 3.85,
+    "away_odds": 3.8,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 1.36,
-    "xg_away": 0.69
+    "xg_away": 0.7
   },
   {
     "sport_key": "soccer_eng.1",
@@ -159,13 +145,13 @@
     "away_team": "Crystal Palace",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.5,
-    "draw_odds": 3.45,
-    "away_odds": 2.75,
+    "home_odds": 2.55,
+    "draw_odds": 3.5,
+    "away_odds": 2.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.06,
-    "xg_away": 0.96
+    "xg_home": 1.04,
+    "xg_away": 0.98
   },
   {
     "sport_key": "soccer_eng.1",
@@ -173,26 +159,12 @@
     "away_team": "Ipswich Town",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.5,
-    "draw_odds": 4.6,
+    "home_odds": 1.49,
+    "draw_odds": 4.7,
     "away_odds": 6.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.77,
-    "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_esp.1",
-    "home_team": "Rayo Vallecano",
-    "away_team": "Valencia",
-    "league": "Spanish LALIGA",
-    "kickoff": "2026-11-21T15:15Z",
-    "home_odds": 1.95,
-    "draw_odds": 3.45,
-    "away_odds": 4.1,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.36,
+    "xg_home": 1.78,
     "xg_away": 0.65
   },
   {
@@ -201,13 +173,13 @@
     "away_team": "Paris Saint-Germain",
     "league": "French Ligue 1",
     "kickoff": "2026-11-21T16:15Z",
-    "home_odds": 5.75,
+    "home_odds": 6.0,
     "draw_odds": 5.0,
-    "away_odds": 1.48,
+    "away_odds": 1.47,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.79
+    "xg_away": 1.8
   },
   {
     "sport_key": "soccer_ita.1",
@@ -236,20 +208,6 @@
     "under_25_odds": 1.95,
     "xg_home": 0.75,
     "xg_away": 1.7
-  },
-  {
-    "sport_key": "soccer_esp.1",
-    "home_team": "Sevilla",
-    "away_team": "Real Betis",
-    "league": "Spanish LALIGA",
-    "kickoff": "2026-11-21T17:30Z",
-    "home_odds": 2.95,
-    "draw_odds": 3.3,
-    "away_odds": 2.45,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.9,
-    "xg_away": 1.08
   },
   {
     "sport_key": "soccer_ger.1",
@@ -299,12 +257,12 @@
     "away_team": "AJ Auxerre",
     "league": "French Ligue 1",
     "kickoff": "2026-11-21T19:45Z",
-    "home_odds": 1.41,
+    "home_odds": 1.42,
     "draw_odds": 4.9,
     "away_odds": 7.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.88,
+    "xg_home": 1.87,
     "xg_away": 0.65
   },
   {
@@ -348,20 +306,6 @@
     "under_25_odds": 1.95,
     "xg_home": 1.18,
     "xg_away": 0.84
-  },
-  {
-    "sport_key": "soccer_esp.1",
-    "home_team": "Real Madrid",
-    "away_team": "Celta Vigo",
-    "league": "Spanish LALIGA",
-    "kickoff": "2026-11-21T20:00Z",
-    "home_odds": 1.15,
-    "draw_odds": 8.0,
-    "away_odds": 16.0,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 2.3,
-    "xg_away": 0.65
   },
   {
     "sport_key": "soccer_bra.1",
