@@ -464,8 +464,7 @@ def _gem_after_request_recalibrate(response):
     if request.path in ("/api/tab-picks", "/api/gem-feed") and response.status_code == 200:
         try:
             response.direct_passthrough = False
-            raw_text = response.get_data(as_text=True)
-            payload = json.loads(raw_text)
+            payload = json.loads(response.get_data(as_text=True))
             if isinstance(payload, dict):
                 def _prep(row):
                     if not isinstance(row, dict) or row.get("approved") is False:
@@ -489,22 +488,23 @@ def _gem_after_request_recalibrate(response):
                         out["region"] = "world"
                     return out
 
-                if isinstance(payload.get("picks"), list):
-                    cleaned = [x for x in (_prep(p) for p in payload["picks"]) if x is not None]
-                    payload["picks"] = cleaned
-                    payload["count"] = len(cleaned)
-                for list_key in ("todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
+                pool = []
+                for list_key in ("picks", "todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
                     if isinstance(payload.get(list_key), list):
                         sub_clean = [x for x in (_prep(p) for p in payload[list_key]) if x is not None]
                         payload[list_key] = sub_clean
+                        pool.extend(sub_clean)
+
+                if isinstance(payload.get("picks"), list) and len(payload["picks"]) == 0 and pool:
+                    payload["picks"] = pool[:12]
+                    payload["count"] = len(payload["picks"])
+                elif isinstance(payload.get("picks"), list):
+                    payload["count"] = len(payload["picks"])
+
                 response.set_data(json.dumps(payload, default=str))
         except Exception:
             pass
     return response
-
-
-
-
 
 def get_perfect_value_alerts(picks):
     if not picks:
