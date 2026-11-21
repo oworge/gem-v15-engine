@@ -117,13 +117,13 @@
     "away_team": "Nottingham Forest",
     "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.05,
+    "home_odds": 2.1,
     "draw_odds": 3.4,
-    "away_odds": 3.75,
+    "away_odds": 3.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.29,
-    "xg_away": 0.71
+    "xg_home": 1.26,
+    "xg_away": 0.73
   },
   {
     "sport_key": "soccer_eng.1",
