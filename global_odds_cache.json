@@ -47,12 +47,12 @@
     "away_team": "Derby County",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.53,
-    "draw_odds": 4.5,
-    "away_odds": 5.75,
+    "home_odds": 1.5,
+    "draw_odds": 4.6,
+    "away_odds": 6.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.73,
+    "xg_home": 1.77,
     "xg_away": 0.65
   },
   {

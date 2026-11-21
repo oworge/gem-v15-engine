@@ -161,6 +161,42 @@ def _make_5_legs(pick_item):
         "xg_gate_passed": True,
     })
     return out
+def _dixon_coles_markets(xg_home, xg_away, rho=-0.11):
+    lh = max(0.25, float(xg_home))
+    la = max(0.25, float(xg_away))
+    p_1x_o15 = 0.0
+    p_x2_o15 = 0.0
+    p_btts = 0.0
+    p_o25 = 0.0
+    for h in range(8):
+        ph = (math.exp(-lh) * (lh ** h)) / math.factorial(h)
+        for a in range(8):
+            pa = (math.exp(-la) * (la ** a)) / math.factorial(a)
+            tau = 1.0
+            if h == 0 and a == 0:
+                tau = 1.0 - (lh * la * rho)
+            elif h == 1 and a == 0:
+                tau = 1.0 + (la * rho)
+            elif h == 0 and a == 1:
+                tau = 1.0 + (lh * rho)
+            elif h == 1 and a == 1:
+                tau = 1.0 - rho
+            cp = max(0.0, ph * pa * tau)
+            if h >= a and (h + a) >= 2:
+                p_1x_o15 += cp
+            if a >= h and (h + a) >= 2:
+                p_x2_o15 += cp
+            if h >= 1 and a >= 1:
+                p_btts += cp
+            if (h + a) >= 3:
+                p_o25 += cp
+    return {
+        "1x_o15": round(min(0.94, max(0.05, p_1x_o15)), 4),
+        "x2_o15": round(min(0.94, max(0.05, p_x2_o15)), 4),
+        "btts": round(min(0.92, max(0.05, p_btts)), 4),
+        "o25": round(min(0.92, max(0.05, p_o25)), 4),
+    }
+
 def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
     # Compute exact 1X & Over 1.5 Goals probability from bivariate Poisson with Dixon-Coles low-score adjustment
     lh = max(0.25, float(xg_home))
@@ -208,6 +244,22 @@ def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
     return min(0.94, max(0.05, total_p))
 
 def _calibrate_and_adjust(model_prob, devig_prob, item=None):
+    # Recompute true probability from Dixon-Coles bivariate Poisson score matrix when xG is present
+    if isinstance(item, dict):
+        xg_sum = float(item.get("xg_sum") or 0.0)
+        xg_h = float(item.get("xg_home") or (xg_sum * 0.54 if xg_sum > 0 else 0.0))
+        xg_a = float(item.get("xg_away") or (xg_sum * 0.46 if xg_sum > 0 else 0.0))
+        if xg_h > 0 and xg_a > 0:
+            dc = _dixon_coles_markets(xg_h, xg_a)
+            pk_txt = str(item.get("pk") or item.get("pick") or "").lower()
+            if "1x" in pk_txt and "1.5" in pk_txt:
+                model_prob = dc["1x_o15"]
+            elif "x2" in pk_txt and "1.5" in pk_txt:
+                model_prob = dc["x2_o15"]
+            elif "btts" in pk_txt or "both teams to score" in pk_txt:
+                model_prob = dc["btts"]
+            elif "2.5" in pk_txt:
+                model_prob = dc["o25"]
     # Log-odds (logit) Bayesian pooling anchored to devigged sharp market probabilities
     eps = 1e-4
     pm = min(1.0 - eps, max(eps, float(model_prob)))
