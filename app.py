@@ -1571,42 +1571,7 @@ def _gem_recalibrate_all_markets(item):
             best_cal_p = c_p
             raw_odds = est_odds
 
-    fair_odds = round(1.0 / max(0.05, best_cal_p), 2)
-    ev_pct = round(min(14.5, max(2.8, ((best_cal_p * raw_odds) - 1.0) * 100.0)), 2)
-    kelly_pct = round(max(0.5, min(2.5, ((best_cal_p * raw_odds - 1.0) / max(0.1, raw_odds - 1.0)) * 25.0)), 2)
-
     pg_out = predigoal_predict(xg_h, xg_a, best_label)
-    opta_out = opta_signal(
-        xg_home=xg_h,
-        xg_away=xg_a,
-        dc_prob=best_cal_p,
-        opta_xg_home=item.get("opta_xg_home"),
-        opta_xg_away=item.get("opta_xg_away"),
-        opta_prob=item.get("opta_prob"),
-    )
-    sb_prob = item.get("sportsbook_prob") or sportsbook_implied_prob(item.get("book_odds") or raw_odds)
-
-    item["xg_sum"] = xg_sum
-    item["xg_home"] = xg_h
-    item["xg_away"] = xg_a
-    item["pk"] = best_label
-    item["pick"] = best_label
-    item["combo_pick"] = best_label
-    item["odds"] = raw_odds
-    item["fair"] = fair_odds
-    item["prob"] = round(best_cal_p * 100.0, 1)
-    item["ev"] = ev_pct
-    item["kelly"] = kelly_pct
-    item["approved"] = True
-    item["vetted"] = True
-    item["vetting_removed"] = True
-    item["cleared"] = True
-    item["markets_evaluated"] = 19
-    item["cleared_markets"] = all_markets
-    item["predigoal"] = pg_out
-    item["predicted_score"] = pg_out["predicted_score"]
-    item["opta"] = opta_out
-    item["sportsbook_prob"] = sb_prob
     opta_out = opta_signal(
         xg_home=xg_h,
         xg_away=xg_a,
@@ -1624,10 +1589,8 @@ def _gem_recalibrate_all_markets(item):
         forebet_score=item.get("forebet_score"),
     )
     sb_prob = item.get("sportsbook_prob") or sportsbook_implied_prob(item.get("book_odds") or raw_odds)
-    item["opta"] = opta_out
-    item["forebet"] = fb_out
-    item["sportsbook_prob"] = sb_prob
-    item["ensemble"] = blend_probabilities(
+
+    ens = blend_probabilities(
         dc_prob=best_cal_p,
         kalshi_prob=item.get("kalshi_prob"),
         scoreai_prob=item.get("scoreai_prob"),
@@ -1641,15 +1604,35 @@ def _gem_recalibrate_all_markets(item):
         sofascore_prob=item.get("sofascore_prob"),
         tipstrr_prob=item.get("tipstrr_prob"),
     )
-    ens_p = float((item.get("ensemble") or {}).get("blended_prob") or best_cal_p)
-    ens_p = max(0.05, min(0.96, ens_p))
+
+    ens_p = max(0.05, min(0.96, float(ens.get("blended_prob") or best_cal_p)))
     fair_odds = round(1.0 / max(0.05, ens_p), 2)
     ev_pct = round(min(15.5, max(2.8, ((ens_p * raw_odds) - 1.0) * 100.0)), 2)
     kelly_pct = round(max(0.5, min(2.5, ((ens_p * raw_odds - 1.0) / max(0.1, raw_odds - 1.0)) * 25.0)), 2)
-    item["prob"] = round(ens_p * 100.0, 1)
+
+    item["xg_sum"] = xg_sum
+    item["xg_home"] = xg_h
+    item["xg_away"] = xg_a
+    item["pk"] = best_label
+    item["pick"] = best_label
+    item["combo_pick"] = best_label
+    item["odds"] = raw_odds
     item["fair"] = fair_odds
+    item["prob"] = round(ens_p * 100.0, 1)
     item["ev"] = ev_pct
     item["kelly"] = kelly_pct
+    item["approved"] = True
+    item["vetted"] = True
+    item["vetting_removed"] = True
+    item["cleared"] = True
+    item["markets_evaluated"] = 19
+    item["cleared_markets"] = all_markets
+    item["predigoal"] = pg_out
+    item["predicted_score"] = pg_out["predicted_score"]
+    item["opta"] = opta_out
+    item["forebet"] = fb_out
+    item["sportsbook_prob"] = sb_prob
+    item["ensemble"] = ens
     item["recalibrated_by_ensemble"] = True
     return item
 
