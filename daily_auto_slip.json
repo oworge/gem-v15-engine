@@ -1,0 +1,33 @@
+{
+  "combined_odds": 5.99,
+  "engine": "GEM-V15-AUTO",
+  "legs_count": 3,
+  "recommended_stake_gbp": 15.0,
+  "recommended_stake_pct": 1.5,
+  "slip": [
+    {
+      "ev_pct": 36.32,
+      "fixture": "Barnet v Port Vale",
+      "league": "Global",
+      "odds": 1.75,
+      "region": "uk",
+      "selection": "Barnet Draw No Bet (DNB)"
+    },
+    {
+      "ev_pct": 33.11,
+      "fixture": "London City Lionesses v Crystal Palace",
+      "league": "Global Football",
+      "odds": 1.85,
+      "region": "uk",
+      "selection": "Both Teams to Score - Yes (Proj xG 2.95)"
+    },
+    {
+      "ev_pct": 31.3,
+      "fixture": "Middlesbrough v Bristol City",
+      "league": "Global",
+      "odds": 1.85,
+      "region": "uk",
+      "selection": "Middlesbrough Win (1X2)"
+    }
+  ]
+}

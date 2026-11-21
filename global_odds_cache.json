@@ -369,13 +369,13 @@
     "away_team": "Birmingham City",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.85,
-    "draw_odds": 3.15,
-    "away_odds": 2.65,
+    "home_odds": 2.8,
+    "draw_odds": 3.2,
+    "away_odds": 2.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 0.93,
-    "xg_away": 1.0
+    "xg_home": 0.95,
+    "xg_away": 1.02
   },
   {
     "sport_key": "soccer_all",
