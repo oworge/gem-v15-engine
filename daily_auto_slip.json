@@ -16,6 +16,14 @@
       "_orig_pk": "Over 2.5 Match Goals",
       "_orig_odds": 4.0,
       "_inferred_split": true,
+      "pure_math": {
+        "pure_math_prob": 0.4957,
+        "breakeven_prob": 0.4902,
+        "ev_pct": 1.13,
+        "raw_kelly_pct": 1.09,
+        "recommended_stake_pct": 0.27,
+        "shrinkage_applied": 0.25
+      },
       "xg_sum": 2.54,
       "xg_home": 1.295,
       "xg_away": 1.245,
@@ -23,9 +31,9 @@
       "pick": "Both Teams to Score (BTTS Yes)",
       "combo_pick": "Both Teams to Score (BTTS Yes)",
       "fair": 1.98,
-      "prob": 50.5,
-      "ev": 3.02,
-      "kelly": 0.73,
+      "prob": 50.4,
+      "ev": 2.8,
+      "kelly": 0.67,
       "approved": true,
       "vetted": true,
       "vetting_removed": true,
@@ -171,13 +179,14 @@
       },
       "sportsbook_prob": 0.4632,
       "ensemble": {
-        "blended_prob": 0.505,
+        "blended_prob": 0.5039,
         "sources_used": [
           "dixon_coles",
           "forebet",
           "opta",
           "predigoal",
-          "sportsbook"
+          "sportsbook",
+          "pure_math"
         ],
         "consensus_spread_pct": 5.1
       },
@@ -195,6 +204,14 @@
       "_orig_pk": "Over 2.5 Match Goals",
       "_orig_odds": 4.0,
       "_inferred_split": true,
+      "pure_math": {
+        "pure_math_prob": 0.4957,
+        "breakeven_prob": 0.4902,
+        "ev_pct": 1.13,
+        "raw_kelly_pct": 1.09,
+        "recommended_stake_pct": 0.27,
+        "shrinkage_applied": 0.25
+      },
       "xg_sum": 2.54,
       "xg_home": 1.295,
       "xg_away": 1.245,
@@ -202,9 +219,9 @@
       "pick": "Both Teams to Score (BTTS Yes)",
       "combo_pick": "Both Teams to Score (BTTS Yes)",
       "fair": 1.98,
-      "prob": 50.5,
-      "ev": 3.02,
-      "kelly": 0.73,
+      "prob": 50.4,
+      "ev": 2.8,
+      "kelly": 0.67,
       "approved": true,
       "vetted": true,
       "vetting_removed": true,
@@ -350,13 +367,14 @@
       },
       "sportsbook_prob": 0.4632,
       "ensemble": {
-        "blended_prob": 0.505,
+        "blended_prob": 0.5039,
         "sources_used": [
           "dixon_coles",
           "forebet",
           "opta",
           "predigoal",
-          "sportsbook"
+          "sportsbook",
+          "pure_math"
         ],
         "consensus_spread_pct": 5.1
       },
@@ -374,6 +392,14 @@
       "_orig_pk": "Over 2.5 Match Goals",
       "_orig_odds": 4.0,
       "_inferred_split": true,
+      "pure_math": {
+        "pure_math_prob": 0.4957,
+        "breakeven_prob": 0.4902,
+        "ev_pct": 1.13,
+        "raw_kelly_pct": 1.09,
+        "recommended_stake_pct": 0.27,
+        "shrinkage_applied": 0.25
+      },
       "xg_sum": 2.54,
       "xg_home": 1.295,
       "xg_away": 1.245,
@@ -381,9 +407,9 @@
       "pick": "Both Teams to Score (BTTS Yes)",
       "combo_pick": "Both Teams to Score (BTTS Yes)",
       "fair": 1.98,
-      "prob": 50.5,
-      "ev": 3.02,
-      "kelly": 0.73,
+      "prob": 50.4,
+      "ev": 2.8,
+      "kelly": 0.67,
       "approved": true,
       "vetted": true,
       "vetting_removed": true,
@@ -529,13 +555,14 @@
       },
       "sportsbook_prob": 0.4632,
       "ensemble": {
-        "blended_prob": 0.505,
+        "blended_prob": 0.5039,
         "sources_used": [
           "dixon_coles",
           "forebet",
           "opta",
           "predigoal",
-          "sportsbook"
+          "sportsbook",
+          "pure_math"
         ],
         "consensus_spread_pct": 5.1
       },

@@ -151,6 +151,7 @@ def blend_probabilities(
     football_ai_prob: Optional[float] = None,
     sofascore_prob: Optional[float] = None,
     tipstrr_prob: Optional[float] = None,
+    pure_math_prob: Optional[float] = None,
 ) -> dict:
     """Blend all available predictive engines with clean fallbacks and zero filtering."""
     weighted_sources: list[tuple[Optional[float], float, str]] = [
@@ -165,6 +166,7 @@ def blend_probabilities(
         (sofascore_prob, 0.02, "sofascore"),
         (olbg_prob, 0.01, "olbg"),
         (tipstrr_prob, 0.01, "tipstrr"),
+        (pure_math_prob, 0.10, "pure_math"),
     ]
 
     parts: list[tuple[float, float, str]] = []
@@ -186,4 +188,44 @@ def blend_probabilities(
         "blended_prob": round(blended_prob, 4),
         "sources_used": sources_used,
         "consensus_spread_pct": spread_pct,
+    }
+
+
+def _clamp_prob(p: float, lo: float = 0.02, hi: float = 0.98) -> float:
+    return max(lo, min(hi, float(p)))
+
+
+def pure_math_strategy(
+    prob: float,
+    decimal_odds: float,
+    anchor_prob: Optional[float] = None,
+    shrinkage: float = 0.25,
+    kelly_fraction: float = 0.25,
+    max_stake_pct: float = 2.0,
+) -> dict:
+    """Pure mathematical strategy: logit shrinkage, EV, breakeven prob, and fractional Kelly."""
+    p_raw = _clamp_prob(prob, 0.05, 0.95)
+    odds_val = max(1.05, float(decimal_odds or 1.80))
+    breakeven_p = 1.0 / odds_val
+
+    ref_p = _clamp_prob(anchor_prob if anchor_prob is not None else breakeven_p, 0.05, 0.95)
+    lam = max(0.0, min(0.80, float(shrinkage)))
+
+    logit_p = math.log(p_raw / (1.0 - p_raw))
+    logit_ref = math.log(ref_p / (1.0 - ref_p))
+    shrunk_logit = ((1.0 - lam) * logit_p) + (lam * logit_ref)
+    p_math = 1.0 / (1.0 + math.exp(-shrunk_logit))
+    p_math = _clamp_prob(p_math, 0.05, 0.95)
+
+    ev_decimal = (p_math * odds_val) - 1.0
+    raw_kelly = ev_decimal / max(0.05, odds_val - 1.0)
+    adj_kelly_pct = max(0.0, min(float(max_stake_pct), raw_kelly * float(kelly_fraction) * 100.0))
+
+    return {
+        "pure_math_prob": round(p_math, 4),
+        "breakeven_prob": round(breakeven_p, 4),
+        "ev_pct": round(ev_decimal * 100.0, 2),
+        "raw_kelly_pct": round(max(0.0, raw_kelly * 100.0), 2),
+        "recommended_stake_pct": round(adj_kelly_pct, 2),
+        "shrinkage_applied": lam,
     }

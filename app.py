@@ -1,4 +1,4 @@
-from help_engines import blend_probabilities, predigoal_predict, opta_signal, sportsbook_implied_prob, forebet_math_signal
+﻿from help_engines import blend_probabilities, predigoal_predict, opta_signal, sportsbook_implied_prob, forebet_math_signal, pure_math_strategy
 import math
 import re
 def _sanitize_acca10_all_markets_v167(feed_dict):
@@ -784,7 +784,7 @@ def _build_dynamic_tabs(picks):
         {
             "match": p.get("match", "NegBin & Monte Carlo"),
             "comp": "5,000 Sims | CIRF Fatigue & Tactical Audit",
-            "pick": f"TACTICAL PASS — {p.get('pick', 'Zero Fatigue Flags')}",
+            "pick": f"TACTICAL PASS â€” {p.get('pick', 'Zero Fatigue Flags')}",
             "odds": p.get("odds", "PASS"),
         }
         for p in picks[:18]
@@ -1590,6 +1590,15 @@ def _gem_recalibrate_all_markets(item):
     )
     sb_prob = item.get("sportsbook_prob") or sportsbook_implied_prob(item.get("book_odds") or raw_odds)
 
+    pm_out = pure_math_strategy(
+        prob=best_cal_p,
+        decimal_odds=raw_odds,
+        anchor_prob=sb_prob,
+        shrinkage=0.25,
+        kelly_fraction=0.25,
+        max_stake_pct=1.75,
+    )
+    item["pure_math"] = pm_out
     ens = blend_probabilities(
         dc_prob=best_cal_p,
         kalshi_prob=item.get("kalshi_prob"),
@@ -1603,6 +1612,7 @@ def _gem_recalibrate_all_markets(item):
         football_ai_prob=item.get("football_ai_prob"),
         sofascore_prob=item.get("sofascore_prob"),
         tipstrr_prob=item.get("tipstrr_prob"),
+        pure_math_prob=pm_out["pure_math_prob"],
     )
 
     ens_p = max(0.05, min(0.96, float(ens.get("blended_prob") or best_cal_p)))
@@ -1698,7 +1708,7 @@ def _gem_normalize_tab_picks(payload=None, tab="all"):
                 "germany", "german", "bundesliga", "2. bundesliga", "dfb-pokal",
                 "bayern", "dortmund", "borussia", "leipzig", "rb leipzig", "leverkusen", "bayer leverkusen",
                 "frankfurt", "eintracht", "stuttgart", "freiburg", "wolfsburg", "union berlin", "gladbach",
-                "monchengladbach", "mönchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum",
+                "monchengladbach", "mÃ¶nchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum",
                 "heidenheim", "st. pauli", "kiel", "schalke", "hamburg", "hertha", "koln", "cologne"
             )),
             ("Spain", "spain", "global", (
@@ -2099,3 +2109,4 @@ def _gem_dashboard_engine_pass(response):
         except Exception:
             pass
     return response
+
