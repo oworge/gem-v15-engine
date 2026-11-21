@@ -164,10 +164,14 @@ def _make_5_legs(pick_item):
 def _dixon_coles_markets(xg_home, xg_away, rho=-0.11):
     lh = max(0.25, float(xg_home))
     la = max(0.25, float(xg_away))
-    p_1x_o15 = 0.0
-    p_x2_o15 = 0.0
-    p_btts = 0.0
-    p_o25 = 0.0
+    m = {
+        "home": 0.0, "draw": 0.0, "away": 0.0,
+        "1x": 0.0, "x2": 0.0, "12": 0.0,
+        "1x_o15": 0.0, "x2_o15": 0.0, "1x_u35": 0.0, "x2_u35": 0.0,
+        "o15": 0.0, "o25": 0.0, "o35": 0.0, "u25": 0.0, "u35": 0.0,
+        "btts_yes": 0.0, "btts_no": 0.0,
+        "home_wtn": 0.0, "away_wtn": 0.0,
+    }
     for h in range(8):
         ph = (math.exp(-lh) * (lh ** h)) / math.factorial(h)
         for a in range(8):
@@ -182,20 +186,52 @@ def _dixon_coles_markets(xg_home, xg_away, rho=-0.11):
             elif h == 1 and a == 1:
                 tau = 1.0 - rho
             cp = max(0.0, ph * pa * tau)
-            if h >= a and (h + a) >= 2:
-                p_1x_o15 += cp
-            if a >= h and (h + a) >= 2:
-                p_x2_o15 += cp
+            goals = h + a
+            if h > a:
+                m["home"] += cp
+                if a == 0:
+                    m["home_wtn"] += cp
+            elif h == a:
+                m["draw"] += cp
+            else:
+                m["away"] += cp
+                if h == 0:
+                    m["away_wtn"] += cp
+            if h >= a:
+                m["1x"] += cp
+                if goals >= 2:
+                    m["1x_o15"] += cp
+                if goals <= 3:
+                    m["1x_u35"] += cp
+            if a >= h:
+                m["x2"] += cp
+                if goals >= 2:
+                    m["x2_o15"] += cp
+                if goals <= 3:
+                    m["x2_u35"] += cp
+            if h != a:
+                m["12"] += cp
+            if goals >= 2:
+                m["o15"] += cp
+            if goals >= 3:
+                m["o25"] += cp
+            if goals >= 4:
+                m["o35"] += cp
+            if goals <= 2:
+                m["u25"] += cp
+            if goals <= 3:
+                m["u35"] += cp
             if h >= 1 and a >= 1:
-                p_btts += cp
-            if (h + a) >= 3:
-                p_o25 += cp
-    return {
-        "1x_o15": round(min(0.94, max(0.05, p_1x_o15)), 4),
-        "x2_o15": round(min(0.94, max(0.05, p_x2_o15)), 4),
-        "btts": round(min(0.92, max(0.05, p_btts)), 4),
-        "o25": round(min(0.92, max(0.05, p_o25)), 4),
-    }
+                m["btts_yes"] += cp
+            else:
+                m["btts_no"] += cp
+
+    non_draw = max(1e-4, m["home"] + m["away"])
+    m["home_dnb"] = m["home"] / non_draw
+    m["away_dnb"] = m["away"] / non_draw
+    m["btts"] = m["btts_yes"]
+    return {k: round(min(0.95, max(0.03, v)), 4) for k, v in m.items()}
+
 
 def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
     # Compute exact 1X & Over 1.5 Goals probability from bivariate Poisson with Dixon-Coles low-score adjustment
@@ -252,14 +288,44 @@ def _calibrate_and_adjust(model_prob, devig_prob, item=None):
         if xg_h > 0 and xg_a > 0:
             dc = _dixon_coles_markets(xg_h, xg_a)
             pk_txt = str(item.get("pk") or item.get("pick") or "").lower()
-            if "1x" in pk_txt and "1.5" in pk_txt:
+            fx_parts = [s.strip().lower() for s in re.split(r"\s+v\s+|\s+vs\.?\s+", str(item.get("f") or item.get("fixture") or ""))]
+            home_nm = fx_parts[0] if len(fx_parts) >= 2 else ""
+            away_nm = fx_parts[1] if len(fx_parts) >= 2 else ""
+
+            if ("1x" in pk_txt or (home_nm and home_nm in pk_txt and "draw" in pk_txt)) and "1.5" in pk_txt:
                 model_prob = dc["1x_o15"]
-            elif "x2" in pk_txt and "1.5" in pk_txt:
+            elif ("x2" in pk_txt or (away_nm and away_nm in pk_txt and "draw" in pk_txt)) and "1.5" in pk_txt:
                 model_prob = dc["x2_o15"]
+            elif ("1x" in pk_txt or (home_nm and home_nm in pk_txt and "draw" in pk_txt)) and "3.5" in pk_txt:
+                model_prob = dc["1x_u35"]
+            elif ("x2" in pk_txt or (away_nm and away_nm in pk_txt and "draw" in pk_txt)) and "3.5" in pk_txt:
+                model_prob = dc["x2_u35"]
+            elif "1x" in pk_txt or (home_nm and home_nm in pk_txt and "draw" in pk_txt):
+                model_prob = dc["1x"]
+            elif "x2" in pk_txt or (away_nm and away_nm in pk_txt and "draw" in pk_txt):
+                model_prob = dc["x2"]
+            elif "12" in pk_txt and "double" in pk_txt:
+                model_prob = dc["12"]
             elif "btts" in pk_txt or "both teams to score" in pk_txt:
-                model_prob = dc["btts"]
-            elif "2.5" in pk_txt:
+                model_prob = dc["btts_no"] if "no" in pk_txt else dc["btts_yes"]
+            elif "over 1.5" in pk_txt:
+                model_prob = dc["o15"]
+            elif "over 2.5" in pk_txt:
                 model_prob = dc["o25"]
+            elif "over 3.5" in pk_txt:
+                model_prob = dc["o35"]
+            elif "under 2.5" in pk_txt:
+                model_prob = dc["u25"]
+            elif "under 3.5" in pk_txt:
+                model_prob = dc["u35"]
+            elif "win to nil" in pk_txt:
+                model_prob = dc["away_wtn"] if (away_nm and away_nm in pk_txt) else dc["home_wtn"]
+            elif "dnb" in pk_txt or "draw no bet" in pk_txt:
+                model_prob = dc["away_dnb"] if (away_nm and away_nm in pk_txt) else dc["home_dnb"]
+            elif "draw" in pk_txt and "(1x2)" in pk_txt:
+                model_prob = dc["draw"]
+            elif "(1x2)" in pk_txt or "win" in pk_txt:
+                model_prob = dc["away"] if (away_nm and away_nm in pk_txt) else dc["home"]
     # Log-odds (logit) Bayesian pooling anchored to devigged sharp market probabilities
     eps = 1e-4
     pm = min(1.0 - eps, max(eps, float(model_prob)))
