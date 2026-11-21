@@ -1,14 +1,19 @@
 {
   "date": "2026-11-21",
-  "count": 105,
+  "count": 89,
   "leagues": [
-    "Global Football Slate",
+    "English Premier League",
+    "English League Championship",
     "English League One",
     "English League Two",
     "UEFA Champions League",
     "UEFA Europa League",
+    "Spanish LALIGA",
+    "Italian Serie A",
+    "German Bundesliga",
+    "French Ligue 1",
     "Brazilian Serie A"
   ],
   "source": "espn_keyless_live",
-  "updated": "Sat 21 Nov, 14:15 UTC"
+  "updated": "Sat 21 Nov, 14:21 UTC"
 }

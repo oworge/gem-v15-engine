@@ -54,6 +54,7 @@
     "CS": 1.0
   },
   "all_19_markets_permanent": true,
-  "min_market_ev_pct": 2.8,
-  "max_market_ev_pct": 14.5
+  "min_market_ev_pct": 0.0,
+  "max_market_ev_pct": 14.5,
+  "vetting_disabled": true
 }

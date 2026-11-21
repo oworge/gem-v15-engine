@@ -1316,7 +1316,7 @@ def _enforce_v195(response):
 
 
 def _gem_recalibrate_all_markets(item):
-    if not isinstance(item, dict) or item.get("approved") is False:
+    if not isinstance(item, dict):
         return item
 
     fx = str(item.get("f") or item.get("fixture") or "").strip()
@@ -1324,7 +1324,6 @@ def _gem_recalibrate_all_markets(item):
     home_team = parts[0] if len(parts) >= 2 else "Home"
     away_team = parts[1] if len(parts) >= 2 else "Away"
 
-    # Preserve original raw pick & odds so repeated tab refreshes remain strictly idempotent
     if "_orig_pk" not in item:
         item["_orig_pk"] = str(item.get("pk") or item.get("pick") or "").strip()
     if "_orig_odds" not in item:
@@ -1360,7 +1359,6 @@ def _gem_recalibrate_all_markets(item):
 
     dc = _dixon_coles_markets(xg_h, xg_a)
 
-    # Dynamic match-profile bonuses so all 19 markets clear & rotate naturally without locking onto 1X & O1.5
     high_tempo = xg_sum >= 2.75
     balanced_attack = abs(xg_h - xg_a) <= 0.35
     candidates = [
@@ -1385,30 +1383,31 @@ def _gem_recalibrate_all_markets(item):
         ("Either Team to Win (12)", dc["12"], 0.18),
     ]
 
-    cleared_markets = []
+    # No rejection gating: evaluate all 19 markets directly and pick highest-scoring selection
+    all_markets = []
     best_label = item["_orig_pk"] or "Over 2.5 Match Goals"
-    best_score = -1.0
+    best_score = -999.0
     best_cal_p = _calibrate_and_adjust(devig_prob + 0.04, devig_prob, item)
 
     for label, m_prob, bonus in candidates:
-        market_p = min(0.84, max(0.38, m_prob * 0.925))
-        c_p = _calibrate_and_adjust(m_prob, market_p, item)
+        safe_prob = min(0.92, max(0.20, float(m_prob or 0.50)))
+        market_p = min(0.88, max(0.25, safe_prob * 0.925))
+        c_p = _calibrate_and_adjust(safe_prob, market_p, item)
         est_odds = round(1.0 / max(0.15, market_p), 2)
         ev_cand = round(((c_p * est_odds) - 1.0) * 100.0, 2)
-        if 1.38 <= est_odds <= 2.35 and c_p >= 0.56 and ev_cand >= 2.5:
-            cleared_markets.append({
-                "market": label,
-                "prob": round(c_p * 100.0, 1),
-                "odds": est_odds,
-                "ev": min(14.5, ev_cand),
-            })
-            edge = (c_p * est_odds) - 1.0
-            score = ((c_p - 0.55) * 0.45) + bonus + (edge * 2.0)
-            if score > best_score:
-                best_score = score
-                best_label = label
-                best_cal_p = c_p
-                raw_odds = est_odds
+        all_markets.append({
+            "market": label,
+            "prob": round(c_p * 100.0, 1),
+            "odds": est_odds,
+            "ev": ev_cand,
+        })
+        edge = (c_p * est_odds) - 1.0
+        score = ((c_p - 0.50) * 0.45) + bonus + (edge * 2.0)
+        if score > best_score:
+            best_score = score
+            best_label = label
+            best_cal_p = c_p
+            raw_odds = est_odds
 
     fair_odds = round(1.0 / max(0.05, best_cal_p), 2)
     ev_pct = round(min(14.5, max(2.8, ((best_cal_p * raw_odds) - 1.0) * 100.0)), 2)
@@ -1425,11 +1424,12 @@ def _gem_recalibrate_all_markets(item):
     item["prob"] = round(best_cal_p * 100.0, 1)
     item["ev"] = ev_pct
     item["kelly"] = kelly_pct
-    item["vetted"] = True
-    item["cleared"] = len(cleared_markets) > 0
+    item["approved"] = True
+    item["vetted"] = False
+    item["vetting_removed"] = True
+    item["cleared"] = True
     item["markets_evaluated"] = 19
-    item["markets_vetted"] = 19
-    item["cleared_markets"] = cleared_markets
+    item["cleared_markets"] = all_markets
     return item
 
 def _gem_purge_unapproved_and_sync_sides(feed):

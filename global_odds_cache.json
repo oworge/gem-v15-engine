@@ -1,23 +1,9 @@
 [
   {
-    "sport_key": "soccer_all",
-    "home_team": "Manchester City",
-    "away_team": "Fulham",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T12:30Z",
-    "home_odds": 1.37,
-    "draw_odds": 5.25,
-    "away_odds": 7.5,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.93,
-    "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Millwall",
     "away_team": "Queens Park Rangers",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T12:30Z",
     "home_odds": 2.6,
     "draw_odds": 3.5,
@@ -28,10 +14,10 @@
     "xg_away": 1.0
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Norwich City",
     "away_team": "Cardiff City",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T12:30Z",
     "home_odds": 1.62,
     "draw_odds": 4.6,
@@ -42,10 +28,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Southampton",
     "away_team": "Derby County",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T12:30Z",
     "home_odds": 1.5,
     "draw_odds": 4.6,
@@ -112,24 +98,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
-    "home_team": "Liverpool",
-    "away_team": "Chelsea",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T12:45Z",
-    "home_odds": 7.0,
-    "draw_odds": 5.25,
-    "away_odds": 1.32,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.75,
-    "xg_away": 2.01
-  },
-  {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_esp.1",
     "home_team": "Alav\u00e9s",
     "away_team": "Deportivo",
-    "league": "Global Football Slate",
+    "league": "Spanish LALIGA",
     "kickoff": "2026-11-21T13:00Z",
     "home_odds": 2.15,
     "draw_odds": 3.3,
@@ -140,10 +112,10 @@
     "xg_away": 0.74
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ita.1",
     "home_team": "Como",
     "away_team": "Cagliari",
-    "league": "Global Football Slate",
+    "league": "Italian Serie A",
     "kickoff": "2026-11-21T14:00Z",
     "home_odds": 1.26,
     "draw_odds": 5.5,
@@ -154,10 +126,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ita.1",
     "home_team": "Lazio",
     "away_team": "Lecce",
-    "league": "Global Football Slate",
+    "league": "Italian Serie A",
     "kickoff": "2026-11-21T14:00Z",
     "home_odds": 1.49,
     "draw_odds": 4.2,
@@ -168,10 +140,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ger.1",
     "home_team": "1. FC Union Berlin",
     "away_team": "RB Leipzig",
-    "league": "Global Football Slate",
+    "league": "German Bundesliga",
     "kickoff": "2026-11-21T14:30Z",
     "home_odds": 5.75,
     "draw_odds": 4.6,
@@ -182,10 +154,10 @@
     "xg_away": 1.83
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ger.1",
     "home_team": "Bayer Leverkusen",
     "away_team": "SC Paderborn 07",
-    "league": "Global Football Slate",
+    "league": "German Bundesliga",
     "kickoff": "2026-11-21T14:30Z",
     "home_odds": 1.29,
     "draw_odds": 5.75,
@@ -196,24 +168,24 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ger.1",
     "home_team": "Borussia M\u00f6nchengladbach",
     "away_team": "Borussia Dortmund",
-    "league": "Global Football Slate",
+    "league": "German Bundesliga",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 4.4,
+    "home_odds": 4.3,
     "draw_odds": 4.0,
-    "away_odds": 1.65,
+    "away_odds": 1.69,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.61
+    "xg_away": 1.57
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ger.1",
     "home_team": "Eintracht Frankfurt",
     "away_team": "TSG Hoffenheim",
-    "league": "Global Football Slate",
+    "league": "German Bundesliga",
     "kickoff": "2026-11-21T14:30Z",
     "home_odds": 2.45,
     "draw_odds": 3.75,
@@ -224,10 +196,10 @@
     "xg_away": 1.08
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ger.1",
     "home_team": "SV Elversberg",
     "away_team": "SC Freiburg",
-    "league": "Global Football Slate",
+    "league": "German Bundesliga",
     "kickoff": "2026-11-21T14:30Z",
     "home_odds": 3.4,
     "draw_odds": 3.45,
@@ -238,10 +210,10 @@
     "xg_away": 1.32
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.1",
     "home_team": "AFC Bournemouth",
     "away_team": "Nottingham Forest",
-    "league": "Global Football Slate",
+    "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.0,
     "draw_odds": 3.45,
@@ -252,10 +224,10 @@
     "xg_away": 0.69
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.1",
     "home_team": "Aston Villa",
     "away_team": "Sunderland",
-    "league": "Global Football Slate",
+    "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.74,
     "draw_odds": 3.9,
@@ -266,24 +238,24 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.1",
     "home_team": "Chelsea",
     "away_team": "Leeds United",
-    "league": "Global Football Slate",
+    "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.05,
+    "home_odds": 2.0,
     "draw_odds": 3.5,
-    "away_odds": 3.7,
+    "away_odds": 3.8,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.29,
-    "xg_away": 0.72
+    "xg_home": 1.32,
+    "xg_away": 0.7
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.1",
     "home_team": "Coventry City",
     "away_team": "Crystal Palace",
-    "league": "Global Football Slate",
+    "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.5,
     "draw_odds": 3.45,
@@ -294,10 +266,10 @@
     "xg_away": 0.96
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.1",
     "home_team": "Tottenham Hotspur",
     "away_team": "Ipswich Town",
-    "league": "Global Football Slate",
+    "league": "English Premier League",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.57,
     "draw_odds": 4.4,
@@ -308,10 +280,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Bolton Wanderers",
     "away_team": "Portsmouth",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.6,
     "draw_odds": 3.45,
@@ -322,10 +294,10 @@
     "xg_away": 0.98
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Lincoln City",
     "away_team": "Wrexham",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.75,
     "draw_odds": 3.2,
@@ -336,10 +308,10 @@
     "xg_away": 0.98
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Middlesbrough",
     "away_team": "Bristol City",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.38,
     "draw_odds": 5.25,
@@ -350,10 +322,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Sheffield United",
     "away_team": "Watford",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.57,
     "draw_odds": 4.3,
@@ -364,10 +336,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Stoke City",
     "away_team": "Birmingham City",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.8,
     "draw_odds": 3.2,
@@ -378,10 +350,10 @@
     "xg_away": 1.02
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Swansea City",
     "away_team": "West Bromwich Albion",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.55,
     "draw_odds": 3.35,
@@ -392,10 +364,10 @@
     "xg_away": 0.95
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "West Ham United",
     "away_team": "Preston North End",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.25,
     "draw_odds": 6.5,
@@ -406,10 +378,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.2",
     "home_team": "Wolverhampton Wanderers",
     "away_team": "Charlton Athletic",
-    "league": "Global Football Slate",
+    "league": "English League Championship",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 1.26,
     "draw_odds": 6.0,
@@ -579,13 +551,13 @@
     "away_team": "Bristol Rovers",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.65,
-    "draw_odds": 3.45,
-    "away_odds": 2.6,
+    "home_odds": 2.7,
+    "draw_odds": 3.4,
+    "away_odds": 2.55,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.0,
-    "xg_away": 1.02
+    "xg_home": 0.98,
+    "xg_away": 1.04
   },
   {
     "sport_key": "soccer_eng.4",
@@ -686,10 +658,10 @@
     "xg_away": 0.69
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_esp.1",
     "home_team": "Rayo Vallecano",
     "away_team": "Valencia",
-    "league": "Global Football Slate",
+    "league": "Spanish LALIGA",
     "kickoff": "2026-11-21T15:15Z",
     "home_odds": 1.95,
     "draw_odds": 3.45,
@@ -700,24 +672,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
-    "home_team": "NEC Nijmegen",
-    "away_team": "PSV Eindhoven",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T15:30Z",
-    "home_odds": 4.0,
-    "draw_odds": 4.4,
-    "away_odds": 1.71,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.75,
-    "xg_away": 1.55
-  },
-  {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_fra.1",
     "home_team": "Nice",
     "away_team": "Paris Saint-Germain",
-    "league": "Global Football Slate",
+    "league": "French Ligue 1",
     "kickoff": "2026-11-21T16:15Z",
     "home_odds": 5.75,
     "draw_odds": 5.0,
@@ -728,10 +686,10 @@
     "xg_away": 1.79
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ita.1",
     "home_team": "Parma",
     "away_team": "AS Roma",
-    "league": "Global Football Slate",
+    "league": "Italian Serie A",
     "kickoff": "2026-11-21T17:00Z",
     "home_odds": 11.0,
     "draw_odds": 6.0,
@@ -742,24 +700,10 @@
     "xg_away": 2.19
   },
   {
-    "sport_key": "soccer_all",
-    "home_team": "London City Lionesses",
-    "away_team": "Crystal Palace",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T17:15Z",
-    "home_odds": 1.14,
-    "draw_odds": 8.0,
-    "away_odds": 13.0,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 2.3,
-    "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_eng.1",
     "home_team": "Newcastle United",
     "away_team": "Arsenal",
-    "league": "Global Football Slate",
+    "league": "English Premier League",
     "kickoff": "2026-11-21T17:30Z",
     "home_odds": 6.0,
     "draw_odds": 4.2,
@@ -770,10 +714,10 @@
     "xg_away": 1.7
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_esp.1",
     "home_team": "Sevilla",
     "away_team": "Real Betis",
-    "league": "Global Football Slate",
+    "league": "Spanish LALIGA",
     "kickoff": "2026-11-21T17:30Z",
     "home_odds": 2.95,
     "draw_odds": 3.3,
@@ -784,10 +728,10 @@
     "xg_away": 1.08
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ger.1",
     "home_team": "Schalke 04",
     "away_team": "VfB Stuttgart",
-    "league": "Global Football Slate",
+    "league": "German Bundesliga",
     "kickoff": "2026-11-21T17:30Z",
     "home_odds": 3.7,
     "draw_odds": 3.85,
@@ -796,48 +740,6 @@
     "under_25_odds": 1.95,
     "xg_home": 0.75,
     "xg_away": 1.47
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "FC Utrecht",
-    "away_team": "SC Cambuur",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T17:45Z",
-    "home_odds": 1.91,
-    "draw_odds": 4.0,
-    "away_odds": 3.5,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.39,
-    "xg_away": 0.76
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Feyenoord Rotterdam",
-    "away_team": "Excelsior",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T17:45Z",
-    "home_odds": 1.17,
-    "draw_odds": 8.0,
-    "away_odds": 12.0,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 2.26,
-    "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "New England Revolution",
-    "away_team": "Philadelphia Union",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T19:00Z",
-    "home_odds": 2.95,
-    "draw_odds": 3.5,
-    "away_odds": 2.2,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.9,
-    "xg_away": 1.2
   },
   {
     "sport_key": "soccer_bra.1",
@@ -854,10 +756,10 @@
     "xg_away": 1.29
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_ita.1",
     "home_team": "Napoli",
     "away_team": "Torino",
-    "league": "Global Football Slate",
+    "league": "Italian Serie A",
     "kickoff": "2026-11-21T19:45Z",
     "home_odds": 1.49,
     "draw_odds": 4.2,
@@ -868,10 +770,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_fra.1",
     "home_team": "AS Monaco",
     "away_team": "AJ Auxerre",
-    "league": "Global Football Slate",
+    "league": "French Ligue 1",
     "kickoff": "2026-11-21T19:45Z",
     "home_odds": 1.41,
     "draw_odds": 4.9,
@@ -882,10 +784,10 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_fra.1",
     "home_team": "Lens",
     "away_team": "Toulouse",
-    "league": "Global Football Slate",
+    "league": "French Ligue 1",
     "kickoff": "2026-11-21T19:45Z",
     "home_odds": 2.15,
     "draw_odds": 3.6,
@@ -896,10 +798,10 @@
     "xg_away": 0.82
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_fra.1",
     "home_team": "Lille",
     "away_team": "Lyon",
-    "league": "Global Football Slate",
+    "league": "French Ligue 1",
     "kickoff": "2026-11-21T19:45Z",
     "home_odds": 2.35,
     "draw_odds": 3.2,
@@ -910,10 +812,10 @@
     "xg_away": 0.82
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_fra.1",
     "home_team": "Strasbourg",
     "away_team": "Brest",
-    "league": "Global Football Slate",
+    "league": "French Ligue 1",
     "kickoff": "2026-11-21T19:45Z",
     "home_odds": 2.25,
     "draw_odds": 3.55,
@@ -924,10 +826,10 @@
     "xg_away": 0.84
   },
   {
-    "sport_key": "soccer_all",
+    "sport_key": "soccer_esp.1",
     "home_team": "Real Madrid",
     "away_team": "Celta Vigo",
-    "league": "Global Football Slate",
+    "league": "Spanish LALIGA",
     "kickoff": "2026-11-21T20:00Z",
     "home_odds": 1.15,
     "draw_odds": 8.0,
@@ -936,34 +838,6 @@
     "under_25_odds": 1.95,
     "xg_home": 2.3,
     "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "FC Groningen",
-    "away_team": "Heerenveen",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T20:00Z",
-    "home_odds": 2.65,
-    "draw_odds": 3.8,
-    "away_odds": 2.35,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.0,
-    "xg_away": 1.13
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Telstar",
-    "away_team": "PEC Zwolle",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T20:00Z",
-    "home_odds": 2.05,
-    "draw_odds": 3.7,
-    "away_odds": 3.3,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.29,
-    "xg_away": 0.8
   },
   {
     "sport_key": "soccer_bra.1",
@@ -980,62 +854,6 @@
     "xg_away": 0.65
   },
   {
-    "sport_key": "soccer_all",
-    "home_team": "FC Dallas",
-    "away_team": "Portland Timbers",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T21:00Z",
-    "home_odds": 1.87,
-    "draw_odds": 3.95,
-    "away_odds": 3.45,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.42,
-    "xg_away": 0.77
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Pachuca",
-    "away_team": "Toluca",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T22:50Z",
-    "home_odds": 2.6,
-    "draw_odds": 3.95,
-    "away_odds": 2.4,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.02,
-    "xg_away": 1.1
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Inter Miami CF",
-    "away_team": "Columbus Crew",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T23:00Z",
-    "home_odds": 1.59,
-    "draw_odds": 4.5,
-    "away_odds": 4.4,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.67,
-    "xg_away": 0.65
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Santos",
-    "away_team": "Le\u00f3n",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-21T23:00Z",
-    "home_odds": 2.4,
-    "draw_odds": 3.7,
-    "away_odds": 2.65,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.1,
-    "xg_away": 1.0
-  },
-  {
     "sport_key": "soccer_bra.1",
     "home_team": "Chapecoense",
     "away_team": "Cruzeiro",
@@ -1048,48 +866,6 @@
     "under_25_odds": 1.95,
     "xg_home": 0.75,
     "xg_away": 1.79
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Washington Spirit",
-    "away_team": "Kansas City Current",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-22T01:00Z",
-    "home_odds": 2.5,
-    "draw_odds": 3.35,
-    "away_odds": 2.75,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.06,
-    "xg_away": 0.96
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Pumas UNAM",
-    "away_team": "Monterrey",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-22T01:00Z",
-    "home_odds": 2.6,
-    "draw_odds": 3.5,
-    "away_odds": 2.6,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 1.02,
-    "xg_away": 1.02
-  },
-  {
-    "sport_key": "soccer_all",
-    "home_team": "Tigres UANL",
-    "away_team": "Am\u00e9rica",
-    "league": "Global Football Slate",
-    "kickoff": "2026-11-22T03:00Z",
-    "home_odds": 3.25,
-    "draw_odds": 3.55,
-    "away_odds": 2.15,
-    "over_25_odds": 1.85,
-    "under_25_odds": 1.95,
-    "xg_home": 0.82,
-    "xg_away": 1.23
   },
   {
     "sport_key": "soccer_uefa.champions",
