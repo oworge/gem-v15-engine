@@ -145,12 +145,12 @@
     "away_team": "Cagliari",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:00Z",
-    "home_odds": 1.28,
-    "draw_odds": 5.25,
-    "away_odds": 8.5,
+    "home_odds": 1.26,
+    "draw_odds": 5.5,
+    "away_odds": 9.5,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.07,
+    "xg_home": 2.1,
     "xg_away": 0.65
   },
   {
@@ -243,13 +243,13 @@
     "away_team": "Nottingham Forest",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.95,
+    "home_odds": 2.0,
     "draw_odds": 3.45,
-    "away_odds": 4.0,
+    "away_odds": 3.85,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.36,
-    "xg_away": 0.66
+    "xg_home": 1.32,
+    "xg_away": 0.69
   },
   {
     "sport_key": "soccer_all",
@@ -425,12 +425,12 @@
     "away_team": "Doncaster Rovers",
     "league": "English League One",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.62,
+    "home_odds": 1.61,
     "draw_odds": 4.2,
-    "away_odds": 4.9,
+    "away_odds": 5.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.64,
+    "xg_home": 1.65,
     "xg_away": 0.65
   },
   {
@@ -580,12 +580,12 @@
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
     "home_odds": 2.55,
-    "draw_odds": 3.5,
-    "away_odds": 2.6,
+    "draw_odds": 3.45,
+    "away_odds": 2.65,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 1.04,
-    "xg_away": 1.02
+    "xg_away": 1.0
   },
   {
     "sport_key": "soccer_eng.4",

@@ -462,35 +462,36 @@ def _gem_after_request_recalibrate(response):
     import json
     from flask import request
     if request.path in ("/api/tab-picks", "/api/gem-feed") and response.status_code == 200:
-        response.direct_passthrough = False
         try:
-            payload = json.loads(response.get_data(as_text=True))
-        except Exception:
-            return response
-        if isinstance(payload, dict):
-            if isinstance(payload.get("picks"), list):
-                cleaned = []
-                for p in payload["picks"]:
-                    if not isinstance(p, dict) or p.get("approved") is False:
-                        continue
-                    fx_low = str(p.get("f") or p.get("fixture") or "").lower()
-                    if "schalke" in fx_low:
-                        continue
-                    cleaned.append(_gem_recalibrate_all_markets(p))
-                payload["picks"] = cleaned
-                payload["count"] = len(cleaned)
-            for list_key in ("todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
-                if isinstance(payload.get(list_key), list):
-                    sub_clean = []
-                    for p in payload[list_key]:
+            response.direct_passthrough = False
+            raw_text = response.get_data(as_text=True)
+            payload = json.loads(raw_text)
+            if isinstance(payload, dict):
+                if isinstance(payload.get("picks"), list):
+                    cleaned = []
+                    for p in payload["picks"]:
                         if not isinstance(p, dict) or p.get("approved") is False:
                             continue
                         fx_low = str(p.get("f") or p.get("fixture") or "").lower()
                         if "schalke" in fx_low:
                             continue
-                        sub_clean.append(_gem_recalibrate_all_markets(p))
-                    payload[list_key] = sub_clean
-            response.set_data(json.dumps(payload))
+                        cleaned.append(_gem_recalibrate_all_markets(dict(p)))
+                    payload["picks"] = cleaned
+                    payload["count"] = len(cleaned)
+                for list_key in ("todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
+                    if isinstance(payload.get(list_key), list):
+                        sub_clean = []
+                        for p in payload[list_key]:
+                            if not isinstance(p, dict) or p.get("approved") is False:
+                                continue
+                            fx_low = str(p.get("f") or p.get("fixture") or "").lower()
+                            if "schalke" in fx_low:
+                                continue
+                            sub_clean.append(_gem_recalibrate_all_markets(dict(p)))
+                        payload[list_key] = sub_clean
+                response.set_data(json.dumps(payload, default=str))
+        except Exception:
+            pass
     return response
 
 
