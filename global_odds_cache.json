@@ -159,12 +159,12 @@
     "away_team": "Lecce",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:00Z",
-    "home_odds": 1.5,
-    "draw_odds": 4.1,
-    "away_odds": 5.75,
+    "home_odds": 1.49,
+    "draw_odds": 4.2,
+    "away_odds": 6.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.77,
+    "xg_home": 1.78,
     "xg_away": 0.65
   },
   {
@@ -173,13 +173,13 @@
     "away_team": "RB Leipzig",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 5.75,
-    "draw_odds": 4.6,
-    "away_odds": 1.45,
+    "home_odds": 5.5,
+    "draw_odds": 4.5,
+    "away_odds": 1.48,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.83
+    "xg_away": 1.79
   },
   {
     "sport_key": "soccer_all",
@@ -201,13 +201,13 @@
     "away_team": "Borussia Dortmund",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T14:30Z",
-    "home_odds": 5.0,
-    "draw_odds": 4.4,
-    "away_odds": 1.53,
+    "home_odds": 4.5,
+    "draw_odds": 4.1,
+    "away_odds": 1.62,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
     "xg_home": 0.75,
-    "xg_away": 1.73
+    "xg_away": 1.64
   },
   {
     "sport_key": "soccer_all",
@@ -243,13 +243,13 @@
     "away_team": "Nottingham Forest",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.91,
-    "draw_odds": 3.5,
-    "away_odds": 4.1,
+    "home_odds": 1.95,
+    "draw_odds": 3.45,
+    "away_odds": 4.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.39,
-    "xg_away": 0.65
+    "xg_home": 1.36,
+    "xg_away": 0.66
   },
   {
     "sport_key": "soccer_all",
@@ -271,13 +271,13 @@
     "away_team": "Leeds United",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.05,
+    "home_odds": 2.0,
     "draw_odds": 3.5,
-    "away_odds": 3.7,
+    "away_odds": 3.8,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.29,
-    "xg_away": 0.72
+    "xg_home": 1.32,
+    "xg_away": 0.7
   },
   {
     "sport_key": "soccer_all",
@@ -285,13 +285,13 @@
     "away_team": "Crystal Palace",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.55,
+    "home_odds": 2.6,
     "draw_odds": 3.4,
-    "away_odds": 2.8,
+    "away_odds": 2.7,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.04,
-    "xg_away": 0.95
+    "xg_home": 1.02,
+    "xg_away": 0.98
   },
   {
     "sport_key": "soccer_all",
@@ -579,13 +579,13 @@
     "away_team": "Bristol Rovers",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 2.65,
+    "home_odds": 2.55,
     "draw_odds": 3.5,
-    "away_odds": 2.5,
+    "away_odds": 2.6,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.0,
-    "xg_away": 1.06
+    "xg_home": 1.04,
+    "xg_away": 1.02
   },
   {
     "sport_key": "soccer_eng.4",
@@ -677,13 +677,13 @@
     "away_team": "Walsall",
     "league": "English League Two",
     "kickoff": "2026-11-21T15:00Z",
-    "home_odds": 1.83,
+    "home_odds": 1.87,
     "draw_odds": 3.8,
-    "away_odds": 3.95,
+    "away_odds": 3.85,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 1.45,
-    "xg_away": 0.67
+    "xg_home": 1.42,
+    "xg_away": 0.69
   },
   {
     "sport_key": "soccer_all",
@@ -817,12 +817,12 @@
     "away_team": "Excelsior",
     "league": "Global Football Slate",
     "kickoff": "2026-11-21T17:45Z",
-    "home_odds": 1.18,
+    "home_odds": 1.17,
     "draw_odds": 8.0,
     "away_odds": 12.0,
     "over_25_odds": 1.85,
     "under_25_odds": 1.95,
-    "xg_home": 2.25,
+    "xg_home": 2.26,
     "xg_away": 0.65
   },
   {

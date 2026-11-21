@@ -1,36 +1,36 @@
 {
-  "combined_odds": 5.7,
+  "combined_odds": 4.58,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 3,
   "recommended_stake_gbp": 15.0,
   "recommended_stake_pct": 1.5,
   "slip": [
     {
-      "country": "Germany",
-      "ev_pct": 3.43,
-      "fixture": "Bayer Leverkusen v SC Paderborn 07",
+      "country": "Spain",
+      "ev_pct": 3.27,
+      "fixture": "Real Madrid v Celta Vigo",
       "league": "Global",
-      "odds": 1.8,
-      "region": "german",
-      "selection": "Bayer Leverkusen or Draw (1X) & Over 1.5 Goals"
+      "odds": 1.79,
+      "region": "spain",
+      "selection": "Both Teams to Score (BTTS Yes)"
     },
     {
       "country": "UK",
-      "ev_pct": 3.38,
-      "fixture": "Barnet v Port Vale",
+      "ev_pct": 3.02,
+      "fixture": "Blackpool v Wigan Athletic",
       "league": "Global",
-      "odds": 1.78,
+      "odds": 1.58,
       "region": "uk",
-      "selection": "Barnet or Draw (1X) & Over 1.5 Goals"
+      "selection": "Both Teams to Score (BTTS Yes)"
     },
     {
       "country": "UK",
-      "ev_pct": 3.38,
-      "fixture": "Middlesbrough v Bristol City",
+      "ev_pct": 3.53,
+      "fixture": "Newport County v Swindon Town",
       "league": "Global",
-      "odds": 1.78,
+      "odds": 1.62,
       "region": "uk",
-      "selection": "Middlesbrough or Draw (1X) & Over 1.5 Goals"
+      "selection": "Newport County Draw No Bet (DNB)"
     }
   ]
 }

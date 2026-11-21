@@ -1244,64 +1244,69 @@ def _gem_recalibrate_all_markets(item):
     home_team = parts[0] if len(parts) >= 2 else "Home"
     away_team = parts[1] if len(parts) >= 2 else "Away"
 
-    raw_odds = float(item.get("odds") or 1.80)
-    if raw_odds <= 1.01:
-        raw_odds = 1.80
+    # Preserve original raw pick & odds so repeated tab refreshes remain strictly idempotent
+    if "_orig_pk" not in item:
+        item["_orig_pk"] = str(item.get("pk") or item.get("pick") or "").strip()
+    if "_orig_odds" not in item:
+        ro = float(item.get("odds") or 1.80)
+        item["_orig_odds"] = ro if ro > 1.01 else 1.80
+
+    raw_odds = float(item["_orig_odds"])
     devig_prob = min(0.88, max(0.25, (1.0 / raw_odds) * 0.945))
 
     xg_sum = float(item.get("xg_sum") or 0.0)
     if xg_sum <= 0.1:
-        xg_m = re.search(r"xg\s*([0-9]+(?:\.[0-9]+)?)", str(item.get("pk") or ""), flags=re.I)
+        xg_m = re.search(r"xg\s*([0-9]+(?:\.[0-9]+)?)", item["_orig_pk"], flags=re.I)
         if xg_m:
             xg_sum = float(xg_m.group(1))
         else:
             raw_ev = float(item.get("ev") or 5.0)
-            xg_sum = round(min(3.35, max(2.15, 2.40 + (min(20.0, raw_ev) * 0.018))), 2)
+            xg_sum = round(min(3.35, max(2.20, 2.45 + (min(20.0, raw_ev) * 0.018))), 2)
 
-    # Use explicit split xG if available; otherwise infer realistic home/away split from raw pick & market prior (never ASCII hash)
     if item.get("xg_home") and item.get("xg_away") and not item.get("_inferred_split"):
         xg_h = float(item["xg_home"])
         xg_a = float(item["xg_away"])
     else:
-        raw_pk_low = str(item.get("pk") or item.get("pick") or "").lower()
+        raw_pk_low = item["_orig_pk"].lower()
         if away_team.lower() in raw_pk_low and ("dnb" in raw_pk_low or "x2" in raw_pk_low or "win" in raw_pk_low):
-            share = 0.42
+            share = 0.43
         elif home_team.lower() in raw_pk_low and ("dnb" in raw_pk_low or "1x" in raw_pk_low or "win" in raw_pk_low):
-            share = 0.62
+            share = 0.60
         else:
-            # Standard home-advantage prior scaled gently by devigged market confidence
-            share = round(min(0.63, max(0.52, 0.54 + (devig_prob - 0.50) * 0.18)), 3)
+            share = round(min(0.60, max(0.51, 0.53 + (devig_prob - 0.50) * 0.16)), 3)
         xg_h = round(xg_sum * share, 3)
         xg_a = round(xg_sum * (1.0 - share), 3)
         item["_inferred_split"] = True
 
     dc = _dixon_coles_markets(xg_h, xg_a)
 
-    # All 19 markets evaluated and subjected to strict individual vetting gates
+    # Dynamic match-profile bonuses so all 19 markets clear & rotate naturally without locking onto 1X & O1.5
+    high_tempo = xg_sum >= 2.75
+    balanced_attack = abs(xg_h - xg_a) <= 0.35
     candidates = [
-        (f"{home_team} or Draw (1X) & Over 1.5 Goals", dc["1x_o15"], 0.34),
-        (f"{away_team} or Draw (X2) & Over 1.5 Goals", dc["x2_o15"], 0.34),
-        ("Both Teams to Score (BTTS Yes)", dc["btts_yes"], 0.33),
-        ("Over 2.5 Match Goals", dc["o25"], 0.31),
-        (f"{home_team} Draw No Bet (DNB)", dc["home_dnb"], 0.29),
-        (f"{away_team} Draw No Bet (DNB)", dc["away_dnb"], 0.29),
-        ("Under 3.5 Match Goals", dc["u35"], 0.24),
-        ("Both Teams to Score (BTTS No)", dc["btts_no"], 0.23),
-        ("Under 2.5 Match Goals", dc["u25"], 0.24),
-        (f"{home_team} or Draw (1X)", dc["1x"], 0.22),
-        (f"{away_team} or Draw (X2)", dc["x2"], 0.22),
-        ("Over 1.5 Match Goals", dc["o15"], 0.16),
-        ("Over 3.5 Match Goals", dc["o35"], 0.20),
+        ("Both Teams to Score (BTTS Yes)", dc["btts_yes"], 0.34 if balanced_attack else 0.28),
+        ("Over 2.5 Match Goals", dc["o25"], 0.33 if high_tempo else 0.27),
+        (f"{home_team} or Draw (1X) & Over 1.5 Goals", dc["1x_o15"], 0.30 if (xg_h - xg_a) >= 0.40 else 0.25),
+        (f"{away_team} or Draw (X2) & Over 1.5 Goals", dc["x2_o15"], 0.30 if (xg_a - xg_h) >= 0.30 else 0.25),
+        (f"{home_team} Draw No Bet (DNB)", dc["home_dnb"], 0.30 if (xg_h - xg_a) >= 0.35 else 0.24),
+        (f"{away_team} Draw No Bet (DNB)", dc["away_dnb"], 0.30 if (xg_a - xg_h) >= 0.25 else 0.24),
+        (f"{home_team} or Draw (1X)", dc["1x"], 0.24),
+        (f"{away_team} or Draw (X2)", dc["x2"], 0.24),
+        ("Under 3.5 Match Goals", dc["u35"], 0.22 if not high_tempo else 0.16),
+        ("Under 2.5 Match Goals", dc["u25"], 0.23 if xg_sum <= 2.45 else 0.16),
+        ("Both Teams to Score (BTTS No)", dc["btts_no"], 0.21),
+        ("Over 1.5 Match Goals", dc["o15"], 0.17),
+        ("Over 3.5 Match Goals", dc["o35"], 0.21 if xg_sum >= 3.05 else 0.15),
         (f"{home_team} Win to Nil", dc["home_wtn"], 0.19),
         (f"{away_team} Win to Nil", dc["away_wtn"], 0.19),
-        (f"{home_team} Win (1X2)", dc["home"], 0.20),
+        (f"{home_team} Win (1X2)", dc["home"], 0.21),
         ("Match Draw (1X2)", dc["draw"], 0.17),
-        (f"{away_team} Win (1X2)", dc["away"], 0.20),
+        (f"{away_team} Win (1X2)", dc["away"], 0.21),
         ("Either Team to Win (12)", dc["12"], 0.18),
     ]
 
     cleared_markets = []
-    best_label = str(item.get("pk") or item.get("pick") or "Over 2.5 Match Goals").strip()
+    best_label = item["_orig_pk"] or "Over 2.5 Match Goals"
     best_score = -1.0
     best_cal_p = _calibrate_and_adjust(devig_prob + 0.04, devig_prob, item)
 
@@ -1310,7 +1315,6 @@ def _gem_recalibrate_all_markets(item):
         c_p = _calibrate_and_adjust(m_prob, market_p, item)
         est_odds = round(1.0 / max(0.15, market_p), 2)
         ev_cand = round(((c_p * est_odds) - 1.0) * 100.0, 2)
-        # Strict per-market vetting gate
         if 1.38 <= est_odds <= 2.35 and c_p >= 0.56 and ev_cand >= 2.5:
             cleared_markets.append({
                 "market": label,
