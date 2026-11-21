@@ -2079,3 +2079,40 @@ def api_auto_slip():
     })
 
 
+
+
+def _gem_walk_through_engine(obj):
+    if isinstance(obj, list):
+        return [_gem_walk_through_engine(x) for x in obj]
+    if isinstance(obj, dict):
+        out = {k: _gem_walk_through_engine(v) for k, v in obj.items()}
+        has_fx = any(k in out and out[k] for k in ("f", "fixture", "home_team", "home"))
+        has_pk = any(k in out and out[k] for k in ("pk", "pick", "market", "combo_pick", "odds"))
+        if has_fx and has_pk and not out.get("_gem_passed_engine"):
+            try:
+                rec = _gem_recalibrate_all_markets(dict(out))
+                if isinstance(rec, dict):
+                    rec["_gem_passed_engine"] = True
+                    return rec
+            except Exception:
+                pass
+        return out
+    return obj
+
+
+@app.after_request
+def _gem_dashboard_engine_pass(response):
+    import json
+    if response.status_code == 200 and "application/json" in (response.content_type or ""):
+        try:
+            response.direct_passthrough = False
+            raw_txt = response.get_data(as_text=True)
+            parsed = json.loads(raw_txt)
+            transformed = _gem_walk_through_engine(parsed)
+            if isinstance(transformed, dict):
+                transformed["engine_pass_through"] = True
+                transformed["vetting_mode"] = "off"
+            response.set_data(json.dumps(transformed, default=str))
+        except Exception:
+            pass
+    return response
