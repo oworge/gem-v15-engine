@@ -1,28 +1,10 @@
 {
-  "combined_odds": 4.58,
+  "combined_odds": 1.62,
   "engine": "GEM-V15-CALIBRATED",
-  "legs_count": 3,
-  "recommended_stake_gbp": 15.0,
-  "recommended_stake_pct": 1.5,
+  "legs_count": 1,
+  "recommended_stake_gbp": 10.0,
+  "recommended_stake_pct": 1.0,
   "slip": [
-    {
-      "country": "Spain",
-      "ev_pct": 3.27,
-      "fixture": "Real Madrid v Celta Vigo",
-      "league": "Global",
-      "odds": 1.79,
-      "region": "spain",
-      "selection": "Both Teams to Score (BTTS Yes)"
-    },
-    {
-      "country": "UK",
-      "ev_pct": 3.02,
-      "fixture": "Blackpool v Wigan Athletic",
-      "league": "Global",
-      "odds": 1.58,
-      "region": "uk",
-      "selection": "Both Teams to Score (BTTS Yes)"
-    },
     {
       "country": "UK",
       "ev_pct": 3.53,

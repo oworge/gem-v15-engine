@@ -52,5 +52,8 @@
     "CLEAN_SHEET": 1.0,
     "1H": 1.0,
     "CS": 1.0
-  }
+  },
+  "all_19_markets_permanent": true,
+  "min_market_ev_pct": 2.8,
+  "max_market_ev_pct": 14.5
 }
