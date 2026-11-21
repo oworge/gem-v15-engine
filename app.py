@@ -1244,11 +1244,11 @@ def api_tab_picks():
     return jsonify(_gem_normalize_tab_picks({
         "version": "v223",
         "min_ev": min_ev,
-        "verified_count": len(verified)),
+        "verified_count": len(verified),
         "rejected_count": len(rejected),
         "picks": _out_picks,
         "rejected": rejected[:50],
-    })
+    }))
 
 
 
