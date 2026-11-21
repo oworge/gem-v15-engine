@@ -1047,7 +1047,7 @@ def _enforce_v195(response):
     return response
 
 
-def _gem_normalize_tab_picks(payload=None):
+def _gem_normalize_tab_picks(payload=None, tab="all"):
     if payload is None:
         return {}
     if isinstance(payload, dict) and isinstance(payload.get("picks"), list):
@@ -1059,16 +1059,77 @@ def _gem_normalize_tab_picks(payload=None):
             "leicester", "southampton", "ipswich", "leeds", "burnley", "sheffield",
             "sunderland", "barnet", "port vale", "middlesbrough", "bristol city",
             "newport", "swindon", "wolverhampton", "charlton", "preston", "watford",
-            "celtic", "rangers"
+            "celtic", "rangers", "blackpool", "wigan", "bolton", "derby", "coventry",
+            "norwich", "hull", "stoke", "millwall", "qpr", "blackburn", "luton",
+            "cardiff", "swansea", "plymouth", "oxford", "portsmouth", "exeter",
+            "lincoln", "reading", "peterborough", "huddersfield", "rotherham",
+            "stockport", "wrexham", "wycombe", "mansfield", "leyton", "charlton"
         )
+        fr_keys = ("ligue 1", "ligue 2", "paris saint-germain", "psg", "nice", "marseille", "lyon", "monaco", "lille", "lens", "rennes", "strasbourg", "brest", "toulouse", "nantes", "reims", "montpellier", "auxerre", "angers", "saint-etienne", "le havre")
+        it_keys = ("serie a", "serie b", "napoli", "torino", "inter", "ac milan", "juventus", "atalanta", "roma", "lazio", "fiorentina", "bologna", "udinese", "genoa", "cagliari", "parma", "como", "verona", "lecce", "empoli", "monza", "venezia")
+        de_keys = ("bundesliga", "bayern", "dortmund", "leipzig", "leverkusen", "frankfurt", "stuttgart", "freiburg", "wolfsburg", "union berlin", "gladbach", "monchengladbach", "werder", "bremen", "hoffenheim", "mainz", "augsburg", "bochum", "heidenheim", "st. pauli", "kiel")
+        es_keys = ("la liga", "segunda", "real madrid", "barcelona", "atletico", "athletic", "sociedad", "betis", "sevilla", "villarreal", "valencia", "celta", "girona", "mallorca", "osasuna", "getafe", "rayo", "alaves", "las palmas", "espanyol", "leganes", "valladolid")
+        eu_keys = ("champions league", "europa", "conference league", "eredivisie", "primeira", "jupiler", "super lig", "ajax", "psv", "feyenoord", "benfica", "porto", "sporting", "galatasaray", "fenerbahce", "besiktas", "brugge", "anderlecht")
+
+        tab_norm = str(tab or "all").strip().lower()
+        filtered = []
         for _p in payload["picks"]:
-            if isinstance(_p, dict):
-                _fx = str(_p.get("f") or _p.get("fixture") or _p.get("match") or "").lower()
-                _slate = str(_p.get("m") or "").lower()
-                if not _p.get("lg"):
-                    _p["lg"] = _p.get("league") or _p.get("competition") or ("Global Football" if "global" in _slate else "Football")
-                if not _p.get("scope"):
-                    _p["scope"] = "uk" if any(k in f"{_p.get('lg','').lower()} {_fx}" for k in uk_keys) else "global"
+            if not isinstance(_p, dict):
+                continue
+            _fx = str(_p.get("f") or _p.get("fixture") or _p.get("match") or "").lower()
+            _slate = str(_p.get("m") or "").lower()
+            if not _p.get("lg"):
+                _p["lg"] = _p.get("league") or _p.get("competition") or ("Global Football" if "global" in _slate else "Football")
+            _hay = f"{_p.get('lg','').lower()} {_fx} {_slate}"
+
+            is_uk = any(k in _hay for k in uk_keys)
+            is_fr = any(k in _hay for k in fr_keys)
+            is_it = any(k in _hay for k in it_keys)
+            is_de = any(k in _hay for k in de_keys)
+            is_es = any(k in _hay for k in es_keys)
+            is_eu = is_fr or is_it or is_de or is_es or any(k in _hay for k in eu_keys)
+
+            if is_uk:
+                _p["scope"] = "uk"
+                _p["region"] = "uk"
+            elif is_fr:
+                _p["scope"] = "global"
+                _p["region"] = "france"
+            elif is_it:
+                _p["scope"] = "global"
+                _p["region"] = "italy"
+            elif is_de:
+                _p["scope"] = "global"
+                _p["region"] = "german"
+            elif is_es:
+                _p["scope"] = "global"
+                _p["region"] = "spain"
+            elif is_eu:
+                _p["scope"] = "global"
+                _p["region"] = "europe"
+            else:
+                _p["scope"] = "global"
+                _p["region"] = "row"
+
+            if tab_norm in ("all", "", "bet_builder"):
+                filtered.append(_p)
+            elif tab_norm == "uk" and is_uk:
+                filtered.append(_p)
+            elif tab_norm == "france" and is_fr:
+                filtered.append(_p)
+            elif tab_norm == "italy" and is_it:
+                filtered.append(_p)
+            elif tab_norm == "german" and is_de:
+                filtered.append(_p)
+            elif tab_norm == "spain" and is_es:
+                filtered.append(_p)
+            elif tab_norm == "europe" and is_eu:
+                filtered.append(_p)
+            elif tab_norm == "row" and (not is_uk and not is_eu):
+                filtered.append(_p)
+
+        payload["picks"] = filtered
+        payload["verified_count"] = len(filtered)
     return payload
 
 
@@ -1251,7 +1312,7 @@ def api_tab_picks():
         "rejected_count": len(rejected),
         "picks": _out_picks,
         "rejected": rejected[:50],
-    }))
+    }, tab=request.args.get("tab", "all")))
 
 
 
@@ -1266,3 +1327,47 @@ def api_clv_audit():
             rows = []
     avg_ev = round(sum(float(r.get("ev_pct") or 0.0) for r in rows) / len(rows), 2) if rows else 0.0
     return jsonify({"ok": True, "count": len(rows), "avg_ev_pct": avg_ev, "records": rows[-50:]})
+
+
+@app.route("/api/auto-slip", methods=["GET"])
+def api_auto_slip():
+    from flask import jsonify, request
+    min_ev = float(request.args.get("min_ev", 2.5))
+    legs_max = min(int(request.args.get("legs", 3)), 4)
+    bankroll = float(request.args.get("bankroll", 1000.0))
+    with app.test_client() as client:
+        resp = client.get(f"/api/tab-picks?min_ev={min_ev}&tab=all")
+        data = resp.get_json(silent=True) or {}
+    picks = data.get("picks") or []
+    ranked = sorted(picks, key=lambda x: float(x.get("ev") or 0), reverse=True)
+    selected = []
+    seen_fixtures = set()
+    for p in ranked:
+        fx = str(p.get("f") or "").strip()
+        if not fx or fx.lower() in seen_fixtures:
+            continue
+        seen_fixtures.add(fx.lower())
+        odds = float(p.get("odds") or 1.85)
+        ev_pct = float(p.get("ev") or 0.0)
+        selected.append({
+            "fixture": fx,
+            "league": p.get("lg", "Football"),
+            "region": p.get("region", "all"),
+            "selection": p.get("pk") or "1X/X2 & Over 1.5 Goals",
+            "odds": round(odds, 2),
+            "ev_pct": round(ev_pct, 2),
+        })
+        if len(selected) >= legs_max:
+            break
+    combined_odds = 1.0
+    for leg in selected:
+        combined_odds *= leg["odds"]
+    kelly_pct = 1.5 if len(selected) >= 3 else 1.0
+    return jsonify({
+        "engine": "GEM-V15-AUTO",
+        "legs_count": len(selected),
+        "combined_odds": round(combined_odds, 2) if selected else 0.0,
+        "recommended_stake_pct": kelly_pct,
+        "recommended_stake_gbp": round(bankroll * (kelly_pct / 100.0), 2),
+        "slip": selected,
+    })
