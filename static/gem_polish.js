@@ -1242,7 +1242,7 @@ setInterval(injectRegionToggle,900);
         <b style="font-size:13px;color:#fff;">${tab.label} — ${vettedPicks.length} Engine Predictions</b>
         <button type="button" id="gem-v227-hide" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Close Tab</button>
       </div>` + (vettedPicks.length === 0
-        ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">" "  : ""}</div>`
+        ? `<div style="color:#fbbf24;font-size:12px;padding:6px 0;">""}</div>`
         : vettedPicks.map((x, i) => {
             const dm = DATE_MAP[normKey(x.f)] || {};
             const rawDate = String(x.fixture_date || "").slice(0, 10);
