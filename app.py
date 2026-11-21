@@ -1,4 +1,4 @@
-from help_engines import blend_probabilities
+from help_engines import blend_probabilities, predigoal_predict
 import math
 import re
 def _sanitize_acca10_all_markets_v167(feed_dict):
@@ -1590,6 +1590,15 @@ def _gem_recalibrate_all_markets(item):
     item["vetting_removed"] = True
     item["cleared"] = True
     item["markets_evaluated"] = 19
+    pg_out = predigoal_predict(xg_h, xg_a, best_label)
+    item["predigoal"] = pg_out
+    item["predicted_score"] = pg_out["predicted_score"]
+    item["ensemble"] = blend_probabilities(
+        dc_prob=best_cal_p,
+        kalshi_prob=item.get("kalshi_prob"),
+        scoreai_prob=item.get("scoreai_prob"),
+        predigoal_prob=item.get("predigoal_prob") or pg_out["predigoal_prob"],
+    )
     item["ensemble"] = blend_probabilities(
         dc_prob=best_cal_p,
         kalshi_prob=item.get("kalshi_prob"),

@@ -1,15 +1,14 @@
 {
   "date": "2026-11-21",
-  "count": 48,
+  "count": 47,
   "leagues": [
     "English Premier League",
     "UEFA Champions League",
     "UEFA Europa League",
-    "Italian Serie A",
     "German Bundesliga",
     "French Ligue 1",
     "Brazilian Serie A"
   ],
   "source": "espn_keyless_live",
-  "updated": "Sat 21 Nov, 15:56 UTC"
+  "updated": "Sat 21 Nov, 16:04 UTC"
 }
