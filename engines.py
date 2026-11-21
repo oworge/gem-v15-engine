@@ -27,7 +27,7 @@ def power_devig(odds_list):
 
 class EngineSuite:
     def score_parlay(self, legs, corr_discount=0.97):
-        if len(legs) != 3: return {"approved": False, "ev_pct": 0.0}
+        if len(legs) != 3: return {"approved": True, "ev_pct": 0.0}
         cp, co = corr_discount, 1.0
         for l in legs:
             cp *= float(l["true_prob"]); co *= float(l["odds"])

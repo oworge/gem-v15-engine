@@ -56,5 +56,6 @@
   "all_19_markets_permanent": true,
   "min_market_ev_pct": 0.0,
   "max_market_ev_pct": 14.5,
-  "vetting_disabled": true
+  "vetting_disabled": true,
+  "vetting_mode": "off"
 }
