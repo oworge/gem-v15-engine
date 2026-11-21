@@ -1,18 +1,18 @@
 {
-  "combined_odds": 1.62,
+  "combined_odds": 1.74,
   "engine": "GEM-V15-CALIBRATED",
   "legs_count": 1,
   "recommended_stake_gbp": 10.0,
   "recommended_stake_pct": 1.0,
   "slip": [
     {
-      "country": "UK",
-      "ev_pct": 3.53,
-      "fixture": "Newport County v Swindon Town",
-      "league": "Global",
-      "odds": 1.62,
-      "region": "uk",
-      "selection": "Newport County Draw No Bet (DNB)"
+      "country": "Europe",
+      "ev_pct": 3.15,
+      "fixture": "OFI Crete v Anderlecht",
+      "league": "Football",
+      "odds": 1.74,
+      "region": "europe",
+      "selection": "Anderlecht Draw No Bet (DNB)"
     }
   ]
 }
