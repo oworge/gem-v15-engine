@@ -1047,8 +1047,6 @@ def _enforce_v195(response):
     return response
 
 
-@app.route("/api/tab-picks", methods=["GET"])
-
 def _gem_normalize_tab_picks(payload=None):
     if payload is None:
         return {}
@@ -1072,6 +1070,9 @@ def _gem_normalize_tab_picks(payload=None):
                 if not _p.get("scope"):
                     _p["scope"] = "uk" if any(k in f"{_p.get('lg','').lower()} {_fx}" for k in uk_keys) else "global"
     return payload
+
+
+@app.route("/api/tab-picks", methods=["GET"])
 
 def api_tab_picks():
     from flask import jsonify, request
