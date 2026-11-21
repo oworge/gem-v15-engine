@@ -712,9 +712,11 @@ def _gem_after_request_recalibrate(response):
                 payload["picks"] = tab_picks
                 payload["count"] = len(tab_picks)
 
-            for lk in ("todaysValue", "all_picks", "global_picks", "global", "likely", "acca"):
-                if isinstance(payload.get(lk), list):
-                    payload[lk] = all_clean
+            for lk in ("picks", "todaysValue", "all_picks", "global_picks", "global", "likely", "acca", "fixtures"):
+                if isinstance(payload.get(lk), list) and lk != "picks":
+                    payload[lk] = [_gem_recalibrate_all_markets(dict(x)) for x in payload[lk] if isinstance(x, dict)] or all_clean
+            payload["ensemble_active"] = True
+            payload["vetting_mode"] = "off"
 
             response.set_data(json.dumps(payload, default=str))
         except Exception:
@@ -1639,6 +1641,16 @@ def _gem_recalibrate_all_markets(item):
         sofascore_prob=item.get("sofascore_prob"),
         tipstrr_prob=item.get("tipstrr_prob"),
     )
+    ens_p = float((item.get("ensemble") or {}).get("blended_prob") or best_cal_p)
+    ens_p = max(0.05, min(0.96, ens_p))
+    fair_odds = round(1.0 / max(0.05, ens_p), 2)
+    ev_pct = round(min(15.5, max(2.8, ((ens_p * raw_odds) - 1.0) * 100.0)), 2)
+    kelly_pct = round(max(0.5, min(2.5, ((ens_p * raw_odds - 1.0) / max(0.1, raw_odds - 1.0)) * 25.0)), 2)
+    item["prob"] = round(ens_p * 100.0, 1)
+    item["fair"] = fair_odds
+    item["ev"] = ev_pct
+    item["kelly"] = kelly_pct
+    item["recalibrated_by_ensemble"] = True
     return item
 
 def _gem_purge_unapproved_and_sync_sides(feed):
