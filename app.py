@@ -3167,20 +3167,17 @@ def _gem_normalize_row_date(row_dict):
         dt = _gem_parse_utc_dt(cand)
         if dt is not None:
             break
-    if dt is None:
-        dt = now_utc.replace(hour=20, minute=0, second=0, microsecond=0)
-    # If cached fixture date is more than 2 days stale in active feed, roll to current UTC date preserving KO
-    if (now_utc - dt).total_seconds() > 172800:
-        dt = dt.replace(year=now_utc.year, month=now_utc.month, day=now_utc.day)
-        row_dict["date_repaired"] = True
-    iso_date = dt.strftime("%Y-%m-%d")
-    ko_str = dt.strftime("%H:%M GMT")
-    label_str = dt.strftime("%a %d %b %Y")
-    row_dict["fixture_date"] = iso_date
     row_dict["feed_date"] = today_iso
-    row_dict["date_label"] = label_str
-    if ko_str != "00:00 GMT" or not row_dict.get("ko"):
-        row_dict["ko"] = ko_str
+    if dt is None:
+        row_dict["date_label"] = "Unverified Date"
+        if not row_dict.get("ko"):
+            row_dict["ko"] = "Check Fixture"
+        row_dict["date_unverified"] = True
+        return row_dict
+    row_dict["fixture_date"] = dt.strftime("%Y-%m-%d")
+    row_dict["date_label"] = dt.strftime("%a %d %b %Y")
+    row_dict["ko"] = dt.strftime("%H:%M GMT")
+    row_dict["date_unverified"] = False
     return row_dict
 
 def _gem_apply_row_quality(row_dict):
