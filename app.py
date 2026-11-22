@@ -656,9 +656,16 @@ def time_decayed_xg(xg_val, days_ago=0.0, half_life_days=30.0):
         return float(xg_val or 0.0)
 def lineup_shock_delta(xg_h, xg_a, *args, **kwargs):
     try:
-        return float(xg_h or 0.0), float(xg_a or 0.0), {'shock_applied': False}
+        h = float(xg_h or 1.35)
+        a = float(xg_a or 1.15)
+        shock_h = float(kwargs.get("home_shock", 0.0) or 0.0)
+        shock_a = float(kwargs.get("away_shock", 0.0) or 0.0)
+        h_adj = max(0.15, round(h + shock_h, 3))
+        a_adj = max(0.15, round(a + shock_a, 3))
+        applied = (shock_h != 0.0 or shock_a != 0.0)
+        return h_adj, a_adj, {"shock_applied": applied, "home_delta": shock_h, "away_delta": shock_a}
     except Exception:
-        return 1.35, 1.15, {'shock_applied': False}
+        return 1.35, 1.15, {"shock_applied": False}
 
 def _calibrate_and_adjust(model_prob, devig_prob, item=None):
 
