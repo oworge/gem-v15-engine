@@ -644,28 +644,68 @@ def _dixon_coles_1x_o15_prob(xg_home, xg_away, rho=-0.11):
 
 
 
+
 import math as _gem_math
+from datetime import datetime as _gem_dt, timezone as _gem_tz
+
+def _gem_days_ago(fixture_date_str):
+    try:
+        if not fixture_date_str:
+            return 0.0
+        s = str(fixture_date_str).strip()[:10]
+        dt = _gem_dt.strptime(s, "%Y-%m-%d").replace(tzinfo=_gem_tz.utc)
+        now = _gem_dt.now(_gem_tz.utc)
+        delta_days = (now - dt).total_seconds() / 86400.0
+        return max(0.0, round(delta_days, 3))
+    except Exception:
+        return 0.0
 
 def time_decayed_xg(xg_val, days_ago=0.0, half_life_days=30.0):
     try:
         v = float(xg_val or 0.0)
         d = max(0.0, float(days_ago or 0.0))
         lam = _gem_math.log(2.0) / max(1.0, float(half_life_days or 30.0))
-        return v * _gem_math.exp(-lam * d)
+        return round(v * _gem_math.exp(-lam * d), 4)
     except Exception:
         return float(xg_val or 0.0)
+
 def lineup_shock_delta(xg_h, xg_a, *args, **kwargs):
     try:
-        h = float(xg_h or 1.35)
-        a = float(xg_a or 1.15)
+        h = float(xg_h if xg_h is not None else 1.35)
+        a = float(xg_a if xg_a is not None else 1.15)
         shock_h = float(kwargs.get("home_shock", 0.0) or 0.0)
         shock_a = float(kwargs.get("away_shock", 0.0) or 0.0)
         h_adj = max(0.15, round(h + shock_h, 3))
         a_adj = max(0.15, round(a + shock_a, 3))
-        applied = (shock_h != 0.0 or shock_a != 0.0)
-        return h_adj, a_adj, {"shock_applied": applied, "home_delta": shock_h, "away_delta": shock_a}
+        applied = (abs(shock_h) > 1e-9 or abs(shock_a) > 1e-9)
+        return h_adj, a_adj, {
+            "shock_applied": applied,
+            "home_delta": shock_h,
+            "away_delta": shock_a,
+            "data_quality": "full" if applied else "standard_model",
+        }
     except Exception:
-        return 1.35, 1.15, {"shock_applied": False}
+        return 1.35, 1.15, {"shock_applied": False, "data_quality": "fallback"}
+
+def _gem_novig_ev(odds_val, model_prob, overround=1.06):
+    try:
+        o = float(odds_val or 0.0)
+        p = float(model_prob or 0.0)
+        if p > 1.0:
+            p = p / 100.0
+        if o <= 1.0 or p <= 0.0:
+            return 0.0, "low_edge"
+        fair_p = min(0.99, max(0.01, p / max(1.0, float(overround or 1.06))))
+        ev_pct = round(((fair_p * o) - 1.0) * 100.0, 2)
+        if ev_pct > 9.0:
+            quality = "high_ev_review"
+        elif ev_pct >= 1.0:
+            quality = "core_edge"
+        else:
+            quality = "low_edge"
+        return ev_pct, quality
+    except Exception:
+        return 0.0, "low_edge"
 
 def _calibrate_and_adjust(model_prob, devig_prob, item=None):
 
