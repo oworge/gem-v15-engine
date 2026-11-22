@@ -460,7 +460,7 @@
       ev:ev,
       landingPct:prob,
       note:r.n||r.rationale||r.o||"Calibrated Dixon-Coles + Logit edge",
-      badge:r.k||r.b||""
+      badge:r.k||r.b||"",evFlag:r.ev_flag||"",novigEv:r.novig_ev
     };
   }
 
@@ -493,7 +493,7 @@
     var tb=document.getElementById("pv-tbody");
     if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No picks match filter.</td></tr>";return}
     var h="";
-    for(var i=0;i<list.length;i++){var p=list[i];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='pv-tag'>"+(p.badge||"VALUE")+"</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+evBadge(p.ev)+"</td><td class='num'>"+p.landingPct.toFixed(0)+"%</td><td>"+addBtn(p.id)+"</td></tr>"}
+    for(var i=0;i<list.length;i++){var p=list[i];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='pv-tag'>"+(p.badge||"VALUE")+"</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+(p.evFlag?"<span class='league-sub'>"+p.evFlag+"</span>":evBadge(p.ev))+"</td><td class='num'>"+p.landingPct.toFixed(0)+"%</td><td>"+addBtn(p.id)+"</td></tr>"}
     tb.innerHTML=h;bindAdds(tb,feedData.pv);
   }
 
@@ -512,7 +512,7 @@
     var tb=document.getElementById("todays-tbody");
     if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No today picks match filter.</td></tr>";return}
     var h="";
-    for(var j=0;j<list.length;j++){var p=list[j];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+evBadge(p.ev)+"</td><td class='num'>"+p.landingPct.toFixed(0)+"%</td><td>"+addBtn(p.id)+"</td></tr>"}
+    for(var j=0;j<list.length;j++){var p=list[j];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+(p.evFlag?"<span class='league-sub'>"+p.evFlag+"</span>":evBadge(p.ev))+"</td><td class='num'>"+p.landingPct.toFixed(0)+"%</td><td>"+addBtn(p.id)+"</td></tr>"}
     tb.innerHTML=h;bindAdds(tb,feedData.todays);
   }
 
@@ -539,7 +539,7 @@
       out+="<div class='card'><div class='card-header'><span class='card-title'>"+grp.label+"</span><span class='pill pill-blue'>"+dl.length+" Fixtures</span></div>";
       if(!dl.length){out+="<div class='empty-state'>No fixtures match filter.</div></div>";continue}
       out+="<div class='table-wrap'><table><thead><tr><th>Date &amp; KO</th><th>Fixture &amp; League</th><th>Model Prediction</th><th>Odds</th><th>EV</th><th>Prob %</th><th>Slip</th></tr></thead><tbody>";
-      for(var r=0;r<dl.length;r++){var m=dl[r];out+="<tr>"+dateCell(m)+"<td><strong>"+m.fixture+"</strong><span class='league-sub'>"+m.league+"</span></td><td><strong>"+m.selection+"</strong><span class='league-sub'>"+m.note+"</span></td><td class='num'>"+(m.odds>0?m.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(m.ev)+" "+evBadge(m.ev)+"</td><td class='num'>"+m.landingPct.toFixed(0)+"%</td><td>"+addBtn(m.id)+"</td></tr>"}
+      for(var r=0;r<dl.length;r++){var m=dl[r];out+="<tr>"+dateCell(m)+"<td><strong>"+m.fixture+"</strong><span class='league-sub'>"+m.league+"</span></td><td><strong>"+m.selection+"</strong><span class='league-sub'>"+m.note+"</span></td><td class='num'>"+(m.odds>0?m.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(m.ev)+" "+(m.evFlag?"<span class='league-sub'>"+m.evFlag+"</span>":evBadge(m.ev))+"</td><td class='num'>"+m.landingPct.toFixed(0)+"%</td><td>"+addBtn(m.id)+"</td></tr>"}
       out+="</tbody></table></div></div>";
     }
     box.innerHTML=out;bindAdds(box,mAll);
@@ -551,7 +551,7 @@
     var tb=document.getElementById("ai-tbody");
     if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No AI picks match filter.</td></tr>";return}
     var h="";
-    for(var i=0;i<list.length;i++){var p=list[i];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='ai-tag'>AI ENGINE</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='num' style='color:var(--purple)'>"+p.landingPct.toFixed(0)+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+evBadge(p.ev)+"</td><td>"+addBtn(p.id)+"</td></tr>"}
+    for(var i=0;i<list.length;i++){var p=list[i];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='ai-tag'>AI ENGINE</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='num' style='color:var(--purple)'>"+p.landingPct.toFixed(0)+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+(p.evFlag?"<span class='league-sub'>"+p.evFlag+"</span>":evBadge(p.ev))+"</td><td>"+addBtn(p.id)+"</td></tr>"}
     tb.innerHTML=h;bindAdds(tb,feedData.ai);
   }
 
@@ -563,7 +563,7 @@
     var tb=document.getElementById("likely-tbody");
     if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No likely picks match filter.</td></tr>";return}
     var h="";
-    for(var i=0;i<list.length;i++){var p=list[i],w=Math.min(100,Math.max(10,p.landingPct));h+="<tr><td class='num'>#"+(i+1)+"<span class='league-sub'>"+p.exactDate+"</span></td><td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+" ("+p.kickoff+")</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num ev-pos'><span class='prob-bar-bg'><span class='prob-bar-fill' style='width:"+w+"%'></span></span>"+p.landingPct.toFixed(0)+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+evBadge(p.ev)+"</td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td>"+addBtn(p.id)+"</td></tr>"}
+    for(var i=0;i<list.length;i++){var p=list[i],w=Math.min(100,Math.max(10,p.landingPct));h+="<tr><td class='num'>#"+(i+1)+"<span class='league-sub'>"+p.exactDate+"</span></td><td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+" ("+p.kickoff+")</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num ev-pos'><span class='prob-bar-bg'><span class='prob-bar-fill' style='width:"+w+"%'></span></span>"+p.landingPct.toFixed(0)+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+" "+(p.evFlag?"<span class='league-sub'>"+p.evFlag+"</span>":evBadge(p.ev))+"</td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td>"+addBtn(p.id)+"</td></tr>"}
     tb.innerHTML=h;bindAdds(tb,feedData.likely);
   }
 
