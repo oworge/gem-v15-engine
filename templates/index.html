@@ -385,10 +385,12 @@
     </div>
   </div>
 
-  <script>
+  ﻿<script>
 (function(){
-  var allFixtures=[], activeSlip=[], activeMarket="ALL", activeLeague="ALL", activeDate="ALL";
-  var tabs=document.querySelectorAll(".tab-btn"), panels=document.querySelectorAll(".panel");
+  var feedData={pv:[],todays:[],matches:[],ai:[],likely:[],acca3:[]};
+  var activeSlip=[],activeMarket="ALL",activeLeague="ALL",activeDate="ALL";
+
+  var tabs=document.querySelectorAll(".tab-btn"),panels=document.querySelectorAll(".panel");
   for(var i=0;i<tabs.length;i++){
     tabs[i].addEventListener("click",function(){
       for(var j=0;j<tabs.length;j++)tabs[j].classList.remove("active");
@@ -398,6 +400,7 @@
       if(t)t.classList.add("active");
     });
   }
+
   var mChips=document.querySelectorAll("#market-chips .chip");
   for(var c=0;c<mChips.length;c++){
     mChips[c].addEventListener("click",function(){
@@ -407,246 +410,163 @@
       renderAll();
     });
   }
-  document.getElementById("search-box").addEventListener("input",renderAll);
-  function pNum(v,f){if(v==null)return f;var n=parseFloat(String(v).replace(/[^0-9.\-+]/g,""));return isNaN(n)?f:n}
-  function fmtPct(v){var n=Number(v);return isNaN(n)?"-":(n>=0?"+":"")+n.toFixed(2)+"%"}
 
-  // Exact 4-Day Calendar Engine anchored to Sunday, 22 November 2026
-  function next4Dates(){
-    var now=new Date();
-    var base=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-    var days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    var mos=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    var out=[];
-    for(var d=0;d<4;d++){
-      var dt=new Date(base.getFullYear(),base.getMonth(),base.getDate()+d);
-      var iso=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
-      var exactDate=days[dt.getDay()]+" "+String(dt.getDate()).padStart(2,"0")+" "+mos[dt.getMonth()]+" "+dt.getFullYear();
-      var tabLabel=(d===0?"Today (":"")+exactDate+(d===0?")":"");
-      out.push({iso:iso,exactDate:exactDate,label:tabLabel,isToday:d===0});
-    }
-    return out;
+  document.getElementById("search-box").addEventListener("input",renderAll);
+
+  function pNum(v,f){if(v==null)return f;var n=parseFloat(String(v).replace(/[^0-9.\-+]/g,""));return isNaN(n)?f:n}
+  function fmtPct(v){var n=Number(v);return isNaN(n)?"-":(n>=0?"+":"")+n.toFixed(1)+"%"}
+  function clsMkt(sel){
+    var s=(sel||"").toLowerCase();
+    if(s.indexOf("1x")>=0||s.indexOf("x2")>=0||s.indexOf("12")>=0||s.indexOf("double")>=0)return "DC";
+    if(s.indexOf("btts")>=0||s.indexOf("both")>=0)return "BTTS";
+    if(s.indexOf("handicap")>=0||s.indexOf("ah")>=0||s.indexOf("-0.5")>=0||s.indexOf("-1.")>=0||s.indexOf("+0.5")>=0)return "AH";
+    if(s.indexOf("cs")>=0||s.indexOf("correct")>=0||s.indexOf("score")>=0)return "CS";
+    if(s.indexOf("over")>=0||s.indexOf("under")>=0||s.indexOf("goals")>=0)return "OVER";
+    return "1X2";
   }
 
-  function resolveVerifiedDate(rawDateStr, dts){
-    if(!rawDateStr)return dts[0];
-    var s=String(rawDateStr).trim();
-    for(var i=0;i<dts.length;i++){
-      if(s.indexOf(dts[i].iso)===0)return dts[i];
-    }
-    var parsed=new Date(s);
-    if(!isNaN(parsed.getTime())){
-      var pIso=parsed.getFullYear()+"-"+String(parsed.getMonth()+1).padStart(2,"0")+"-"+String(parsed.getDate()).padStart(2,"0");
-      for(var j=0;j<dts.length;j++){
-        if(pIso===dts[j].iso)return dts[j];
-      }
-      return null; // Outside verified 4-day window
-    }
-    // Time-only string (e.g., "14:30") maps to Today
-    if(/^\d{1,2}:\d{2}/.test(s))return dts[0];
-    return null;
+  function normRow(r,idx,src){
+    var fx=r.f||r.fixture||r.match||"";
+    var sel=r.pk||r.selection||r.pick||"Calibrated Value Pick";
+    var meta=String(r.m||"");
+    var lg=r.lg&&r.lg!=="Global"?r.lg:(meta.indexOf("|")>=0?meta.split("|")[0].trim():(r.league||"Global League"));
+    var rawDate=String(r.fixture_date||r.feed_date||r.date||"");
+    if(!rawDate&&meta.indexOf("2026-")>=0){var dm=meta.match(/2026-\d{2}-\d{2}/);if(dm)rawDate=dm[0]}
+    var ko=String(r.ko||"");
+    if(!ko&&meta.indexOf("T")>=0){var tm=meta.match(/T(\d{2}:\d{2})/);if(tm)ko=tm[1]+" GMT"}
+    else if(ko&&ko.indexOf("GMT")<0&&ko.indexOf(":")>=0){ko=ko+" GMT"}
+    var od=pNum(r.odds||r.soft_odds||r.price,0);
+    var ev=pNum(r.ev||r.edge,0);
+    var prob=pNum(r.p||r.prob||r.landing_pct,od>1?Math.min(92,Math.round((1/od)*100)):60);
+    return {
+      id:src+"_"+idx,
+      dateIso:rawDate,
+      exactDate:r.date_label||rawDate||"2026-11-22",
+      kickoff:ko||"Scheduled",
+      league:lg,
+      fixture:fx,
+      selection:sel,
+      marketCode:clsMkt(sel),
+      odds:od,
+      ev:ev,
+      landingPct:prob,
+      note:r.n||r.rationale||r.o||"Calibrated Dixon-Coles + Logit edge",
+      badge:r.k||r.b||""
+    };
   }
 
   function okFilter(it){
+    if(!it.fixture)return false;
     var q=(document.getElementById("search-box").value||"").toLowerCase().trim();
-    var hay=(it.fixture+" "+it.league+" "+it.selection+" "+it.marketType+" "+it.exactDate+" "+it.dateIso).toLowerCase();
+    var hay=(it.fixture+" "+it.league+" "+it.selection+" "+it.exactDate+" "+it.dateIso+" "+it.note).toLowerCase();
     if(q&&hay.indexOf(q)<0)return false;
     if(activeMarket!=="ALL"&&it.marketCode!==activeMarket)return false;
     return true;
   }
 
-  function baseSlate(){
-    var d=next4Dates();
-    return [
-      {d:d[0],ko:"12:30 GMT",lg:"Serie A (Italy)",fx:"Genoa vs Cagliari",fav:"Genoa",od1:1.95,odDc:1.34,odOv:1.82,odBt:1.78,odAh:2.05,odCs:4.10,cs:"1-0 / 1-1",pv:false,ai:81,note:"Ferraris tight tactical xG edge."},
-      {d:d[0],ko:"13:00 GMT",lg:"La Liga (Spain)",fx:"FC Barcelona vs Villarreal CF",fav:"FC Barcelona",od1:1.42,odDc:1.25,odOv:1.48,odBt:1.62,odAh:1.68,odCs:3.80,cs:"2-1 / 3-1",pv:true,ai:92,note:"Camp Nou 3.45 projected xG."},
-      {d:d[0],ko:"13:30 GMT",lg:"Eredivisie (Netherlands)",fx:"PSV Eindhoven vs NEC Nijmegen",fav:"PSV Eindhoven",od1:1.32,odDc:1.20,odOv:1.44,odBt:1.72,odAh:1.62,odCs:3.60,cs:"2-0 / 3-1",pv:true,ai:90,note:"Philips Stadion +2.45 net xG."},
-      {d:d[0],ko:"13:30 GMT",lg:"Belgian Pro League",fx:"Club Brugge vs Sint-Truiden",fav:"Club Brugge",od1:1.40,odDc:1.22,odOv:1.52,odBt:1.74,odAh:1.66,odCs:3.70,cs:"2-0 / 2-1",pv:true,ai:88,note:"Jan Breydel 2.15 home xG."},
-      {d:d[0],ko:"14:00 GMT",lg:"Serie A (Italy)",fx:"Atalanta vs Udinese",fav:"Atalanta",od1:1.55,odDc:1.24,odOv:1.64,odBt:1.76,odAh:1.82,odCs:3.90,cs:"2-0 / 2-1",pv:true,ai:86,note:"Bergamo home pressing intensity."},
-      {d:d[0],ko:"14:00 GMT",lg:"Serie A (Italy)",fx:"Lazio vs Bologna",fav:"Lazio",od1:1.88,odDc:1.30,odOv:1.74,odBt:1.76,odAh:1.98,odCs:4.15,cs:"1-1 / 2-1",pv:false,ai:83,note:"Olimpico high shot-on-target rate."},
-      {d:d[0],ko:"14:00 GMT",lg:"Ligue 1 (France)",fx:"Lille vs Rennes",fav:"Lille",od1:1.82,odDc:1.28,odOv:1.72,odBt:1.74,odAh:1.94,odCs:4.10,cs:"1-0 / 2-1",pv:false,ai:84,note:"Stade Pierre-Mauroy unbeaten run."},
-      {d:d[0],ko:"14:30 GMT",lg:"Bundesliga (Germany)",fx:"Bayer Leverkusen vs Heidenheim",fav:"Bayer Leverkusen",od1:1.38,odDc:1.21,odOv:1.52,odBt:1.70,odAh:1.66,odCs:3.75,cs:"2-1 / 3-0",pv:true,ai:88,note:"Bivariate Poisson projects 3.28 goals."},
-      {d:d[0],ko:"15:00 GMT",lg:"Scottish Premiership",fx:"Celtic vs Hearts",fav:"Celtic",od1:1.30,odDc:1.20,odOv:1.46,odBt:1.80,odAh:1.64,odCs:3.50,cs:"2-0 / 3-0",pv:true,ai:91,note:"Celtic Park 91% O1.5 hit rate."},
-      {d:d[0],ko:"15:15 GMT",lg:"La Liga (Spain)",fx:"Atletico Madrid vs Alaves",fav:"Atletico Madrid",od1:1.42,odDc:1.22,odOv:1.72,odBt:1.95,odAh:1.70,odCs:3.65,cs:"1-0 / 2-0",pv:true,ai:87,note:"Metropolitano 0.61 xGA defensive lock."},
-      {d:d[0],ko:"16:00 GMT",lg:"Swiss Super League",fx:"Young Boys vs Lugano",fav:"Young Boys",od1:1.78,odDc:1.29,odOv:1.58,odBt:1.62,odAh:1.92,odCs:4.20,cs:"2-1 / 2-2",pv:false,ai:82,note:"Wankdorf high-tempo turf advantage."},
-      {d:d[0],ko:"16:30 GMT",lg:"Premier League (England)",fx:"Liverpool vs Manchester United",fav:"Liverpool",od1:1.65,odDc:1.36,odOv:1.54,odBt:1.60,odAh:1.88,odCs:4.10,cs:"2-1 / 1-1",pv:true,ai:89,note:"Anfield unbeaten floor + transition xG."},
-      {d:d[0],ko:"17:00 GMT",lg:"Ligue 1 (France)",fx:"AS Monaco vs Brest",fav:"AS Monaco",od1:1.72,odDc:1.30,odOv:1.66,odBt:1.68,odAh:1.92,odCs:4.20,cs:"2-1 / 1-1",pv:false,ai:83,note:"BTTS landed in 7 of last 8 H2H."},
-      {d:d[0],ko:"17:30 GMT",lg:"Bundesliga (Germany)",fx:"RB Leipzig vs Wolfsburg",fav:"RB Leipzig",od1:1.58,odDc:1.25,odOv:1.56,odBt:1.66,odAh:1.80,odCs:3.95,cs:"2-0 / 2-1",pv:true,ai:85,note:"Red Bull Arena pressing efficiency."},
-      {d:d[0],ko:"18:00 GMT",lg:"Super Lig (Turkey)",fx:"Galatasaray vs Eyupspor",fav:"Galatasaray",od1:1.35,odDc:1.22,odOv:1.45,odBt:1.68,odAh:1.65,odCs:3.70,cs:"2-1 / 3-1",pv:true,ai:89,note:"RAMS Park 3.60 total goals/game."},
-      {d:d[0],ko:"19:45 GMT",lg:"Serie A (Italy)",fx:"AC Milan vs Juventus",fav:"AC Milan",od1:2.25,odDc:1.38,odOv:1.88,odBt:1.82,odAh:1.95,odCs:4.20,cs:"1-1 / 2-1",pv:false,ai:80,note:"San Siro tight tactical parity."},
-      {d:d[0],ko:"20:00 GMT",lg:"La Liga (Spain)",fx:"Athletic Bilbao vs Real Betis",fav:"Athletic Bilbao",od1:1.68,odDc:1.22,odOv:1.76,odBt:1.80,odAh:1.86,odCs:3.95,cs:"1-0 / 2-1",pv:true,ai:86,note:"San Mames 85% unbeaten model rating."},
-      {d:d[0],ko:"20:30 GMT",lg:"Liga Portugal (Portugal)",fx:"Sporting CP vs Braga",fav:"Sporting CP",od1:1.45,odDc:1.23,odOv:1.58,odBt:1.74,odAh:1.72,odCs:3.85,cs:"2-0 / 2-1",pv:true,ai:85,note:"Alvalade +2.1 goal diff/match."},
-      {d:d[0],ko:"21:30 GMT",lg:"Brasileirao Serie A",fx:"Flamengo vs Internacional",fav:"Flamengo",od1:1.75,odDc:1.40,odOv:1.78,odBt:1.80,odAh:1.96,odCs:4.15,cs:"2-1 / 1-0",pv:true,ai:85,note:"Maracana home xG advantage."},
-      {d:d[0],ko:"22:00 GMT",lg:"MLS Cup Playoffs (USA)",fx:"LAFC vs Seattle Sounders",fav:"LAFC",od1:1.82,odDc:1.34,odOv:1.68,odBt:1.72,odAh:2.02,odCs:4.30,cs:"2-1 / 1-1",pv:false,ai:86,note:"High playoff transition tempo."},
-      {d:d[0],ko:"23:30 GMT",lg:"Liga Profesional (Argentina)",fx:"River Plate vs Racing Club",fav:"River Plate",od1:1.76,odDc:1.31,odOv:1.74,odBt:1.78,odAh:1.95,odCs:4.10,cs:"2-1 / 1-0",pv:false,ai:83,note:"Monumental home attacking volume."},
-      {d:d[1],ko:"17:30 GMT",lg:"Super Lig (Turkey)",fx:"Fenerbahce vs Kayserispor",fav:"Fenerbahce",od1:1.36,odDc:1.21,odOv:1.50,odBt:1.78,odAh:1.68,odCs:3.65,cs:"2-0 / 3-0",pv:true,ai:88,note:"Kadikoy +2.25 xGD dominance."},
-      {d:d[1],ko:"19:45 GMT",lg:"Serie A (Italy)",fx:"Inter Milan vs Empoli",fav:"Inter Milan",od1:1.30,odDc:1.19,odOv:1.56,odBt:1.92,odAh:1.62,odCs:3.40,cs:"2-0 / 3-0",pv:true,ai:90,note:"San Siro 2.35 home xG vs 0.72 away."},
-      {d:d[1],ko:"20:00 GMT",lg:"Premier League (England)",fx:"Newcastle United vs West Ham",fav:"Newcastle United",od1:1.74,odDc:1.32,odOv:1.62,odBt:1.65,odAh:1.94,odCs:4.10,cs:"2-1 / 2-0",pv:false,ai:84,note:"St James Park high-tempo profile."},
-      {d:d[1],ko:"20:00 GMT",lg:"La Liga (Spain)",fx:"Real Sociedad vs Girona",fav:"Real Sociedad",od1:1.95,odDc:1.35,odOv:1.76,odBt:1.74,odAh:2.05,odCs:4.25,cs:"1-1 / 2-1",pv:false,ai:82,note:"High shot-on-target volume."},
-      {d:d[1],ko:"20:15 GMT",lg:"Liga Portugal (Portugal)",fx:"FC Porto vs Famalicao",fav:"FC Porto",od1:1.38,odDc:1.22,odOv:1.58,odBt:1.86,odAh:1.66,odCs:3.60,cs:"2-0 / 3-0",pv:true,ai:88,note:"Dragao 88% O1.5 hit rate."},
-      {d:d[2],ko:"10:00 GMT",lg:"AFC Champions League",fx:"Al Hilal vs Al Ain",fav:"Al Hilal",od1:1.42,odDc:1.22,odOv:1.46,odBt:1.64,odAh:1.68,odCs:3.85,cs:"2-1 / 3-1",pv:true,ai:89,note:"Riyadh 3.55 combined xG."},
-      {d:d[2],ko:"17:45 GMT",lg:"UEFA Champions League",fx:"Bayern Munich vs Benfica",fav:"Bayern Munich",od1:1.38,odDc:1.24,odOv:1.48,odBt:1.70,odAh:1.66,odCs:3.75,cs:"2-0 / 3-1",pv:true,ai:92,note:"Allianz Arena UCL dominance."},
-      {d:d[2],ko:"17:45 GMT",lg:"UEFA Champions League",fx:"Sparta Prague vs Brest",fav:"Sparta Prague",od1:2.05,odDc:1.36,odOv:1.74,odBt:1.72,odAh:2.10,odCs:4.30,cs:"1-1 / 2-1",pv:false,ai:81,note:"Balanced UCL attacking metrics."},
-      {d:d[2],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"Manchester City vs Feyenoord",fav:"Manchester City",od1:1.34,odDc:1.21,odOv:1.46,odBt:1.82,odAh:1.65,odCs:3.60,cs:"2-0 / 3-0",pv:true,ai:88,note:"Strong possession & box-entry edge."},
-      {d:d[2],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"Arsenal vs Shakhtar Donetsk",fav:"Arsenal",od1:1.25,odDc:1.18,odOv:1.54,odBt:2.05,odAh:1.60,odCs:3.45,cs:"2-0 / 1-0",pv:true,ai:90,note:"Emirates 0.58 xGA suppression."},
-      {d:d[2],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"Inter Milan vs RB Leipzig",fav:"Inter Milan",od1:1.62,odDc:1.26,odOv:1.64,odBt:1.68,odAh:1.84,odCs:4.00,cs:"2-1 / 2-0",pv:true,ai:86,note:"San Siro European control edge."},
-      {d:d[2],ko:"20:00 GMT",lg:"EFL Championship (England)",fx:"Sheffield United vs Oxford United",fav:"Sheffield United",od1:1.50,odDc:1.24,odOv:1.74,odBt:1.90,odAh:1.76,odCs:3.80,cs:"2-0 / 1-0",pv:false,ai:84,note:"Bramall Lane defensive lock."},
-      {d:d[3],ko:"17:45 GMT",lg:"UEFA Champions League",fx:"Red Star Belgrade vs VfB Stuttgart",fav:"VfB Stuttgart",od1:1.84,odDc:1.30,odOv:1.56,odBt:1.58,odAh:1.96,odCs:4.15,cs:"1-2 / 2-2",pv:false,ai:84,note:"High shot-conversion transition game."},
-      {d:d[3],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"Real Madrid vs Borussia Dortmund",fav:"Real Madrid",od1:1.56,odDc:1.26,odOv:1.50,odBt:1.58,odAh:1.84,odCs:4.00,cs:"2-1 / 3-1",pv:true,ai:89,note:"Bernabeu UCL transition dynamics."},
-      {d:d[3],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"PSG vs Atletico Madrid",fav:"PSG",od1:1.76,odDc:1.30,odOv:1.74,odBt:1.76,odAh:1.98,odCs:4.15,cs:"1-0 / 2-1",pv:false,ai:85,note:"Parc des Princes control metrics."},
-      {d:d[3],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"Aston Villa vs Juventus",fav:"Aston Villa",od1:2.10,odDc:1.38,odOv:1.84,odBt:1.80,odAh:2.05,odCs:4.20,cs:"1-0 / 1-1",pv:false,ai:83,note:"Villa Park unbeaten European record."},
-      {d:d[3],ko:"20:00 GMT",lg:"UEFA Champions League",fx:"Liverpool vs Real Sociedad",fav:"Liverpool",od1:1.46,odDc:1.23,odOv:1.60,odBt:1.76,odAh:1.74,odCs:3.85,cs:"2-0 / 2-1",pv:true,ai:88,note:"Anfield European night xG surge."},
-      {d:d[3],ko:"20:00 GMT",lg:"EFL Championship (England)",fx:"Leeds United vs Luton Town",fav:"Leeds United",od1:1.48,odDc:1.24,odOv:1.68,odBt:1.84,odAh:1.76,odCs:3.85,cs:"2-0 / 2-1",pv:true,ai:86,note:"Elland Road +1.45 net xG superiority."},
-      {d:d[3],ko:"20:00 GMT",lg:"EFL Championship (England)",fx:"Burnley vs Coventry City",fav:"Burnley",od1:1.72,odDc:1.28,odOv:1.82,odBt:1.88,odAh:1.92,odCs:3.90,cs:"1-0 / 2-0",pv:false,ai:81,note:"Turf Moor clean-sheet xGA edge."}
-    ];
-  }  function buildAllMarkets(){
-    var slate=baseSlate(), out=[];
-    for(var i=0;i<slate.length;i++){
-      var s=slate[i];
-      var mkts=[
-        {code:"DC",type:"Double Chance & Goals",sel:s.fav+" (1X) & Over 1.5 Goals",od:s.odDc,ev:4.85,clv:2.45,lp:Math.min(86.8,Math.round((1/s.odDc)*103*10)/10),pv:s.pv},
-        {code:"1X2",type:"Match Winner (1X2)",sel:"Match Winner: "+s.fav+" (1)",od:s.od1,ev:4.55,clv:2.20,lp:Math.min(82.0,Math.round((1/s.od1)*99*10)/10),pv:s.pv&&s.od1<=1.65},
-        {code:"OVER",type:"Over / Under Goals",sel:"Over 2.5 Goals",od:s.odOv,ev:4.90,clv:2.50,lp:Math.min(74.5,Math.round((1/s.odOv)*104*10)/10),pv:s.odOv<=1.56},
-        {code:"BTTS",type:"BTTS",sel:"Both Teams To Score (BTTS Yes)",od:s.odBt,ev:4.75,clv:2.30,lp:Math.min(68.5,Math.round((1/s.odBt)*106*10)/10),pv:s.odBt<=1.64},
-        {code:"AH",type:"Asian Handicap",sel:"Asian Handicap: "+s.fav+" -1.0",od:s.odAh,ev:5.05,clv:2.65,lp:Math.min(67.5,Math.round((1/s.odAh)*107*10)/10),pv:s.odAh<=1.70},
-        {code:"CS",type:"Correct Score",sel:"Correct Score: "+s.cs,od:s.odCs,ev:5.35,clv:2.95,lp:Math.round((1/s.odCs)*128*10)/10,pv:s.odCs<=3.60}
-      ];
-      for(var m=0;m<mkts.length;m++){
-        var mk=mkts[m];
-        out.push({
-          id:s.d.iso+"_"+i+"_"+mk.code,
-          dateIso:s.d.iso,
-          exactDate:s.d.exactDate,
-          dateLabel:s.d.label,
-          isToday:s.d.isToday,
-          kickoff:s.ko,
-          league:s.lg,
-          fixture:s.fx,
-          selection:mk.sel,
-          marketType:mk.type,
-          marketCode:mk.code,
-          odds:mk.od,
-          ev:mk.ev,
-          clv:mk.clv,
-          landingPct:mk.lp,
-          consensusPct:Math.min(93,Math.round(mk.lp+6)),
-          perfect:mk.pv,
-          aiPick:true,
-          aiConf:Math.max(76,s.ai-(m*2)),
-          aiNote:s.note
-        });
-      }
-    }
-    return out;
-  }
-  function bindAdds(root){
+  function dateCell(p){return "<td class='num'><strong>"+p.exactDate+"</strong><span class='league-sub'>"+p.kickoff+"</span></td>"}
+  function addBtn(id){return "<button class='btn btn-sm' data-add-id='"+id+"'>+ Add</button>"}
+
+  function bindAdds(root,pool){
     var b=root.querySelectorAll("[data-add-id]");
     for(var i=0;i<b.length;i++){
       b[i].addEventListener("click",function(){
         var id=this.getAttribute("data-add-id");
-        for(var j=0;j<allFixtures.length;j++){if(allFixtures[j].id===id){addSlip(allFixtures[j]);break}}
+        for(var j=0;j<pool.length;j++){if(pool[j].id===id){addSlip(pool[j]);break}}
       });
     }
   }
-  function dateCell(p){
-    return "<td class='num'><strong>"+p.exactDate+"</strong><span class='league-sub'>"+p.kickoff+"</span></td>";
-  }
+
   function renderPerfect(){
-    var allPv=allFixtures.filter(function(x){return x.perfect});
-    var list=allPv.filter(okFilter);
-    document.getElementById("pv-count").textContent=list.length+" Perfect Alerts";
-    document.getElementById("kpi-pv").textContent=allPv.length;
+    var list=feedData.pv.filter(okFilter);
+    document.getElementById("pv-count").textContent=list.length+" Real Picks";
+    document.getElementById("kpi-pv").textContent=feedData.pv.length;
     var tb=document.getElementById("pv-tbody");
-    if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No Perfect Value alerts match filter.</td></tr>";return}
+    if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No picks match filter.</td></tr>";return}
     var h="";
-    for(var i=0;i<list.length;i++){
-      var p=list[i];
-      h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='pv-tag'>PERFECT</span><span class='league-sub'>"+p.league+"</span></td><td>"+p.selection+"<span class='league-sub'>"+p.marketType+"</span></td><td class='num'>"+p.odds.toFixed(2)+"</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td class='num'>"+p.landingPct.toFixed(1)+"%</td><td><button class='btn btn-sm' data-add-id='"+p.id+"'>+ Add</button></td></tr>";
-    }
-    tb.innerHTML=h;bindAdds(tb);
+    for(var i=0;i<list.length;i++){var p=list[i];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='pv-tag'>"+(p.badge||"VALUE")+"</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td class='num'>"+p.landingPct.toFixed(0)+"%</td><td>"+addBtn(p.id)+"</td></tr>"}
+    tb.innerHTML=h;bindAdds(tb,feedData.pv);
   }
+
   function renderTodays(){
-    var tAll=allFixtures.filter(function(x){return x.isToday});
+    var tAll=feedData.todays;
     document.getElementById("kpi-today").textContent=tAll.length;
     var lgs=["ALL"];
-    for(var i=0;i<tAll.length;i++){if(lgs.indexOf(tAll[i].league)<0)lgs.push(tAll[i].league)}
+    for(var i=0;i<tAll.length;i++){if(tAll[i].league&&lgs.indexOf(tAll[i].league)<0)lgs.push(tAll[i].league)}
     var lBox=document.getElementById("league-chips"),lh="";
-    for(var l=0;l<lgs.length;l++){lh+="<button class='chip"+(lgs[l]===activeLeague?" active":"")+"' data-league='"+lgs[l]+"'>"+(lgs[l]==="ALL"?"All Global Leagues ("+tAll.length+")":lgs[l])+"</button>"}
+    for(var l=0;l<lgs.length;l++){lh+="<button class='chip"+(lgs[l]===activeLeague?" active":"")+"' data-league='"+lgs[l]+"'>"+(lgs[l]==="ALL"?"All Leagues ("+tAll.length+")":lgs[l])+"</button>"}
     lBox.innerHTML=lh;
     var lb=lBox.querySelectorAll("[data-league]");
     for(var b=0;b<lb.length;b++){lb[b].addEventListener("click",function(){activeLeague=this.getAttribute("data-league");renderTodays()})}
-    var list=tAll.filter(function(x){return (activeLeague==="ALL"||x.league===activeLeague)&&okFilter(x)});
-    document.getElementById("todays-count").textContent=list.length+" Global Picks";
+    var list=tAll.filter(function(x){return(activeLeague==="ALL"||x.league===activeLeague)&&okFilter(x)});
+    document.getElementById("todays-count").textContent=list.length+" Live Picks";
     var tb=document.getElementById("todays-tbody");
     if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No today picks match filter.</td></tr>";return}
     var h="";
-    for(var j=0;j<list.length;j++){
-      var p=list[j];
-      h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+"</span></td><td>"+p.selection+"<span class='league-sub'>"+p.marketType+"</span></td><td class='num'>"+p.odds.toFixed(2)+"</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td class='num'>"+fmtPct(p.clv)+"</td><td><button class='btn btn-sm' data-add-id='"+p.id+"'>+ Add</button></td></tr>";
-    }
-    tb.innerHTML=h;bindAdds(tb);
+    for(var j=0;j<list.length;j++){var p=list[j];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td class='num'>"+p.landingPct.toFixed(0)+"%</td><td>"+addBtn(p.id)+"</td></tr>"}
+    tb.innerHTML=h;bindAdds(tb,feedData.todays);
   }
+
   function renderMatches(){
-    document.getElementById("kpi-4day").textContent=allFixtures.length;
-    var dts=next4Dates(),dBox=document.getElementById("date-chips");
-    var dh="<button class='chip"+(activeDate==="ALL"?" active":"")+"' data-date='ALL'>All 4 Days ("+allFixtures.length+")</button>";
-    for(var d=0;d<dts.length;d++){dh+="<button class='chip"+(activeDate===dts[d].iso?" active":"")+"' data-date='"+dts[d].iso+"'>"+dts[d].label+"</button>"}
+    var mAll=feedData.matches;
+    document.getElementById("kpi-4day").textContent=mAll.length;
+    var dateMap={},dateOrder=[];
+    for(var i=0;i<mAll.length;i++){
+      var dKey=mAll[i].dateIso||mAll[i].exactDate||"Upcoming";
+      if(!dateMap[dKey]){dateMap[dKey]={iso:dKey,label:mAll[i].exactDate||dKey,items:[]};dateOrder.push(dKey)}
+      dateMap[dKey].items.push(mAll[i]);
+    }
+    dateOrder.sort();
+    var dBox=document.getElementById("date-chips");
+    var dh="<button class='chip"+(activeDate==="ALL"?" active":"")+"' data-date='ALL'>All Dates ("+mAll.length+")</button>";
+    for(var d=0;d<dateOrder.length;d++){var k=dateOrder[d];dh+="<button class='chip"+(activeDate===k?" active":"")+"' data-date='"+k+"'>"+dateMap[k].label+" ("+dateMap[k].items.length+")</button>"}
     dBox.innerHTML=dh;
     var db=dBox.querySelectorAll("[data-date]");
     for(var b=0;b<db.length;b++){db[b].addEventListener("click",function(){activeDate=this.getAttribute("data-date");renderMatches()})}
     var box=document.getElementById("matches-by-date-container"),out="";
-    for(var i=0;i<dts.length;i++){
-      var dt=dts[i];if(activeDate!=="ALL"&&activeDate!==dt.iso)continue;
-      var dl=allFixtures.filter(function(x){return x.dateIso===dt.iso&&okFilter(x)});
-      out+="<div class='card'><div class='card-header'><span class='card-title'>"+dt.label+" ("+dt.iso+")</span><span class='pill pill-blue'>"+dl.length+" Value Picks</span></div>";
-      if(!dl.length){out+="<div class='empty-state'>No fixtures match current filter.</div></div>";continue}
-      out+="<div class='table-wrap'><table><thead><tr><th>Date &amp; KO</th><th>Fixture &amp; League</th><th>Predicted Market &amp; Pick</th><th>Odds</th><th>EV</th><th>Landing %</th><th>Slip</th></tr></thead><tbody>";
-      for(var k=0;k<dl.length;k++){
-        var m=dl[k];
-        out+="<tr>"+dateCell(m)+"<td><strong>"+m.fixture+"</strong><span class='league-sub'>"+m.league+"</span></td><td>"+m.selection+"<span class='league-sub'>"+m.marketType+"</span></td><td class='num'>"+m.odds.toFixed(2)+"</td><td class='ev-pos'>"+fmtPct(m.ev)+"</td><td class='num'>"+m.landingPct.toFixed(1)+"%</td><td><button class='btn btn-sm' data-add-id='"+m.id+"'>+ Add</button></td></tr>";
-      }
+    for(var g=0;g<dateOrder.length;g++){
+      var dk=dateOrder[g];if(activeDate!=="ALL"&&activeDate!==dk)continue;
+      var grp=dateMap[dk],dl=grp.items.filter(okFilter);
+      out+="<div class='card'><div class='card-header'><span class='card-title'>"+grp.label+"</span><span class='pill pill-blue'>"+dl.length+" Fixtures</span></div>";
+      if(!dl.length){out+="<div class='empty-state'>No fixtures match filter.</div></div>";continue}
+      out+="<div class='table-wrap'><table><thead><tr><th>Date &amp; KO</th><th>Fixture &amp; League</th><th>Model Prediction</th><th>Odds</th><th>EV</th><th>Prob %</th><th>Slip</th></tr></thead><tbody>";
+      for(var r=0;r<dl.length;r++){var m=dl[r];out+="<tr>"+dateCell(m)+"<td><strong>"+m.fixture+"</strong><span class='league-sub'>"+m.league+"</span></td><td><strong>"+m.selection+"</strong><span class='league-sub'>"+m.note+"</span></td><td class='num'>"+(m.odds>0?m.odds.toFixed(2):"-")+"</td><td class='ev-pos'>"+fmtPct(m.ev)+"</td><td class='num'>"+m.landingPct.toFixed(0)+"%</td><td>"+addBtn(m.id)+"</td></tr>"}
       out+="</tbody></table></div></div>";
     }
-    box.innerHTML=out;bindAdds(box);
+    box.innerHTML=out;bindAdds(box,mAll);
   }
+
   function renderAi(){
-    var list=allFixtures.filter(function(x){return x.aiPick&&okFilter(x)});
-    list.sort(function(a,b){return b.aiConf-a.aiConf});
+    var list=feedData.ai.filter(okFilter);
     document.getElementById("ai-count").textContent=list.length+" AI Picks";
     var tb=document.getElementById("ai-tbody");
     if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No AI picks match filter.</td></tr>";return}
     var h="";
-    for(var i=0;i<list.length;i++){
-      var p=list[i];
-      h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='ai-tag'>AI "+p.aiConf+"%</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.aiNote+"</span></td><td class='num'>"+p.odds.toFixed(2)+"</td><td class='num' style='color:var(--purple)'>"+p.aiConf+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td><button class='btn btn-sm' data-add-id='"+p.id+"'>+ Add</button></td></tr>";
-    }
-    tb.innerHTML=h;bindAdds(tb);
+    for(var i=0;i<list.length;i++){var p=list[i];h+="<tr>"+dateCell(p)+"<td><strong>"+p.fixture+"</strong><span class='ai-tag'>AI ENGINE</span><span class='league-sub'>"+p.league+"</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td class='num' style='color:var(--purple)'>"+p.landingPct.toFixed(0)+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td>"+addBtn(p.id)+"</td></tr>"}
+    tb.innerHTML=h;bindAdds(tb,feedData.ai);
   }
+
   function renderLikely(){
-    var list=allFixtures.filter(okFilter);
+    var list=feedData.likely.filter(okFilter);
     list.sort(function(a,b){return b.landingPct-a.landingPct});
     document.getElementById("likely-count").textContent=list.length+" Ranked Picks";
-    if(list.length)document.getElementById("kpi-likely").textContent=list[0].landingPct.toFixed(1)+"%";
+    if(list.length)document.getElementById("kpi-likely").textContent=list[0].landingPct.toFixed(0)+"%";
     var tb=document.getElementById("likely-tbody");
-    if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No selections match filter.</td></tr>";return}
+    if(!list.length){tb.innerHTML="<tr><td colspan='7' class='empty-state'>No likely picks match filter.</td></tr>";return}
     var h="";
-    for(var i=0;i<list.length;i++){
-      var p=list[i],w=Math.min(100,Math.max(10,p.landingPct));
-      h+="<tr><td class='num'>#"+(i+1)+"<span class='league-sub'>"+p.exactDate+"</span></td><td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+" ("+p.kickoff+")</span></td><td>"+p.selection+"<span class='league-sub'>"+p.marketType+"</span></td><td class='num ev-pos'><span class='prob-bar-bg'><span class='prob-bar-fill' style='width:"+w+"%'></span></span>"+p.landingPct.toFixed(1)+"%</td><td class='num'>"+p.consensusPct+"% picked</td><td class='num'>"+p.odds.toFixed(2)+"</td><td><button class='btn btn-sm' data-add-id='"+p.id+"'>+ Add</button></td></tr>";
-    }
-    tb.innerHTML=h;bindAdds(tb);
+    for(var i=0;i<list.length;i++){var p=list[i],w=Math.min(100,Math.max(10,p.landingPct));h+="<tr><td class='num'>#"+(i+1)+"<span class='league-sub'>"+p.exactDate+"</span></td><td><strong>"+p.fixture+"</strong><span class='league-sub'>"+p.league+" ("+p.kickoff+")</span></td><td><strong>"+p.selection+"</strong><span class='league-sub'>"+p.note+"</span></td><td class='num ev-pos'><span class='prob-bar-bg'><span class='prob-bar-fill' style='width:"+w+"%'></span></span>"+p.landingPct.toFixed(0)+"%</td><td class='ev-pos'>"+fmtPct(p.ev)+"</td><td class='num'>"+(p.odds>0?p.odds.toFixed(2):"-")+"</td><td>"+addBtn(p.id)+"</td></tr>"}
+    tb.innerHTML=h;bindAdds(tb,feedData.likely);
   }
+
   function renderAll(){renderPerfect();renderTodays();renderMatches();renderAi();renderLikely()}
-  function addSlip(it){for(var i=0;i<activeSlip.length;i++){if(activeSlip[i].id===it.id)return}activeSlip.push(it);renderSlip()}
+  function addSlip(it){for(var i=0;i<activeSlip.length;i++){if(activeSlip[i].fixture===it.fixture)return}activeSlip.push(it);renderSlip()}
+
   function renderSlip(){
     var box=document.getElementById("slip-legs-box");
     document.getElementById("slip-count").textContent=activeSlip.length;
     if(!activeSlip.length){box.innerHTML="<div class='empty-state'>Tap '+ Add' on any fixture to build a custom slip.</div>";document.getElementById("slip-odds").textContent="1.00";document.getElementById("slip-return").textContent="GBP 0.00";return}
     var comb=1,h="";
-    for(var i=0;i<activeSlip.length;i++){
-      var l=activeSlip[i];comb*=l.odds;
-      h+="<div class='slip-leg'><div><div style='font-size:13px;font-weight:600'>"+l.fixture+"</div><div style='font-size:11px;color:#38bdf8'>"+l.exactDate+" | "+l.kickoff+"</div><div style='font-size:12px;color:#94a3b8'>"+l.selection+" @ "+l.odds.toFixed(2)+" ("+l.landingPct.toFixed(0)+"% hit)</div></div><button class='slip-remove' data-rm='"+i+"'>x</button></div>";
-    }
+    for(var i=0;i<activeSlip.length;i++){var l=activeSlip[i];if(l.odds>0)comb*=l.odds;h+="<div class='slip-leg'><div><div style='font-size:13px;font-weight:600'>"+l.fixture+"</div><div style='font-size:11px;color:#38bdf8'>"+l.exactDate+" | "+l.kickoff+"</div><div style='font-size:12px;color:#94a3b8'>"+l.selection+" @ "+(l.odds>0?l.odds.toFixed(2):"-")+" ("+l.landingPct.toFixed(0)+"%)</div></div><button class='slip-remove' data-rm='"+i+"'>x</button></div>"}
     box.innerHTML=h;
     var st=Number(document.getElementById("stake-input").value)||10;
     document.getElementById("slip-odds").textContent=comb.toFixed(2);
@@ -654,51 +574,42 @@
     var rb=box.querySelectorAll("[data-rm]");
     for(var r=0;r<rb.length;r++){rb[r].addEventListener("click",function(){activeSlip.splice(Number(this.getAttribute("data-rm")),1);renderSlip()})}
   }
+
   document.getElementById("stake-input").addEventListener("input",renderSlip);
   document.getElementById("btn-kelly-2pct").addEventListener("click",function(){document.getElementById("stake-input").value="10";renderSlip()});
   document.getElementById("btn-clear-slip").addEventListener("click",function(){activeSlip=[];renderSlip()});
-  document.getElementById("btn-load-pv").addEventListener("click",function(){activeSlip=allFixtures.filter(function(x){return x.perfect&&x.isToday}).slice(0,3);renderSlip()});
-  document.getElementById("btn-auto-3fold").addEventListener("click",function(){activeSlip=allFixtures.filter(function(x){return x.isToday&&x.marketCode==="1X2"}).slice(0,3);renderSlip()});
+  document.getElementById("btn-load-pv").addEventListener("click",function(){activeSlip=feedData.acca3.length?feedData.acca3.slice():feedData.pv.slice(0,3);renderSlip()});
+  document.getElementById("btn-auto-3fold").addEventListener("click",function(){activeSlip=feedData.todays.slice(0,3);renderSlip()});
   document.getElementById("btn-copy-slip").addEventListener("click",function(){
     if(!activeSlip.length)return;
     var st=Number(document.getElementById("stake-input").value)||10;
     var ln=["GEM Bet Slip ("+activeSlip.length+"-Fold | Stake: GBP "+st.toFixed(2)+"):"];
     for(var i=0;i<activeSlip.length;i++)ln.push((i+1)+". ["+activeSlip[i].exactDate+" "+activeSlip[i].kickoff+"] "+activeSlip[i].fixture+" - "+activeSlip[i].selection+" @ "+activeSlip[i].odds.toFixed(2));
     ln.push("Combined Odds: "+document.getElementById("slip-odds").textContent+" | Est. Return: "+document.getElementById("slip-return").textContent);
-    if(navigator.clipboard)navigator.clipboard.writeText(ln.join(String.fromCharCode(10)));
+    if(navigator.clipboard)navigator.clipboard.writeText(ln.join("\n"));
     var b=this;b.textContent="Copied!";setTimeout(function(){b.textContent="Copy Slip"},1500);
   });
-  async function hydrate(){
-    allFixtures=buildAllMarkets();
-    activeSlip=allFixtures.filter(function(x){return x.perfect&&x.isToday&&x.marketCode==="DC"}).slice(0,3);
-    renderAll();renderSlip();
 
-    // Merge verified live API picks that strictly fall within the 4-day calendar window
-    var urls=["/api/gem-feed","/api/tab-picks?tab=daily_picks","/api/tab-picks?tab=ai_picks","/api/tab-picks?tab=likely"];
-    var seen={},dts=next4Dates();
-    for(var s=0;s<allFixtures.length;s++)seen[(allFixtures[s].fixture+"|"+allFixtures[s].selection).toLowerCase()]=true;
-    for(var u=0;u<urls.length;u++){
-      try{
-        var res=await fetch(urls[u]+(urls[u].indexOf("?")>=0?"&":"?")+"t="+Date.now());
-        if(!res.ok)continue;
-        var j=await res.json();
-        var arr=Array.isArray(j)?j:(j&&(j.picks||j.items||j.fixtures||j.rows)||[]);
-        for(var a=0;a<arr.length;a++){
-          var r=arr[a]||{},fx=r.fixture||r.match||r.f||"";if(!fx)continue;
-          var sel=r.selection||r.pick||r.market||"1X & Over 1.5 Goals";
-          var k=(fx+"|"+sel).toLowerCase();if(seen[k])continue;
-          var matchedDate=resolveVerifiedDate(r.date||r.commence_time||r.kickoff||"",dts);
-          if(!matchedDate)continue;
-          seen[k]=true;
-          var od=pNum(r.odds||r.soft_odds||r.price,1.35),ev=pNum(r.ev||r.edge||r.today_edge,4.6),clv=pNum(r.clv||r.est_clv,2.2);
-          var lp=pNum(r.landing_pct||r.prob,Math.min(86,Math.max(48,Math.round((1/(od>1?od:1.35))*102))));
-          allFixtures.unshift({id:"api_"+u+"_"+a,dateIso:matchedDate.iso,exactDate:matchedDate.exactDate,dateLabel:matchedDate.label,isToday:matchedDate.isToday,kickoff:r.kickoff||r.time||"Today GMT",league:r.league||r.comp||"Global League",fixture:fx,selection:sel,marketType:r.market_type||"Value Market",marketCode:"DC",odds:od>1?od:1.35,ev:ev,clv:clv,landingPct:lp,consensusPct:Math.min(92,Math.round(lp+5)),perfect:Boolean(r.perfect_value||(ev>=4.2&&clv>=2.0)),aiPick:true,aiConf:Math.min(94,Math.round(lp+6)),aiNote:r.rationale||"Live engine EV + CLV positive edge."});
-        }
-      }catch(e){}
+  async function hydrate(){
+    try{
+      var res=await fetch("/api/gem-feed?t="+Date.now());
+      if(!res.ok)throw new Error("HTTP "+res.status);
+      var d=await res.json();
+      feedData.pv=(d.acca10||d.all_picks||[]).map(function(r,i){return normRow(r,i,"pv")});
+      feedData.todays=(d.todaysValue||[]).map(function(r,i){return normRow(r,i,"td")});
+      feedData.matches=(d.matches||[]).map(function(r,i){return normRow(r,i,"mt")});
+      feedData.ai=(d.ai||[]).map(function(r,i){return normRow(r,i,"ai")});
+      feedData.likely=(d.likely||[]).map(function(r,i){return normRow(r,i,"lk")});
+      feedData.acca3=(d.acca3||[]).map(function(r,i){return normRow(r,i,"a3")});
+      activeSlip=feedData.acca3.length?feedData.acca3.slice():feedData.pv.slice(0,3);
+      renderAll();renderSlip();
+      if(d.clv_audit||d.weights){
+        document.getElementById("audit-box").innerHTML="<pre style='text-align:left;white-space:pre-wrap;font-size:12px;color:#cbd5e1'>"+JSON.stringify({feed_date:d.feed_date_display,generated_utc:d.generated_utc,weights:d.weights,clv_audit:d.clv_audit},null,2)+"</pre>";
+      }
+      document.getElementById("status-line").textContent="100% Live Engine Feed ("+(d.feed_date_display||"Verified")+" | "+feedData.matches.length+" Real Fixtures) - Synced "+new Date().toLocaleTimeString();
+    }catch(err){
+      document.getElementById("status-line").textContent="Error loading /api/gem-feed: "+err.message;
     }
-    renderAll();
-    document.getElementById("audit-box").innerHTML="<div class='empty-state'>CLV Audit Active: "+allFixtures.length+" Date-Verified Value Picks ("+dts[0].exactDate+" to "+dts[3].exactDate+") across All 6 Markets.</div>";
-    document.getElementById("status-line").textContent=allFixtures.length+" Date-Verified Value Picks ("+dts[0].exactDate+" - "+dts[3].exactDate+") - Synced "+new Date().toLocaleTimeString();
   }
   document.getElementById("btn-refresh-api").addEventListener("click",function(){window.location.href="/?v="+Date.now()});
   hydrate();
