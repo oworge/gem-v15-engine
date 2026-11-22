@@ -669,7 +669,7 @@ def time_decayed_xg(xg_val, days_ago=0.0, half_life_days=30.0):
     except Exception:
         return float(xg_val or 0.0)
 
-def lineup_shock_delta(xg_h, xg_a, *args, **kwargs):
+def lineup_shock_delta(xg_h=1.35, xg_a=1.15, *args, **kwargs):
     try:
         h = float(xg_h if xg_h is not None else 1.35)
         a = float(xg_a if xg_a is not None else 1.15)
