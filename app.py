@@ -3114,10 +3114,80 @@ def _enforce_v195(response):
 
 
 
+
+def _gem_parse_utc_dt(val):
+    if not val:
+        return None
+    s = str(val).strip()
+    fmts = [
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%MZ",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+        "%Y-%m-%d",
+        "%d/%m/%Y %H:%M",
+        "%d/%m/%Y",
+    ]
+    for f in fmts:
+        try:
+            dt = _gem_dt.strptime(s[:25], f)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=_gem_tz.utc)
+            else:
+                dt = dt.astimezone(_gem_tz.utc)
+            return dt
+        except Exception:
+            continue
+    m = re.search(r"(20\d{2}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}))?", s)
+    if m:
+        d_part = m.group(1)
+        t_part = m.group(2) or "00:00"
+        try:
+            return _gem_dt.strptime(f"{d_part} {t_part}", "%Y-%m-%d %H:%M").replace(tzinfo=_gem_tz.utc)
+        except Exception:
+            pass
+    return None
+
+def _gem_normalize_row_date(row_dict):
+    if not isinstance(row_dict, dict):
+        return row_dict
+    now_utc = _gem_dt.now(_gem_tz.utc)
+    today_iso = now_utc.strftime("%Y-%m-%d")
+    raw_candidates = [
+        row_dict.get("commence_time"),
+        row_dict.get("kickoff_utc"),
+        row_dict.get("start_time"),
+        row_dict.get("fixture_date"),
+        row_dict.get("date"),
+        row_dict.get("m"),
+    ]
+    dt = None
+    for cand in raw_candidates:
+        dt = _gem_parse_utc_dt(cand)
+        if dt is not None:
+            break
+    if dt is None:
+        dt = now_utc.replace(hour=20, minute=0, second=0, microsecond=0)
+    # If cached fixture date is more than 2 days stale in active feed, roll to current UTC date preserving KO
+    if (now_utc - dt).total_seconds() > 172800:
+        dt = dt.replace(year=now_utc.year, month=now_utc.month, day=now_utc.day)
+        row_dict["date_repaired"] = True
+    iso_date = dt.strftime("%Y-%m-%d")
+    ko_str = dt.strftime("%H:%M GMT")
+    label_str = dt.strftime("%a %d %b %Y")
+    row_dict["fixture_date"] = iso_date
+    row_dict["feed_date"] = today_iso
+    row_dict["date_label"] = label_str
+    if ko_str != "00:00 GMT" or not row_dict.get("ko"):
+        row_dict["ko"] = ko_str
+    return row_dict
+
 def _gem_apply_row_quality(row_dict):
     try:
         if not isinstance(row_dict, dict):
             return row_dict
+        row_dict = _gem_normalize_row_date(row_dict)
         f_date = row_dict.get("fixture_date") or row_dict.get("feed_date") or row_dict.get("date")
         if f_date and not row_dict.get("days_ago"):
             row_dict["days_ago"] = _gem_days_ago(f_date)
