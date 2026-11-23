@@ -3218,6 +3218,78 @@ def _gem_match_key(row_dict):
     k = re.sub(r"[^a-z0-9\s]", "", k)
     return re.sub(r"\s+", " ", k).strip()
 
+
+import math as _gem_math
+from datetime import datetime as _gem_dt, timezone as _gem_tz
+
+def _gem_dc_score_grid(lam_h, lam_a, rho=-0.065, max_goals=6):
+    lam_h = max(0.25, min(4.5, float(lam_h)))
+    lam_a = max(0.25, min(4.5, float(lam_a)))
+    p_home = p_draw = p_away = p_o25 = p_btts = 0.0
+    scores = []
+    for h in range(max_goals + 1):
+        ph = (_gem_math.exp(-lam_h) * (lam_h ** h)) / _gem_math.factorial(h)
+        for a in range(max_goals + 1):
+            pa = (_gem_math.exp(-lam_a) * (lam_a ** a)) / _gem_math.factorial(a)
+            tau = 1.0
+            if h == 0 and a == 0:
+                tau = max(0.05, 1.0 - (lam_h * lam_a * rho))
+            elif h == 0 and a == 1:
+                tau = max(0.05, 1.0 + (lam_h * rho))
+            elif h == 1 and a == 0:
+                tau = max(0.05, 1.0 + (lam_a * rho))
+            elif h == 1 and a == 1:
+                tau = max(0.05, 1.0 - rho)
+            prob = ph * pa * tau
+            scores.append((f"{h}-{a}", prob))
+            if h > a:
+                p_home += prob
+            elif h == a:
+                p_draw += prob
+            else:
+                p_away += prob
+            if (h + a) >= 3:
+                p_o25 += prob
+            if h >= 1 and a >= 1:
+                p_btts += prob
+    tot = max(1e-9, p_home + p_draw + p_away)
+    p_home, p_draw, p_away = p_home / tot, p_draw / tot, p_away / tot
+    p_o25 = min(0.95, p_o25 / tot)
+    p_btts = min(0.95, p_btts / tot)
+    scores.sort(key=lambda x: x[1], reverse=True)
+    return {
+        "home": round(p_home, 4),
+        "draw": round(p_draw, 4),
+        "away": round(p_away, 4),
+        "over_25": round(p_o25, 4),
+        "btts_yes": round(p_btts, 4),
+        "top_scores": [(s, round(pr / tot, 4)) for s, pr in scores[:3]],
+    }
+
+def _gem_shrink_edge(raw_ev, max_core_ev=7.5, shrinkage=0.60):
+    val = float(raw_ev) * float(shrinkage)
+    if val > max_core_ev:
+        val = max_core_ev + ((val - max_core_ev) * 0.25)
+    return round(max(-15.0, min(11.5, val)), 1)
+
+def _gem_normalize_row_date(row_dict):
+    if not isinstance(row_dict, dict):
+        return row_dict
+    raw_ts = str(row_dict.get("commence_time") or row_dict.get("kickoff") or row_dict.get("date") or "").strip()
+    if raw_ts:
+        try:
+            dt = _gem_dt.fromisoformat(raw_ts.replace("Z", "+00:00")).astimezone(_gem_tz.utc)
+            row_dict["date_label"] = dt.strftime("%a %d %b %Y")
+            row_dict["ko"] = dt.strftime("%H:%M GMT")
+            return row_dict
+        except Exception:
+            pass
+    if not row_dict.get("date_label"):
+        row_dict["date_label"] = "Unverified Date"
+    if not row_dict.get("ko"):
+        row_dict["ko"] = "Check Fixture"
+    return row_dict
+
 def _gem_upgrade_prediction_row(row_dict):
     if not isinstance(row_dict, dict):
         return row_dict
