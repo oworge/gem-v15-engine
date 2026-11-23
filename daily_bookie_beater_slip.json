@@ -1,0 +1,43 @@
+{
+  "generated_utc": "2026-11-21T18:41:44Z",
+  "bankroll_gbp": 500,
+  "min_edge_pct": 2.5,
+  "leg_count": 2,
+  "combined_odds": 2.55,
+  "legs": [
+    {
+      "fixture": "Real Madrid v Celta Vigo",
+      "league": "La Liga",
+      "kickoff_gmt": "2026-11-21 20:00 GMT",
+      "market": "Real Madrid or Draw (1X) & Over 1.5 Goals",
+      "soft_odds": 1.48,
+      "true_prob_pct": 71,
+      "edge_pct": 5.08,
+      "est_clv_pct": 2.78,
+      "stake_pct": 1.5,
+      "stake_gbp": 7.5
+    },
+    {
+      "fixture": "FC Groningen v SC Heerenveen",
+      "league": "Eredivisie",
+      "kickoff_gmt": "2026-11-21 20:00 GMT",
+      "market": "Both Teams to Score (BTTS Yes)",
+      "soft_odds": 1.72,
+      "true_prob_pct": 61,
+      "edge_pct": 4.92,
+      "est_clv_pct": 3.61,
+      "stake_pct": 1.5,
+      "stake_gbp": 7.5
+    }
+  ],
+  "generated": "2026-11-21T21:29:20.260968+00:00",
+  "total": 0,
+  "last_cleaned": "2026-11-21T21:32:06.940512+00:00",
+  "summary": {
+    "total_removed": 0,
+    "old_games": 0,
+    "missing_values": 0,
+    "negative_ev": 0,
+    "showing": 0
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "bets_found": 1,
+  "tabs": {
+    "All Vetted": [
+      {
+        "fixture_id": "AI BIVARIATE POISSON | SYN-9.6",
+        "kickoff": "2026-11-21 15:00",
+        "league": "Dixon-Coles + Logit Pool",
+        "home_team": "Aston Villa",
+        "away_team": "Sunderland",
+        "selection": "Over 2.5 Match Goals",
+        "market": "Spread/Total",
+        "p_f": 0.68,
+        "pd_devig": 0.6172839506172839,
+        "best_odds": 1.82,
+        "ev_pct": 23.76,
+        "model_prob_pct": 68.0,
+        "devig_prob_pct": 61.7,
+        "odds": 1.82,
+        "bet": true,
+        "reason": "\u2705 VALUE FOUND \u00b7 Edge +6.3% \u00b7 EV +23.8%",
+        "edge_pct": 6.27,
+        "stake_pct": 4.0,
+        "grade": "\ud83d\udd25"
+      }
+    ],
+    "UK Leagues": [],
+    "Europe": [],
+    "France": [],
+    "Italy": [],
+    "Germany": [],
+    "Spain": [],
+    "The rest of the world": [],
+    "Bet Builder": [
+      {
+        "fixture_id": "AI BIVARIATE POISSON | SYN-9.6",
+        "kickoff": "2026-11-21 15:00",
+        "league": "Dixon-Coles + Logit Pool",
+        "home_team": "Aston Villa",
+        "away_team": "Sunderland",
+        "selection": "Over 2.5 Match Goals",
+        "market": "Spread/Total",
+        "p_f": 0.68,
+        "pd_devig": 0.6172839506172839,
+        "best_odds": 1.82,
+        "ev_pct": 23.76,
+        "model_prob_pct": 68.0,
+        "devig_prob_pct": 61.7,
+        "odds": 1.82,
+        "bet": true,
+        "reason": "\u2705 VALUE FOUND \u00b7 Edge +6.3% \u00b7 EV +23.8%",
+        "edge_pct": 6.27,
+        "stake_pct": 4.0,
+        "grade": "\ud83d\udd25"
+      }
+    ],
+    "Perfect Value": [
+      {
+        "fixture_id": "AI BIVARIATE POISSON | SYN-9.6",
+        "kickoff": "2026-11-21 15:00",
+        "league": "Dixon-Coles + Logit Pool",
+        "home_team": "Aston Villa",
+        "away_team": "Sunderland",
+        "selection": "Over 2.5 Match Goals",
+        "market": "Spread/Total",
+        "p_f": 0.68,
+        "pd_devig": 0.6172839506172839,
+        "best_odds": 1.82,
+        "ev_pct": 23.76,
+        "model_prob_pct": 68.0,
+        "devig_prob_pct": 61.7,
+        "odds": 1.82,
+        "bet": true,
+        "reason": "\u2705 VALUE FOUND \u00b7 Edge +6.3% \u00b7 EV +23.8%",
+        "edge_pct": 6.27,
+        "stake_pct": 4.0,
+        "grade": "\ud83d\udd25"
+      }
+    ],
+    "Today's Picks": [
+      {
+        "fixture_id": "AI BIVARIATE POISSON | SYN-9.6",
+        "kickoff": "2026-11-21 15:00",
+        "league": "Dixon-Coles + Logit Pool",
+        "home_team": "Aston Villa",
+        "away_team": "Sunderland",
+        "selection": "Over 2.5 Match Goals",
+        "market": "Spread/Total",
+        "p_f": 0.68,
+        "pd_devig": 0.6172839506172839,
+        "best_odds": 1.82,
+        "ev_pct": 23.76,
+        "model_prob_pct": 68.0,
+        "devig_prob_pct": 61.7,
+        "odds": 1.82,
+        "bet": true,
+        "reason": "\u2705 VALUE FOUND \u00b7 Edge +6.3% \u00b7 EV +23.8%",
+        "edge_pct": 6.27,
+        "stake_pct": 4.0,
+        "grade": "\ud83d\udd25"
+      }
+    ],
+    "Likely": [
+      {
+        "fixture_id": "AI BIVARIATE POISSON | SYN-9.6",
+        "kickoff": "2026-11-21 15:00",
+        "league": "Dixon-Coles + Logit Pool",
+        "home_team": "Aston Villa",
+        "away_team": "Sunderland",
+        "selection": "Over 2.5 Match Goals",
+        "market": "Spread/Total",
+        "p_f": 0.68,
+        "pd_devig": 0.6172839506172839,
+        "best_odds": 1.82,
+        "ev_pct": 23.76,
+        "model_prob_pct": 68.0,
+        "devig_prob_pct": 61.7,
+        "odds": 1.82,
+        "bet": true,
+        "reason": "\u2705 VALUE FOUND \u00b7 Edge +6.3% \u00b7 EV +23.8%",
+        "edge_pct": 6.27,
+        "stake_pct": 4.0,
+        "grade": "\ud83d\udd25"
+      }
+    ],
+    "Value": []
+  }
+}

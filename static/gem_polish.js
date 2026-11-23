@@ -1,3 +1,85 @@
+
+/* GEM V15.12.3 Isolated Banker Slip Button & Capped Slip Panel */
+try {
+  (function() {
+    function mountBankerUI() {
+      try {
+        if (!document.body) return;
+        if (!document.getElementById("gem-banker-btn")) {
+          const btn = document.createElement("button");
+          btn.id = "gem-banker-btn";
+          btn.type = "button";
+          btn.textContent = "Automated Banker Slip";
+          btn.setAttribute(
+            "style",
+            "position:fixed;top:12px;right:16px;z-index:2147483647;padding:9px 15px;border-radius:8px;border:1px solid #38bdf8;background:#0284c7;color:#ffffff;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.45);"
+          );
+          btn.onclick = function() {
+            let panel = document.getElementById("gem-banker-panel");
+            if (!panel) {
+              panel = document.createElement("div");
+              panel.id = "gem-banker-panel";
+              panel.setAttribute(
+                "style",
+                "position:fixed;top:56px;right:16px;width:430px;max-width:92vw;max-height:75vh;overflow:auto;z-index:2147483647;padding:16px;border-radius:12px;background:#0f172a;border:1px solid #38bdf8;color:#f8fafc;font-family:system-ui,sans-serif;box-shadow:0 12px 28px rgba(0,0,0,0.6);"
+              );
+              document.body.appendChild(panel);
+            }
+            const visible = panel.style.display === "block";
+            if (visible) {
+              panel.style.display = "none";
+              return;
+            }
+            const rows = Array.from(document.querySelectorAll("table tbody tr"));
+            const bankers = [];
+            rows.forEach(tr => {
+              const txt = tr.innerText || "";
+              const pMatch = txt.match(/(\d{2}(?:\.\d)?)%/);
+              const prob = pMatch ? parseFloat(pMatch[1]) : 0;
+              const oMatch = txt.match(/\b([1-9]\.\d{2})\b/);
+              const odds = oMatch ? parseFloat(oMatch[1]) : 1.32;
+              const tds = Array.from(tr.querySelectorAll("td")).map(td => td.innerText.trim());
+              if (prob >= 68.0 && prob <= 88.0) {
+                bankers.push({
+                  fixture: tds[1] || "Match",
+                  market: tds[2] || "All-Market Banker",
+                  odds: odds,
+                  prob: prob
+                });
+              }
+            });
+            const top3 = bankers.slice(0, 3);
+            const combOdds = top3.length ? top3.reduce((acc, x) => acc * x.odds, 1).toFixed(2) : "1.00";
+            const combProb = top3.length ? (top3.reduce((acc, x) => acc * (x.prob / 100), 1) * 100).toFixed(1) : "0.0";
+            panel.style.display = "block";
+            panel.innerHTML =
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                '<strong style="color:#38bdf8;font-size:15px;">Automated Banker Slip</strong>' +
+                '<span style="font-size:11px;color:#94a3b8;">Cap: 68% - 88% (All Markets)</span>' +
+              '</div>' +
+              '<div style="font-size:12px;color:#4ade80;margin-bottom:10px;">' +
+                '3-Fold Odds: <strong>' + combOdds + '</strong> | Combined Prob: <strong>' + combProb + '%</strong> | Stake: <strong>£10.00</strong>' +
+              '</div>' +
+              (top3.length
+                ? top3.map((x, idx) =>
+                    '<div style="padding:6px 0;border-bottom:1px solid #1e293b;font-size:13px;">' +
+                      '<strong>' + (idx + 1) + '. ' + x.fixture + '</strong><br/>' +
+                      '<span style="color:#cbd5e1;">' + x.market + ' @ <strong>' + x.odds.toFixed(2) + '</strong> (' + x.prob.toFixed(1) + '%)</span>' +
+                    '</div>'
+                  ).join("")
+                : '<div style="font-size:13px;color:#cbd5e1;">No rows currently match the 68% - 88% probability cap.</div>'
+              );
+          };
+          document.body.appendChild(btn);
+        }
+      } catch (e) {}
+    }
+    mountBankerUI();
+    setInterval(mountBankerUI, 700);
+    document.addEventListener("DOMContentLoaded", mountBankerUI);
+  })();
+} catch (e) {}
+
 ﻿(function () {
   if (window.__gemV95PolishLoaded) return;
   window.__gemV95PolishLoaded = true;
