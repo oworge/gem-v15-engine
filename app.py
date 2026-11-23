@@ -3273,8 +3273,12 @@ def _gem_upgrade_prediction_row(row_dict):
     else:
         code, label, prob, odd, shrunk_ev = best
 
+    row_dict["pk"] = label
     row_dict["pick"] = label
+    row_dict["combo_pick"] = label
     row_dict["selection"] = label
+    row_dict["fair"] = round(1.0 / max(0.05, float(prob)), 2)
+    row_dict["kelly"] = round(max(0.5, min(2.5, ((float(prob) * float(odd) - 1.0) / max(0.1, float(odd) - 1.0)) * 25.0)), 2)
     row_dict["market"] = code
     row_dict["odds"] = round(float(odd), 2)
     row_dict["p"] = round(float(prob), 4)
@@ -3312,7 +3316,6 @@ def _gem_apply_row_quality(row_dict):
         return row_dict
 
 def _gem_recalibrate_all_markets(item):
-    item = _gem_apply_row_quality(item)
 
     if not isinstance(item, dict):
 
@@ -3633,6 +3636,8 @@ def _gem_recalibrate_all_markets(item):
     item["ev"] = ev_pct
 
     item["kelly"] = kelly_pct
+
+    item = _gem_apply_row_quality(item)
 
     item["approved"] = True
 
