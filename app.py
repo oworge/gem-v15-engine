@@ -3344,6 +3344,35 @@ _GEM_LEAGUE_TEMPO = {
 
 _GEM_CLV_SEEN = set()
 
+
+_GEM_GLOBAL_ODDS_MEM = {"mtime": 0.0, "data": {}}
+
+def _gem_lookup_cached_odds(row_dict):
+    try:
+        cp = _gem_pathlib.Path("global_odds_cache.json")
+        if not cp.exists():
+            return {}
+        mt = cp.stat().st_mtime
+        if mt != _GEM_GLOBAL_ODDS_MEM["mtime"]:
+            raw = _gem_json_io.loads(cp.read_text(encoding="utf-8", errors="ignore"))
+            _GEM_GLOBAL_ODDS_MEM["data"] = raw if isinstance(raw, dict) else {}
+            _GEM_GLOBAL_ODDS_MEM["mtime"] = mt
+        cache = _GEM_GLOBAL_ODDS_MEM["data"]
+        mk = _gem_match_key(row_dict)
+        if mk in cache and isinstance(cache[mk], dict):
+            return cache[mk]
+        # Fuzzy token overlap fallback (e.g. "FC Groningen" vs "Groningen")
+        if " v " in mk:
+            h_tok, a_tok = [t.strip() for t in mk.split(" v ", 1)]
+            for ck, cv in cache.items():
+                if isinstance(cv, dict) and " v " in ck:
+                    ch, ca = ck.split(" v ", 1)
+                    if (h_tok in ch or ch in h_tok) and (a_tok in ca or ca in a_tok):
+                        return cv
+    except Exception:
+        pass
+    return {}
+
 def _gem_extract_live_market_odds(row_dict):
     extracted = {}
     # Harvest any real bookmaker prices from nested odds dicts or cleared_markets (excluding synthetic 4.00 stubs)
@@ -3387,6 +3416,15 @@ def _gem_extract_live_market_odds(row_dict):
                     extracted["1"] = round(modd, 2)
                 else:
                     extracted["2"] = round(modd, 2)
+    cached_ev = _gem_lookup_cached_odds(row_dict)
+    c_map = cached_ev.get("odds_map") if isinstance(cached_ev.get("odds_map"), dict) else {}
+    for ck, cv in c_map.items():
+        try:
+            fv = float(cv)
+            if 1.05 <= fv <= 18.0:
+                extracted.setdefault(str(ck).upper(), round(fv, 2))
+        except Exception:
+            pass
     return extracted
 
 def _gem_compute_dynamic_xg(row_dict, base_h, base_a):
