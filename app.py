@@ -3348,6 +3348,41 @@ _GEM_CLV_SEEN = set()
 _GEM_GLOBAL_ODDS_MEM = {"mtime": 0.0, "data": {}}
 
 
+
+# === GEM V15-DC-10.0 ADDITIVE INSTITUTIONAL LAYER (SPI + DYNAMIC HFA + TIME-DECAY + BAYESIAN PRIOR) ===
+import math as _gem_math
+
+_GEM_LEAGUE_HFA = {
+    "premier league": 1.13, "english premier league": 1.13,
+    "championship": 1.15, "efl championship": 1.15,
+    "laliga": 1.16, "la liga": 1.16,
+    "serie a": 1.14, "bundesliga": 1.15, "ligue 1": 1.15,
+    "eredivisie": 1.16, "brazilian serie a": 1.23,
+    "super lig": 1.21, "uefa champions league": 1.12, "uefa europa league": 1.13,
+}
+
+def _gem_spi_decay_hfa(home, away, league, base_lh, base_la, days_since_last=7.0, is_derby=False):
+    # 1. Exponential time-decay recency multiplier (Dixon-Coles xi = 0.0065)
+    recency_w = _gem_math.exp(-0.0065 * max(0.0, min(60.0, float(days_since_last) - 7.0)))
+    # 2. FiveThirtyEight-style Attack / Defense SPI normalization around league baseline (1.35 xG)
+    lg_avg = 1.35
+    att_h = max(0.65, min(1.85, float(base_lh) / lg_avg))
+    att_a = max(0.65, min(1.85, float(base_la) / lg_avg))
+    # 3. League-specific Dynamic Home-Field Advantage (dampened 40% on local derbies)
+    lg_key = str(league or "").lower().strip()
+    raw_hfa = _GEM_LEAGUE_HFA.get(lg_key, 1.15)
+    hfa = 1.0 + (raw_hfa - 1.0) * (0.60 if is_derby else 1.0)
+    spi_lh = round(max(0.35, min(3.60, lg_avg * att_h * hfa * (0.94 + 0.06 * recency_w))), 3)
+    spi_la = round(max(0.30, min(3.30, lg_avg * att_a * (0.94 + 0.06 * recency_w))), 3)
+    return spi_lh, spi_la
+
+def _gem_bayesian_blend(model_prob, devig_prior_prob, weight_prior=0.70):
+    # 4. Smartodds / Pinnacle Bayesian Market-Prior Blending (70% sharp market + 30% Dixon-Coles SPI)
+    if devig_prior_prob is None or not (0.03 <= float(devig_prior_prob) <= 0.97):
+        return float(model_prob)
+    blended = (float(weight_prior) * float(devig_prior_prob)) + ((1.0 - float(weight_prior)) * float(model_prob))
+    return round(min(0.93, max(0.05, blended)), 4)
+
 def _gem_scan_all_markets(grid, home, away, odds_map):
     # Enforce realistic market price bounds so 1X2 prices (e.g. 2.73) never leak into O1.5 or 1X/X2
     clean_map = {}
@@ -3385,6 +3420,22 @@ def _gem_scan_all_markets(grid, home, away, odds_map):
     p_btts_n = 1.0 - p_btts_y
     p_dnb1 = p_home / max(0.05, p_home + p_away)
     p_dnb2 = p_away / max(0.05, p_home + p_away)
+    # Additive Bayesian sharp-prior blend when de-vigged 1X2 odds exist in odds_map
+    if all(k in (odds_map or {}) for k in ("1", "X", "2")):
+        try:
+            inv1, invx, inv2 = 1.0 / float(odds_map["1"]), 1.0 / float(odds_map["X"]), 1.0 / float(odds_map["2"])
+            s_inv = inv1 + invx + inv2
+            if s_inv > 0:
+                p_home = _gem_bayesian_blend(p_home, inv1 / s_inv, 0.70)
+                p_draw = _gem_bayesian_blend(p_draw, invx / s_inv, 0.70)
+                p_away = _gem_bayesian_blend(p_away, inv2 / s_inv, 0.70)
+                tot_b = p_home + p_draw + p_away
+                p_home, p_draw, p_away = p_home / tot_b, p_draw / tot_b, p_away / tot_b
+                p_1x, p_x2, p_12 = p_home + p_draw, p_away + p_draw, p_home + p_away
+                p_dnb1 = p_home / max(0.05, p_home + p_away)
+                p_dnb2 = p_away / max(0.05, p_home + p_away)
+        except Exception:
+            pass
     cands = [
         ("1", f"{home} Win (1X2)", p_home),
         ("X", "Draw (1X2)", p_draw),
