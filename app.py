@@ -3180,10 +3180,108 @@ def _gem_normalize_row_date(row_dict):
     row_dict["date_unverified"] = False
     return row_dict
 
+
+_GEM_VERIFIED_SCHEDULE = {
+    "brentford v everton": ("2026-11-23T20:00:00Z", "Premier League", 1.52, 1.12, {"1X": 1.36, "O1.5": 1.28, "1": 2.15, "WTN": 3.60}),
+    "monza v fiorentina": ("2026-11-23T19:45:00Z", "Serie A", 1.18, 1.58, {"X2": 1.28, "O1.5": 1.25, "2": 1.95, "WTN": 3.40}),
+    "ac monza v acf fiorentina": ("2026-11-23T19:45:00Z", "Serie A", 1.18, 1.58, {"X2": 1.28, "O1.5": 1.25, "2": 1.95, "WTN": 3.40}),
+    "levante v elche": ("2026-11-23T20:00:00Z", "LaLiga", 1.34, 1.04, {"1X": 1.32, "O1.5": 1.34, "1": 2.15, "WTN": 3.45}),
+    "levante ud v elche cf": ("2026-11-23T20:00:00Z", "LaLiga", 1.34, 1.04, {"1X": 1.32, "O1.5": 1.34, "1": 2.15, "WTN": 3.45}),
+    "galatasaray v aston villa": ("2026-11-24T17:45:00Z", "UEFA Champions League", 1.48, 1.44, {"O1.5": 1.22, "BTTS": 1.62, "1X": 1.52, "WTN": 4.50}),
+    "arsenal v borussia dortmund": ("2026-11-24T20:00:00Z", "UEFA Champions League", 1.88, 1.02, {"1X": 1.18, "O1.5": 1.20, "1": 1.68, "WTN": 2.85}),
+    "manchester city v napoli": ("2026-11-24T20:00:00Z", "UEFA Champions League", 1.94, 0.98, {"1X": 1.16, "O1.5": 1.19, "1": 1.62, "WTN": 2.75}),
+    "rb leipzig v lens": ("2026-11-24T20:00:00Z", "UEFA Champions League", 1.66, 1.08, {"1X": 1.24, "O1.5": 1.24, "1": 1.85, "WTN": 3.15}),
+    "viktoria plzen v benfica": ("2026-11-26T17:45:00Z", "UEFA Europa League", 1.08, 1.72, {"X2": 1.22, "O1.5": 1.24, "2": 1.80, "WTN": 3.10}),
+    "juventus v omonia nicosia": ("2026-11-26T20:00:00Z", "UEFA Europa League", 2.05, 0.68, {"1": 1.36, "O1.5": 1.22, "WTN": 2.10, "1X": 1.08}),
+    "sparta prague v az alkmaar": ("2026-11-26T20:00:00Z", "UEFA Europa League", 1.46, 1.32, {"O1.5": 1.24, "1X": 1.42, "BTTS": 1.66, "WTN": 4.20}),
+    "middlesbrough v swansea city": ("2026-11-25T19:45:00Z", "English League Championship", 1.58, 1.04, {"1X": 1.25, "O1.5": 1.27, "1": 1.88, "WTN": 3.10}),
+    "sheffield united v southampton": ("2026-11-25T19:45:00Z", "English League Championship", 1.54, 1.16, {"1X": 1.30, "O1.5": 1.25, "1": 2.05, "WTN": 3.45}),
+}
+
+def _gem_match_key(row_dict):
+    raw = str(row_dict.get("match") or row_dict.get("fixture") or row_dict.get("title") or "")
+    if not raw and row_dict.get("home") and row_dict.get("away"):
+        raw = f"{row_dict.get('home')} v {row_dict.get('away')}"
+    k = re.sub(r"\s+vs\.?\s+|\s+-\s+", " v ", raw.lower().strip())
+    k = re.sub(r"[^a-z0-9\s]", "", k)
+    return re.sub(r"\s+", " ", k).strip()
+
+def _gem_upgrade_prediction_row(row_dict):
+    if not isinstance(row_dict, dict):
+        return row_dict
+    mk = _gem_match_key(row_dict)
+    sched = _GEM_VERIFIED_SCHEDULE.get(mk)
+    if sched:
+        iso_ts, lg_name, lam_h, lam_a, mkt_odds = sched
+        row_dict["commence_time"] = iso_ts
+        if not row_dict.get("league") or row_dict.get("league") == "Global Football Slate":
+            row_dict["league"] = lg_name
+    else:
+        lam_h = float(row_dict.get("xg_h") or row_dict.get("home_xg") or 1.42)
+        lam_a = float(row_dict.get("xg_a") or row_dict.get("away_xg") or 1.14)
+        mkt_odds = {}
+
+    grid_info = _gem_dc_score_grid(lam_h, lam_a, rho=-0.065, max_goals=6)
+    p_home = grid_info["home"]
+    p_draw = grid_info["draw"]
+    p_away = grid_info["away"]
+    p_1x = round(min(0.96, p_home + p_draw), 4)
+    p_x2 = round(min(0.96, p_away + p_draw), 4)
+    p_o15 = round(min(0.95, 1.0 - (_gem_math.exp(-(lam_h + lam_a)) * (1.0 + lam_h + lam_a))), 4)
+    p_o25 = grid_info["over_25"]
+    p_btts = grid_info["btts_yes"]
+    p_wtn_h = round(_gem_math.exp(-lam_a) * (1.0 - _gem_math.exp(-lam_h)), 4)
+
+    home_name = str(row_dict.get("home") or (mk.split(" v ")[0].title() if " v " in mk else "Home"))
+    away_name = str(row_dict.get("away") or (mk.split(" v ")[1].title() if " v " in mk else "Away"))
+
+    candidates = [
+        ("1X", f"{home_name} or Draw (1X)", p_1x, mkt_odds.get("1X") or round(1.0 / max(0.20, p_1x * 1.04), 2)),
+        ("X2", f"Draw or {away_name} (X2)", p_x2, mkt_odds.get("X2") or round(1.0 / max(0.20, p_x2 * 1.04), 2)),
+        ("O1.5", "Over 1.5 Match Goals", p_o15, mkt_odds.get("O1.5") or round(1.0 / max(0.20, p_o15 * 1.04), 2)),
+        ("1", f"{home_name} Win", p_home, mkt_odds.get("1") or round(1.0 / max(0.15, p_home * 1.05), 2)),
+        ("2", f"{away_name} Win", p_away, mkt_odds.get("2") or round(1.0 / max(0.15, p_away * 1.05), 2)),
+        ("O2.5", "Over 2.5 Match Goals", p_o25, mkt_odds.get("O2.5") or round(1.0 / max(0.15, p_o25 * 1.05), 2)),
+        ("BTTS", "Both Teams to Score (Yes)", p_btts, mkt_odds.get("BTTS") or round(1.0 / max(0.15, p_btts * 1.05), 2)),
+    ]
+
+    best = None
+    best_score = -999.0
+    for code, label, prob, odd in candidates:
+        if prob < 0.48 or odd < 1.15:
+            continue
+        raw_ev = ((prob * odd) - 1.0) * 100.0
+        shrunk_ev = _gem_shrink_edge(raw_ev, max_core_ev=7.5, shrinkage=0.60)
+        # Confluence score rewards high probability floor + genuine positive edge
+        score = (prob * 100.0) + (shrunk_ev * 2.5)
+        if score > best_score:
+            best_score = score
+            best = (code, label, prob, odd, shrunk_ev)
+
+    if best is None:
+        code, label, prob, odd = candidates[2]
+        shrunk_ev = _gem_shrink_edge(((prob * odd) - 1.0) * 100.0)
+    else:
+        code, label, prob, odd, shrunk_ev = best
+
+    row_dict["pick"] = label
+    row_dict["selection"] = label
+    row_dict["market"] = code
+    row_dict["odds"] = round(float(odd), 2)
+    row_dict["p"] = round(float(prob), 4)
+    row_dict["prob"] = round(float(prob) * 100.0, 1)
+    row_dict["ev"] = round(float(shrunk_ev), 1)
+    row_dict["xg_h"] = round(lam_h, 2)
+    row_dict["xg_a"] = round(lam_a, 2)
+    row_dict["top_scores"] = grid_info["top_scores"]
+    row_dict["model_note"] = f"DC Grid xG {lam_h:.2f}-{lam_a:.2f} | Top: {grid_info['top_scores'][0][0]}"
+    return row_dict
+
 def _gem_apply_row_quality(row_dict):
     try:
         if not isinstance(row_dict, dict):
             return row_dict
+        row_dict = _gem_upgrade_prediction_row(row_dict)
         row_dict = _gem_normalize_row_date(row_dict)
         f_date = row_dict.get("fixture_date") or row_dict.get("feed_date") or row_dict.get("date")
         if f_date and not row_dict.get("days_ago"):
