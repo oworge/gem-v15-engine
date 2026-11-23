@@ -9,3 +9,4 @@ backup_*/
 last_good_feed.json
 cache_meta.json
 daily_auto_slip.json
+.latest_backup
