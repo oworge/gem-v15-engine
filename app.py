@@ -3217,9 +3217,11 @@ def _gem_upgrade_prediction_row(row_dict):
         if not row_dict.get("league") or row_dict.get("league") == "Global Football Slate":
             row_dict["league"] = lg_name
     else:
-        lam_h = float(row_dict.get("xg_h") or row_dict.get("home_xg") or 1.42)
-        lam_a = float(row_dict.get("xg_a") or row_dict.get("away_xg") or 1.14)
+        lam_h = float(row_dict.get("xg_home") or row_dict.get("xg_h") or row_dict.get("home_xg") or 1.35)
+        lam_a = float(row_dict.get("xg_away") or row_dict.get("xg_a") or row_dict.get("away_xg") or 1.12)
         mkt_odds = {}
+    sharp_info = row_dict.get("sharp_soft_edge") if isinstance(row_dict.get("sharp_soft_edge"), dict) else {}
+    sharp_p = float(sharp_info.get("sharp_anchor_prob") or row_dict.get("sportsbook_prob") or 0.0)
 
     grid_info = _gem_dc_score_grid(lam_h, lam_a, rho=-0.065, max_goals=6)
     p_home = grid_info["home"]
@@ -3248,9 +3250,16 @@ def _gem_upgrade_prediction_row(row_dict):
     best = None
     best_score = -999.0
     for code, label, prob, odd in candidates:
-        if prob < 0.48 or odd < 1.15:
+        if prob < 0.50 or odd < 1.15:
             continue
-        raw_ev = ((prob * odd) - 1.0) * 100.0
+        # Blend model probability with sharp anchor on 1X2 when available so we never bet against sharp consensus
+        eff_prob = prob
+        if code in ("1", "2") and sharp_p > 0.05:
+            eff_prob = round((0.45 * prob) + (0.55 * sharp_p), 4)
+            if eff_prob < 0.48:
+                continue
+        raw_ev = ((eff_prob * odd) - 1.0) * 100.0
+        prob = eff_prob
         shrunk_ev = _gem_shrink_edge(raw_ev, max_core_ev=7.5, shrinkage=0.60)
         # Confluence score rewards high probability floor + genuine positive edge
         score = (prob * 100.0) + (shrunk_ev * 2.5)
