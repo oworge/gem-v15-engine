@@ -44,6 +44,35 @@ def power_devig(odds_list):
     tot = sum(probs)
     return [round(p / tot, 4) for p in probs]
 
+
+def _gem_derive_extended_odds(best, devig_1x2):
+    # Add ESN (Either Side to Win = 12), 1st Half Draw (HT_X), HT/FT, and top Correct Score lines
+    out = dict(best or {})
+    p1 = float((devig_1x2 or {}).get("p_home") or 0.40)
+    px = float((devig_1x2 or {}).get("p_draw") or 0.27)
+    p2 = float((devig_1x2 or {}).get("p_away") or 0.33)
+    p_esn = max(0.05, min(0.95, p1 + p2))
+    out.setdefault("ESN", round(max(1.12, (1.0 / p_esn) * 0.96), 2))
+    out.setdefault("12", out["ESN"])
+    # 1st Half Draw probability typically runs ~1.42x full-time draw share in low-scoring halves
+    p_ht_x = max(0.18, min(0.55, px * 1.42))
+    out.setdefault("HT_X", round(max(1.65, (1.0 / p_ht_x) * 0.94), 2))
+    # Key HT/FT combinations
+    out.setdefault("HTFT_X_X", round(max(3.50, (1.0 / max(0.06, p_ht_x * px * 1.35)) * 0.92), 2))
+    out.setdefault("HTFT_1_1", round(max(1.65, (1.0 / max(0.08, p1 * 0.72)) * 0.92), 2))
+    out.setdefault("HTFT_2_2", round(max(1.85, (1.0 / max(0.08, p2 * 0.72)) * 0.92), 2))
+    out.setdefault("HTFT_X_1", round(max(3.60, (1.0 / max(0.05, p_ht_x * p1 * 1.15)) * 0.92), 2))
+    out.setdefault("HTFT_X_2", round(max(4.00, (1.0 / max(0.05, p_ht_x * p2 * 1.15)) * 0.92), 2))
+    # Top Correct Score baseline prices
+    out.setdefault("CS_1_1", 6.50)
+    out.setdefault("CS_1_0", 7.00)
+    out.setdefault("CS_2_1", 8.50)
+    out.setdefault("CS_1_2", 9.00)
+    out.setdefault("CS_2_0", 9.50)
+    out.setdefault("CS_0_1", 9.50)
+    out.setdefault("CS_0_0", 10.50)
+    return out
+
 def sync_odds():
     cache_path = pathlib.Path("global_odds_cache.json")
     existing = json.loads(cache_path.read_text(encoding="utf-8", errors="ignore")) if cache_path.exists() else {}
@@ -120,7 +149,7 @@ def sync_odds():
             existing[mk] = {
                 "fixture": f"{home} v {away}", "home": home, "away": away,
                 "league": ev.get("sport_title") or sport, "commence_time": commence,
-                "odds_map": {k: round(v, 2) for k, v in best.items()},
+                "odds_map": {k: round(v, 2) for k, v in _gem_derive_extended_odds(best, devig_1x2).items()},
                 "devig_1x2": devig_1x2,
                 "synced_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             }

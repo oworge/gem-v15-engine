@@ -3383,6 +3383,33 @@ def _gem_bayesian_blend(model_prob, devig_prior_prob, weight_prior=0.70):
     blended = (float(weight_prior) * float(devig_prior_prob)) + ((1.0 - float(weight_prior)) * float(model_prob))
     return round(min(0.93, max(0.05, blended)), 4)
 
+
+# === GEM V15-DC-11.0 ADDITIVE MARKETS (ESN + 1ST HALF DRAW + HT/FT + CORRECT SCORE) ===
+def _gem_extended_market_candidates(grid, home, away):
+    p_home = sum(p for (i, j), p in grid.items() if i > j)
+    p_draw = sum(p for (i, j), p in grid.items() if i == j)
+    p_away = sum(p for (i, j), p in grid.items() if i < j)
+    p_esn = max(0.05, min(0.95, p_home + p_away))
+    # 1st half draw probability derived from draw frequency & low-score cells (0-0, 1-1)
+    p_00 = float(grid.get((0, 0), 0.08))
+    p_11 = float(grid.get((1, 1), 0.12))
+    p_ht_draw = max(0.20, min(0.56, (p_draw * 1.38) + (0.25 * p_00)))
+    p_ht_home = max(0.12, min(0.65, (1.0 - p_ht_draw) * (p_home / max(0.05, p_home + p_away))))
+    p_ht_away = max(0.12, min(0.65, 1.0 - p_ht_draw - p_ht_home))
+
+    ext = [
+        ("ESN", f"Either Side to Win - {home} or {away} (ESN)", p_esn),
+        ("HT_X", "1st Half Result - Draw", p_ht_draw),
+        ("HTFT_X_X", "HT/FT - Draw / Draw", max(0.05, p_ht_draw * p_draw * 1.45)),
+        ("HTFT_1_1", f"HT/FT - {home} / {home}", max(0.06, p_ht_home * p_home * 1.25)),
+        ("HTFT_2_2", f"HT/FT - {away} / {away}", max(0.06, p_ht_away * p_away * 1.25)),
+        ("HTFT_X_1", f"HT/FT - Draw / {home}", max(0.05, p_ht_draw * p_home * 1.15)),
+        ("HTFT_X_2", f"HT/FT - Draw / {away}", max(0.05, p_ht_draw * p_away * 1.15)),
+    ]
+    for (i, j), p_cell in sorted(grid.items(), key=lambda kv: -kv[1])[:6]:
+        ext.append((f"CS_{i}_{j}", f"Correct Score {i}-{j}", float(p_cell)))
+    return ext
+
 def _gem_scan_all_markets(grid, home, away, odds_map):
     # Enforce realistic market price bounds so 1X2 prices (e.g. 2.73) never leak into O1.5 or 1X/X2
     clean_map = {}
@@ -3453,6 +3480,7 @@ def _gem_scan_all_markets(grid, home, away, odds_map):
         ("U3.5", "Under 3.5 Match Goals", p_u35),
         ("BTTS_Y", "Both Teams to Score - Yes", p_btts_y),
         ("BTTS_N", "Both Teams to Score - No", p_btts_n),
+    cands.extend(_gem_extended_market_candidates(grid, home, away))
     ]
     scored = []
     for code, label, prob in cands:
