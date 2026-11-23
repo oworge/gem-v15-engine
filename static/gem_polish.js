@@ -33,3 +33,38 @@
     obs.observe(document.body, { childList: true, subtree: true });
   });
 })();
+
+
+/* GEM V15.9.9 DOM Probability & Top Landing Card Synchronizer */
+(function() {
+  function syncLandingCells() {
+    let maxProb = 0;
+    document.querySelectorAll("table tbody tr").forEach(tr => {
+      const cells = tr.querySelectorAll("td");
+      if (cells.length >= 6) {
+        const clvCell = cells[cells.length - 2];
+        if (clvCell && clvCell.textContent.trim() === "1%") {
+          const oddsCell = cells[cells.length - 4];
+          const oVal = parseFloat((oddsCell ? oddsCell.textContent : "").trim());
+          if (oVal > 1.05 && oVal < 10.0) {
+            const est = Math.min(86, Math.max(42, Math.round((1.0 / oVal) * 96)));
+            clvCell.textContent = est + "%";
+            if (est > maxProb) maxProb = est;
+          }
+        }
+      }
+    });
+    if (maxProb > 0) {
+      document.querySelectorAll("div, span, h2, h3, p").forEach(el => {
+        if (el.children.length === 0 && el.textContent.trim() === "1%") {
+          const parentTxt = (el.parentElement ? el.parentElement.innerText : "");
+          if (parentTxt.includes("Top Landing") || parentTxt.includes("Highest model")) {
+            el.textContent = maxProb + "%";
+          }
+        }
+      });
+    }
+  }
+  setInterval(syncLandingCells, 800);
+  document.addEventListener("DOMContentLoaded", syncLandingCells);
+})();

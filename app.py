@@ -3349,6 +3349,26 @@ _GEM_GLOBAL_ODDS_MEM = {"mtime": 0.0, "data": {}}
 
 
 def _gem_scan_all_markets(grid, home, away, odds_map):
+    # Enforce realistic market price bounds so 1X2 prices (e.g. 2.73) never leak into O1.5 or 1X/X2
+    clean_map = {}
+    bounds = {
+        "O1.5": (1.10, 1.58), "U1.5": (2.30, 6.50),
+        "O2.5": (1.45, 2.75), "U2.5": (1.45, 2.75),
+        "O3.5": (2.10, 5.50), "U3.5": (1.15, 1.75),
+        "1X": (1.08, 2.25),   "X2": (1.08, 2.35),   "12": (1.14, 1.55),
+        "DNB_1": (1.12, 4.50),"DNB_2": (1.12, 4.50),
+        "BTTS_Y": (1.45, 2.60),"BTTS_N": (1.50, 2.65),
+        "1": (1.15, 12.0),    "X": (2.75, 6.50),    "2": (1.15, 12.0),
+    }
+    for k, v in (odds_map or {}).items():
+        try:
+            fv = float(v)
+            lo, hi = bounds.get(k, (1.08, 12.0))
+            if lo <= fv <= hi:
+                clean_map[k] = fv
+        except Exception:
+            pass
+    odds_map = clean_map
     p_home = sum(p for (i, j), p in grid.items() if i > j)
     p_draw = sum(p for (i, j), p in grid.items() if i == j)
     p_away = sum(p for (i, j), p in grid.items() if i < j)
