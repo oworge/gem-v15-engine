@@ -3275,13 +3275,35 @@ def _gem_shrink_edge(raw_ev, max_core_ev=7.5, shrinkage=0.60):
 def _gem_normalize_row_date(row_dict):
     if not isinstance(row_dict, dict):
         return row_dict
-    raw_ts = str(row_dict.get("commence_time") or row_dict.get("kickoff") or row_dict.get("date") or "").strip()
-    if raw_ts:
+    raw_val = None
+    for tk in ("commence_time", "kickoff", "start_time", "match_time", "utcDate", "kickoff_utc", "timestamp", "date", "time"):
+        if row_dict.get(tk) not in (None, "", "Unverified Date", "Check Fixture"):
+            raw_val = row_dict.get(tk)
+            break
+    if raw_val is not None:
         try:
-            dt = _gem_dt.fromisoformat(raw_ts.replace("Z", "+00:00")).astimezone(_gem_tz.utc)
-            row_dict["date_label"] = dt.strftime("%a %d %b %Y")
-            row_dict["ko"] = dt.strftime("%H:%M GMT")
-            return row_dict
+            if isinstance(raw_val, (int, float)) or (isinstance(raw_val, str) and raw_val.strip().isdigit()):
+                ts_num = float(raw_val)
+                if ts_num > 1e12:
+                    ts_num /= 1000.0
+                dt = _gem_dt.fromtimestamp(ts_num, tz=_gem_tz.utc)
+                row_dict["date_label"] = dt.strftime("%a %d %b %Y")
+                row_dict["ko"] = dt.strftime("%H:%M GMT")
+                return row_dict
+            s_ts = str(raw_val).strip()
+            if "T" in s_ts or "+" in s_ts or s_ts.endswith("Z"):
+                dt = _gem_dt.fromisoformat(s_ts.replace("Z", "+00:00")).astimezone(_gem_tz.utc)
+                row_dict["date_label"] = dt.strftime("%a %d %b %Y")
+                row_dict["ko"] = dt.strftime("%H:%M GMT")
+                return row_dict
+            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%d/%m/%Y %H:%M", "%a %d %b %Y %H:%M"):
+                try:
+                    dt = _gem_dt.strptime(s_ts[:19], fmt).replace(tzinfo=_gem_tz.utc)
+                    row_dict["date_label"] = dt.strftime("%a %d %b %Y")
+                    row_dict["ko"] = dt.strftime("%H:%M GMT")
+                    return row_dict
+                except Exception:
+                    continue
         except Exception:
             pass
     if not row_dict.get("fixture"):
@@ -3301,6 +3323,131 @@ def _gem_normalize_row_date(row_dict):
         row_dict["ko"] = "Check Fixture"
     return row_dict
 
+
+import json as _gem_json_io
+import pathlib as _gem_pathlib
+
+_GEM_LEAGUE_TEMPO = {
+    "bundesliga": 1.12,
+    "eredivisie": 1.14,
+    "premier league": 1.05,
+    "uefa champions league": 1.06,
+    "uefa europa league": 1.04,
+    "serie a": 0.96,
+    "laliga": 0.95,
+    "la liga": 0.95,
+    "ligue 1": 0.98,
+    "english league championship": 0.97,
+    "league one": 0.96,
+    "league two": 0.94,
+}
+
+_GEM_CLV_SEEN = set()
+
+def _gem_extract_live_market_odds(row_dict):
+    extracted = {}
+    # Harvest any real bookmaker prices from nested odds dicts or cleared_markets (excluding synthetic 4.00 stubs)
+    odds_src = row_dict.get("odds_map") or row_dict.get("bookie_odds") or row_dict.get("market_odds") or {}
+    if isinstance(odds_src, dict):
+        for k, v in odds_src.items():
+            try:
+                fv = float(v)
+                if 1.05 <= fv <= 18.0 and abs(fv - 4.0) > 1e-4:
+                    extracted[str(k).upper()] = round(fv, 2)
+            except Exception:
+                pass
+    cm = row_dict.get("cleared_markets")
+    if isinstance(cm, list):
+        for m in cm:
+            if not isinstance(m, dict):
+                continue
+            mname = str(m.get("market") or "").lower()
+            try:
+                modd = float(m.get("odds") or 0.0)
+            except Exception:
+                modd = 0.0
+            # Only trust genuine bookmaker prices (ignore synthetic 4.00 and zero-margin fair odds)
+            if modd <= 1.06 or abs(modd - 4.0) < 1e-4:
+                continue
+            mprob = float(m.get("prob") or 0.0) / 100.0
+            if mprob > 0.05 and abs(modd - (1.0 / mprob)) < 0.02:
+                continue
+            if "(1x)" in mname and "over" not in mname:
+                extracted.setdefault("1X", round(modd, 2))
+            elif "(x2)" in mname and "over" not in mname:
+                extracted.setdefault("X2", round(modd, 2))
+            elif "over 1.5" in mname:
+                extracted.setdefault("O1.5", round(modd, 2))
+            elif "over 2.5" in mname:
+                extracted.setdefault("O2.5", round(modd, 2))
+            elif "btts yes" in mname:
+                extracted.setdefault("BTTS", round(modd, 2))
+            elif "win (1x2)" in mname and "draw" not in mname:
+                if "1" not in extracted:
+                    extracted["1"] = round(modd, 2)
+                else:
+                    extracted["2"] = round(modd, 2)
+    return extracted
+
+def _gem_compute_dynamic_xg(row_dict, base_h, base_a):
+    lg = str(row_dict.get("league") or "").strip().lower()
+    tempo = 1.0
+    for k, mult in _GEM_LEAGUE_TEMPO.items():
+        if k in lg:
+            tempo = mult
+            break
+    lam_h = float(base_h) * (0.65 + 0.35 * tempo)
+    lam_a = float(base_a) * (0.65 + 0.35 * tempo)
+    # Apply lineup/injury shock deltas if present
+    shock = row_dict.get("lineup_shock")
+    if isinstance(shock, dict):
+        lam_h += float(shock.get("home_delta") or 0.0)
+        lam_a += float(shock.get("away_delta") or 0.0)
+    # Reconcile home/away dominance with sharp market anchor when available
+    sharp_info = row_dict.get("sharp_soft_edge") if isinstance(row_dict.get("sharp_soft_edge"), dict) else {}
+    sharp_p = float(sharp_info.get("sharp_anchor_prob") or row_dict.get("sportsbook_prob") or 0.0)
+    if 0.15 <= sharp_p <= 0.85:
+        tot_xg = max(1.45, min(4.20, lam_h + lam_a))
+        implied_share = max(0.24, min(0.76, 0.22 + (sharp_p * 0.72)))
+        blended_share = (0.55 * (lam_h / max(0.1, lam_h + lam_a))) + (0.45 * implied_share)
+        lam_h = tot_xg * blended_share
+        lam_a = tot_xg * (1.0 - blended_share)
+    return round(max(0.35, min(3.80, lam_h)), 3), round(max(0.30, min(3.50, lam_a)), 3)
+
+def _gem_log_clv_snapshot(row_dict):
+    try:
+        ev_val = float(row_dict.get("ev") or 0.0)
+        if ev_val <= 0.0:
+            return
+        fx = str(row_dict.get("fixture") or "")
+        pk = str(row_dict.get("pk") or "")
+        dl = str(row_dict.get("date_label") or "")
+        uid = f"{dl}|{fx}|{pk}"
+        if not fx or uid in _GEM_CLV_SEEN:
+            return
+        _GEM_CLV_SEEN.add(uid)
+        rec = {
+            "logged_at_utc": _gem_dt.now(_gem_tz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "date_label": dl,
+            "ko": row_dict.get("ko"),
+            "fixture": fx,
+            "league": row_dict.get("league"),
+            "market": row_dict.get("market"),
+            "selection": pk,
+            "model_prob_pct": row_dict.get("prob"),
+            "offered_odds": row_dict.get("odds"),
+            "fair_odds": row_dict.get("fair"),
+            "shrunk_ev_pct": ev_val,
+            "ev_flag": row_dict.get("ev_flag"),
+            "xg_home": row_dict.get("xg_home"),
+            "xg_away": row_dict.get("xg_away"),
+        }
+        clv_file = _gem_pathlib.Path("clv_tracker.jsonl")
+        with clv_file.open("a", encoding="utf-8") as fh:
+            fh.write(_gem_json_io.dumps(rec) + "\n")
+    except Exception:
+        pass
+
 def _gem_upgrade_prediction_row(row_dict):
     if not isinstance(row_dict, dict):
         return row_dict
@@ -3312,9 +3459,10 @@ def _gem_upgrade_prediction_row(row_dict):
         if not row_dict.get("league") or row_dict.get("league") == "Global Football Slate":
             row_dict["league"] = lg_name
     else:
-        lam_h = float(row_dict.get("xg_home") or row_dict.get("xg_h") or row_dict.get("home_xg") or 1.35)
-        lam_a = float(row_dict.get("xg_away") or row_dict.get("xg_a") or row_dict.get("away_xg") or 1.12)
-        mkt_odds = {}
+        raw_h = float(row_dict.get("xg_home") or row_dict.get("xg_h") or row_dict.get("home_xg") or 1.35)
+        raw_a = float(row_dict.get("xg_away") or row_dict.get("xg_a") or row_dict.get("away_xg") or 1.12)
+        lam_h, lam_a = _gem_compute_dynamic_xg(row_dict, raw_h, raw_a)
+        mkt_odds = _gem_extract_live_market_odds(row_dict)
     sharp_info = row_dict.get("sharp_soft_edge") if isinstance(row_dict.get("sharp_soft_edge"), dict) else {}
     sharp_p = float(sharp_info.get("sharp_anchor_prob") or row_dict.get("sportsbook_prob") or 0.0)
 
