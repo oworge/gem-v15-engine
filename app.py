@@ -3313,24 +3313,19 @@ def _gem_apply_row_quality(row_dict):
             return row_dict
         row_dict = _gem_upgrade_prediction_row(row_dict)
         row_dict = _gem_normalize_row_date(row_dict)
-        f_date = row_dict.get("fixture_date") or row_dict.get("feed_date") or row_dict.get("date")
-        if f_date and not row_dict.get("days_ago"):
-            row_dict["days_ago"] = _gem_days_ago(f_date)
-        odds_val = row_dict.get("odds") or row_dict.get("soft_odds") or row_dict.get("price")
-        prob_val = row_dict.get("p") or row_dict.get("prob") or row_dict.get("landing_pct")
-        if odds_val and prob_val:
-            ev_pct, quality = _gem_novig_ev(odds_val, prob_val)
-            row_dict["novig_ev"] = ev_pct
-            row_dict["edge_quality"] = quality
-            if quality == "high_ev_review":
-                row_dict["ev_flag"] = "CHECK_ODDS"
-            elif quality == "core_edge":
-                row_dict["ev_flag"] = "CORE_EDGE"
-            else:
-                row_dict["ev_flag"] = "LOW_EDGE"
+        ev_val = float(row_dict.get("ev") or 0.0)
+        if ev_val >= 8.0:
+            row_dict["ev_flag"] = "CHECK_ODDS"
+        elif ev_val >= 2.0:
+            row_dict["ev_flag"] = "CORE_EDGE"
+        elif ev_val > 0.0:
+            row_dict["ev_flag"] = "LOW_EDGE"
+        else:
+            row_dict["ev_flag"] = "NO_EDGE"
         return row_dict
     except Exception:
         return row_dict
+
 
 def _gem_recalibrate_all_markets(item):
 
