@@ -3347,6 +3347,63 @@ _GEM_CLV_SEEN = set()
 
 _GEM_GLOBAL_ODDS_MEM = {"mtime": 0.0, "data": {}}
 
+
+def _gem_scan_all_markets(grid, home, away, odds_map):
+    p_home = sum(p for (i, j), p in grid.items() if i > j)
+    p_draw = sum(p for (i, j), p in grid.items() if i == j)
+    p_away = sum(p for (i, j), p in grid.items() if i < j)
+    p_1x = p_home + p_draw
+    p_x2 = p_away + p_draw
+    p_12 = p_home + p_away
+    p_o15 = sum(p for (i, j), p in grid.items() if (i + j) >= 2)
+    p_u15 = 1.0 - p_o15
+    p_o25 = sum(p for (i, j), p in grid.items() if (i + j) >= 3)
+    p_u25 = 1.0 - p_o25
+    p_o35 = sum(p for (i, j), p in grid.items() if (i + j) >= 4)
+    p_u35 = 1.0 - p_o35
+    p_btts_y = sum(p for (i, j), p in grid.items() if i >= 1 and j >= 1)
+    p_btts_n = 1.0 - p_btts_y
+    p_dnb1 = p_home / max(0.05, p_home + p_away)
+    p_dnb2 = p_away / max(0.05, p_home + p_away)
+    cands = [
+        ("1", f"{home} Win (1X2)", p_home),
+        ("X", "Draw (1X2)", p_draw),
+        ("2", f"{away} Win (1X2)", p_away),
+        ("1X", f"{home} or Draw (1X)", p_1x),
+        ("X2", f"Draw or {away} (X2)", p_x2),
+        ("12", f"{home} or {away} (12)", p_12),
+        ("DNB_1", f"{home} Draw No Bet", p_dnb1),
+        ("DNB_2", f"{away} Draw No Bet", p_dnb2),
+        ("O1.5", "Over 1.5 Match Goals", p_o15),
+        ("U1.5", "Under 1.5 Match Goals", p_u15),
+        ("O2.5", "Over 2.5 Match Goals", p_o25),
+        ("U2.5", "Under 2.5 Match Goals", p_u25),
+        ("O3.5", "Over 3.5 Match Goals", p_o35),
+        ("U3.5", "Under 3.5 Match Goals", p_u35),
+        ("BTTS_Y", "Both Teams to Score - Yes", p_btts_y),
+        ("BTTS_N", "Both Teams to Score - No", p_btts_n),
+    ]
+    scored = []
+    for code, label, prob in cands:
+        prob = min(0.92, max(0.08, prob))
+        fair_o = round(1.0 / prob, 2)
+        live_o = odds_map.get(code)
+        if live_o and 1.08 <= float(live_o) <= 15.0:
+            use_o = round(float(live_o), 2)
+            raw_ev = ((prob * use_o) - 1.0) * 100.0
+            shrunk_ev = round(raw_ev * 0.60, 1)
+            flag = "CHECK_ODDS" if shrunk_ev > 10.0 else ("CORE_EDGE" if shrunk_ev >= 3.0 else ("LOW_EDGE" if shrunk_ev > 0.0 else "NO_EDGE"))
+        else:
+            use_o = round(fair_o * 0.94, 2)
+            shrunk_ev = -2.2
+            flag = "NO_EDGE"
+        scored.append({
+            "code": code, "pk": label, "odds": use_o, "fair_odds": fair_o,
+            "prob": round(prob * 100.0, 1), "ev": shrunk_ev, "ev_flag": flag
+        })
+    scored.sort(key=lambda x: (0 if x["ev_flag"] in ("CORE_EDGE", "LOW_EDGE") else (1 if x["ev_flag"] == "CHECK_ODDS" else 2), -x["ev"], -x["prob"]))
+    return scored
+
 def _gem_lookup_cached_odds(row_dict):
     try:
         cp = _gem_pathlib.Path("global_odds_cache.json")
