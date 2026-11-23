@@ -3199,9 +3199,21 @@ _GEM_VERIFIED_SCHEDULE = {
 }
 
 def _gem_match_key(row_dict):
-    raw = str(row_dict.get("match") or row_dict.get("fixture") or row_dict.get("title") or "")
-    if not raw and row_dict.get("home") and row_dict.get("away"):
-        raw = f"{row_dict.get('home')} v {row_dict.get('away')}"
+    raw = ""
+    for fk in ("match", "fixture", "title", "game", "event", "name", "matchup"):
+        if row_dict.get(fk):
+            raw = str(row_dict.get(fk))
+            break
+    if not raw:
+        h = row_dict.get("home") or row_dict.get("home_team") or row_dict.get("team1") or ""
+        a = row_dict.get("away") or row_dict.get("away_team") or row_dict.get("team2") or ""
+        if h and a:
+            raw = f"{h} v {a}"
+    if not raw:
+        for v in row_dict.values():
+            if isinstance(v, str) and (" v " in v.lower() or " vs " in v.lower() or " - " in v):
+                raw = v
+                break
     k = re.sub(r"\s+vs\.?\s+|\s+-\s+", " v ", raw.lower().strip())
     k = re.sub(r"[^a-z0-9\s]", "", k)
     return re.sub(r"\s+", " ", k).strip()
@@ -3234,8 +3246,13 @@ def _gem_upgrade_prediction_row(row_dict):
     p_btts = grid_info["btts_yes"]
     p_wtn_h = round(_gem_math.exp(-lam_a) * (1.0 - _gem_math.exp(-lam_h)), 4)
 
-    home_name = str(row_dict.get("home") or (mk.split(" v ")[0].title() if " v " in mk else "Home"))
-    away_name = str(row_dict.get("away") or (mk.split(" v ")[1].title() if " v " in mk else "Away"))
+    home_name = str(row_dict.get("home") or row_dict.get("home_team") or (mk.split(" v ")[0].title() if " v " in mk else "Home"))
+    away_name = str(row_dict.get("away") or row_dict.get("away_team") or (mk.split(" v ")[1].title() if " v " in mk else "Away"))
+    if home_name == "Home":
+        prev_pk = str(row_dict.get("pk") or row_dict.get("selection") or "")
+        m_team = re.match(r"^(.+?)\s+(?:Win|or Draw|to Score)", prev_pk)
+        if m_team:
+            home_name = m_team.group(1).strip()
 
     candidates = [
         ("1X", f"{home_name} or Draw (1X)", p_1x, mkt_odds.get("1X") or round(1.0 / max(0.20, p_1x * 1.04), 2)),
