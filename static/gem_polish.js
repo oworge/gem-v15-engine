@@ -146,3 +146,57 @@
   setInterval(injectBankerTab, 1200);
   document.addEventListener("DOMContentLoaded", injectBankerTab);
 })();
+
+
+/* GEM V15.12.1 Guaranteed Visible Banker Slip Trigger */
+(function() {
+  function ensureBankerButton() {
+    if (document.getElementById("gem-tab-banker-slip")) return;
+    const targetBar = document.querySelector("header, nav, .tabs, .nav-tabs, [role='tablist']") || document.body;
+    const btn = document.createElement("button");
+    btn.id = "gem-tab-banker-slip";
+    btn.type = "button";
+    btn.textContent = "Automated Banker Slip";
+    btn.style.cssText = "position:fixed;top:14px;right:18px;z-index:99999;padding:8px 14px;border-radius:8px;border:1px solid #38bdf8;background:#0284c7;color:#ffffff;cursor:pointer;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.35);";
+    let isOpen = false;
+    btn.addEventListener("click", () => {
+      isOpen = !isOpen;
+      let panel = document.getElementById("gem-banker-slip-panel");
+      if (!panel) {
+        panel = document.createElement("div");
+        panel.id = "gem-banker-slip-panel";
+        panel.style.cssText = "position:fixed;top:58px;right:18px;width:420px;max-width:92vw;z-index:99998;padding:16px;border-radius:12px;background:#0f172a;border:1px solid #38bdf8;color:#f8fafc;box-shadow:0 10px 25px rgba(0,0,0,0.5);";
+        document.body.appendChild(panel);
+      }
+      if (!isOpen) {
+        panel.style.display = "none";
+        return;
+      }
+      const rows = Array.from(document.querySelectorAll("table tbody tr"));
+      const picks = [];
+      rows.forEach(tr => {
+        const txt = tr.innerText || "";
+        const pMatch = txt.match(/(\d{2}(?:\.\d)?)%/);
+        const prob = pMatch ? parseFloat(pMatch[1]) : 0;
+        const oMatch = txt.match(/\b([1-9]\.\d{2})\b/);
+        const odds = oMatch ? parseFloat(oMatch[1]) : 1.32;
+        const tds = Array.from(tr.querySelectorAll("td")).map(c => c.innerText.trim());
+        if (prob >= 68.0 && prob <= 88.0) {
+          picks.push({ fixture: tds[1] || "Match", market: tds[2] || "Banker", odds: odds, prob: prob });
+        }
+      });
+      const top3 = picks.slice(0, 3);
+      const combOdds = top3.length ? top3.reduce((m, x) => m * x.odds, 1).toFixed(2) : "1.00";
+      const combProb = top3.length ? (top3.reduce((m, x) => m * (x.prob / 100), 1) * 100).toFixed(1) : "0.0";
+      panel.style.display = "block";
+      panel.innerHTML = `
+        <div style="font-weight:700;color:#38bdf8;margin-bottom:6px;">Automated Banker Slip (68% - 88% Cap)</div>
+        <div style="font-size:12px;color:#4ade80;margin-bottom:10px;">3-Fold Odds: <strong>${combOdds}</strong> | Combined Prob: <strong>${combProb}%</strong> | Stake: <strong>£10.00</strong></div>
+        ${top3.length ? top3.map((x, i) => `<div style="font-size:13px;margin-bottom:6px;"><strong>${i+1}. ${x.fixture}</strong> — ${x.market} @ <strong>${x.odds.toFixed(2)}</strong> (${x.prob.toFixed(1)}%)</div>`).join("") : `<div style="font-size:13px;color:#cbd5e1;">No rows currently inside the 68%-88% cap.</div>`}
+      `;
+    });
+    targetBar.appendChild(btn);
+  }
+  setInterval(ensureBankerButton, 1000);
+  document.addEventListener("DOMContentLoaded", ensureBankerButton);
+})();
