@@ -3441,9 +3441,23 @@ def _gem_compute_dynamic_xg(row_dict, base_h, base_a):
     if isinstance(shock, dict):
         lam_h += float(shock.get("home_delta") or 0.0)
         lam_a += float(shock.get("away_delta") or 0.0)
-    # Reconcile home/away dominance with sharp market anchor when available
+    # Apply short-rest fatigue penalty (< 3 days rest reduces attack and increases late concession)
+    h_rest = row_dict.get("home_rest_days") or row_dict.get("rest_days_home")
+    a_rest = row_dict.get("away_rest_days") or row_dict.get("rest_days_away")
+    try:
+        if h_rest is not None and float(h_rest) < 3.0:
+            lam_h -= 0.14
+            lam_a += 0.07
+        if a_rest is not None and float(a_rest) < 3.0:
+            lam_a -= 0.14
+            lam_h += 0.07
+    except Exception:
+        pass
+    # Reconcile home/away dominance with power de-vigged sharp anchor when available
+    cached_ev = _gem_lookup_cached_odds(row_dict)
+    devig = cached_ev.get("devig_1x2") if isinstance(cached_ev.get("devig_1x2"), dict) else {}
     sharp_info = row_dict.get("sharp_soft_edge") if isinstance(row_dict.get("sharp_soft_edge"), dict) else {}
-    sharp_p = float(sharp_info.get("sharp_anchor_prob") or row_dict.get("sportsbook_prob") or 0.0)
+    sharp_p = float(devig.get("p_home") or sharp_info.get("sharp_anchor_prob") or row_dict.get("sportsbook_prob") or 0.0)
     if 0.15 <= sharp_p <= 0.85:
         tot_xg = max(1.45, min(4.20, lam_h + lam_a))
         implied_share = max(0.24, min(0.76, 0.22 + (sharp_p * 0.72)))

@@ -1,4 +1,4 @@
-﻿import json, os, pathlib, re, urllib.request, urllib.parse
+﻿import json, math, os, pathlib, re, urllib.request, urllib.parse
 from datetime import datetime, timezone
 
 LEAGUE_KEYS = [
@@ -31,6 +31,75 @@ def _load_api_key():
                 return line.split("=", 1)[1].strip().strip('"').strip("'")
     return ""
 
+def power_devig(odds_list):
+    clean = [float(o) for o in odds_list if float(o) > 1.01]
+    if len(clean) < 2:
+        return [round(1.0 / o, 4) for o in clean]
+    inv = [1.0 / o for o in clean]
+    if sum(inv) <= 1.0:
+        s = sum(inv)
+        return [round(p / s, 4) for p in inv]
+    lo, hi = 1.0, 4.0
+    for _ in range(32):
+        mid = 0.5 * (lo + hi)
+        val = sum(p ** mid for p in inv)
+        if val > 1.0:
+            lo = mid
+        else:
+            hi = mid
+    k = 0.5 * (lo + hi)
+    probs = [p ** k for p in inv]
+    tot = sum(probs)
+    return [round(p / tot, 4) for p in probs]
+
+def _update_closing_lines(cache_dict):
+    clv_path = pathlib.Path("clv_tracker.jsonl")
+    if not clv_path.exists():
+        return 0
+    now_dt = datetime.now(timezone.utc)
+    lines = clv_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    updated_lines = []
+    closed_count = 0
+    for ln in lines:
+        ln = ln.strip()
+        if not ln:
+            continue
+        try:
+            rec = json.loads(ln)
+            fx = str(rec.get("fixture") or "")
+            parts = fx.split(" v ", 1) if " v " in fx else []
+            if len(parts) == 2 and not rec.get("closing_odds"):
+                mk = _norm_key(parts[0], parts[1])
+                cev = cache_dict.get(mk)
+                if isinstance(cev, dict) and cev.get("commence_time"):
+                    ko_dt = datetime.fromisoformat(str(cev["commence_time"]).replace("Z", "+00:00")).astimezone(timezone.utc)
+                    mins_to_ko = (ko_dt - now_dt).total_seconds() / 60.0
+                    if mins_to_ko <= 25.0:
+                        sel = str(rec.get("selection") or "")
+                        omap = cev.get("odds_map") or {}
+                        c_odd = None
+                        if "(1X)" in sel:
+                            c_odd = omap.get("1X")
+                        elif "(X2)" in sel:
+                            c_odd = omap.get("X2")
+                        elif "Over 1.5" in sel:
+                            c_odd = omap.get("O1.5")
+                        elif "Over 2.5" in sel:
+                            c_odd = omap.get("O2.5")
+                        elif "Win (1X2)" in sel:
+                            c_odd = omap.get("1") if parts[0].lower() in sel.lower() else omap.get("2")
+                        if c_odd and float(c_odd) > 1.01:
+                            rec["closing_odds"] = round(float(c_odd), 2)
+                            open_o = float(rec.get("offered_odds") or c_odd)
+                            rec["clv_pct"] = round(((open_o / float(c_odd)) - 1.0) * 100.0, 2)
+                            closed_count += 1
+            updated_lines.append(json.dumps(rec))
+        except Exception:
+            updated_lines.append(ln)
+    if closed_count > 0:
+        clv_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+    return closed_count
+
 def sync_odds():
     cache_path = pathlib.Path("global_odds_cache.json")
     existing = {}
@@ -44,7 +113,8 @@ def sync_odds():
 
     api_key = _load_api_key()
     if not api_key:
-        print("SYNC_STATUS: No THE_ODDS_API_KEY set; preserving existing global_odds_cache.json entries:", len(existing))
+        closed = _update_closing_lines(existing)
+        print(f"SYNC_STATUS: Offline mode (no THE_ODDS_API_KEY); cached={len(existing)}, clv_closed={closed}")
         return existing
 
     updated = 0
@@ -54,7 +124,7 @@ def sync_odds():
             f"?apiKey={urllib.parse.quote(api_key)}&regions=uk,eu&markets=h2h,totals&oddsFormat=decimal"
         )
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "GEM-V15-Engine/9.5"})
+            req = urllib.request.Request(url, headers={"User-Agent": "GEM-V15-Engine/9.8"})
             with urllib.request.urlopen(req, timeout=12) as resp:
                 events = json.loads(resp.read().decode("utf-8"))
         except Exception:
@@ -88,10 +158,17 @@ def sync_odds():
                                 best["O1.5"] = max(best.get("O1.5", 0.0), price)
                             elif name == "Over" and abs(float(pt) - 2.5) < 0.05:
                                 best["O2.5"] = max(best.get("O2.5", 0.0), price)
-            if "1" in best and "X" in best:
+
+            devig_1x2 = {}
+            if "1" in best and "X" in best and "2" in best:
+                p1, px, p2 = power_devig([best["1"], best["X"], best["2"]])
+                devig_1x2 = {"p_home": p1, "p_draw": px, "p_away": p2}
+                best["1X"] = round(max(1.06, (1.0 / max(0.05, p1 + px)) * 0.965), 2)
+                best["X2"] = round(max(1.06, (1.0 / max(0.05, p2 + px)) * 0.965), 2)
+            elif "1" in best and "X" in best:
                 dc_1x = 1.0 / ((1.0 / best["1"]) + (1.0 / best["X"]))
                 best["1X"] = round(max(1.06, dc_1x * 0.96), 2)
-            if "2" in best and "X" in best:
+            elif "2" in best and "X" in best:
                 dc_x2 = 1.0 / ((1.0 / best["2"]) + (1.0 / best["X"]))
                 best["X2"] = round(max(1.06, dc_x2 * 0.96), 2)
 
@@ -103,12 +180,14 @@ def sync_odds():
                 "league": ev.get("sport_title") or sport,
                 "commence_time": commence,
                 "odds_map": {k: round(v, 2) for k, v in best.items()},
+                "devig_1x2": devig_1x2,
                 "synced_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
             updated += 1
 
     cache_path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
-    print(f"SYNC_STATUS: Synced {updated} live fixtures into global_odds_cache.json (total cached: {len(existing)})")
+    closed = _update_closing_lines(existing)
+    print(f"SYNC_STATUS: Synced {updated} fixtures (total={len(existing)}), clv_closed={closed}")
     return existing
 
 if __name__ == "__main__":

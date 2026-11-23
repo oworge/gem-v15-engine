@@ -12,11 +12,33 @@ def build_daily_3fold():
     rows = next((v for v in payload.values() if isinstance(v, list)), []) if isinstance(payload, dict) else (payload if isinstance(payload, list) else [])
     eligible = [r for r in rows if isinstance(r, dict) and r.get("fixture") and r.get("pk")]
 
-    # Prioritize CORE_EDGE / LOW_EDGE positive-EV legs, then highest Dixon-Coles probability
     rank_order = {"CORE_EDGE": 0, "LOW_EDGE": 1, "CHECK_ODDS": 2, "NO_EDGE": 3}
     eligible.sort(key=lambda r: (rank_order.get(str(r.get("ev_flag")), 9), -float(r.get("ev") or -99), -float(r.get("prob") or 0)))
 
-    legs = eligible[:3]
+    legs = []
+    used_fixtures = set()
+    used_league_slots = set()
+    for r in eligible:
+        fx = str(r.get("fixture"))
+        if fx in used_fixtures:
+            continue
+        slot_key = f"{r.get('league')}|{r.get('date_label')}|{r.get('ko')}"
+        if slot_key in used_league_slots and len(eligible) > 6:
+            continue
+        legs.append(r)
+        used_fixtures.add(fx)
+        used_league_slots.add(slot_key)
+        if len(legs) == 3:
+            break
+
+    if len(legs) < 3:
+        for r in eligible:
+            if str(r.get("fixture")) not in used_fixtures:
+                legs.append(r)
+                used_fixtures.add(str(r.get("fixture")))
+                if len(legs) == 3:
+                    break
+
     combined_odds = 1.0
     combined_prob = 1.0
     for lg in legs:
@@ -26,14 +48,13 @@ def build_daily_3fold():
     combined_odds = round(combined_odds, 2)
     combined_prob_pct = round(combined_prob * 100.0, 1)
     edge_ev_pct = round(((combined_prob * combined_odds) - 1.0) * 100.0, 2)
-    # Fractional Kelly (1% - 3% bankroll cap)
     stake_pct = 2.0 if edge_ev_pct >= 5.0 else (1.5 if edge_ev_pct > 0 else 1.0)
     stake_gbp = round(BANKROLL_GBP * (stake_pct / 100.0), 2)
 
     slip = {
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "engine_version": "GEM-V15-DC-9.5",
-        "format": "3-Fold Accumulator",
+        "engine_version": "GEM-V15-DC-9.8",
+        "format": "Diversified 3-Fold Accumulator",
         "bankroll_gbp": BANKROLL_GBP,
         "recommended_stake_gbp": stake_gbp,
         "stake_pct": stake_pct,
