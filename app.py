@@ -3284,6 +3284,17 @@ def _gem_normalize_row_date(row_dict):
             return row_dict
         except Exception:
             pass
+    if not row_dict.get("fixture"):
+        mk_disp = _gem_match_key(row_dict)
+        if " v " in mk_disp:
+            row_dict["fixture"] = " v ".join(part.title() for part in mk_disp.split(" v ", 1))
+        else:
+            for fk in ("match", "title", "game", "event", "name", "matchup"):
+                if row_dict.get(fk):
+                    row_dict["fixture"] = str(row_dict[fk]).strip()
+                    break
+    if row_dict.get("fixture") and not row_dict.get("match"):
+        row_dict["match"] = row_dict["fixture"]
     if not row_dict.get("date_label"):
         row_dict["date_label"] = "Unverified Date"
     if not row_dict.get("ko"):
