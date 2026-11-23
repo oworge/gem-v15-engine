@@ -1,3 +1,4 @@
+from prediction_refiner import refine_expected_goals, calibrate_market_probability
 from learner import load_ensemble_weights
 
 
@@ -3484,6 +3485,7 @@ def _gem_scan_all_markets(grid, home, away, odds_map):
     ]
     scored = []
     for code, label, prob in cands:
+        prob = calibrate_market_probability(code, prob)
         prob = min(0.92, max(0.08, prob))
         fair_o = round(1.0 / prob, 2)
         live_o = odds_map.get(code)
