@@ -5184,3 +5184,47 @@ def performance_summary():
         "avg_brier": round(sum(all_brier) / len(all_brier), 4) if all_brier else None,
         "last_30_days": trend
     }
+
+
+# === GEM V15-DC-12.0 AUTOMATED BANKER SLIP ENDPOINT (HIGH-PROBABILITY CAPPED LEGS) ===
+@app.route("/api/banker-slip")
+def api_banker_slip():
+    min_cap = float(request.args.get("min_prob", 68.0))
+    max_cap = float(request.args.get("max_prob", 88.0))
+    feed = _gem_build_live_feed() if "_gem_build_live_feed" in globals() else []
+    rows = feed.get("picks", []) if isinstance(feed, dict) else (feed if isinstance(feed, list) else [])
+    bankers = []
+    seen_fixtures = set()
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        prob = float(r.get("prob") or r.get("landing_pct") or 0.0)
+        fx = str(r.get("fixture") or "")
+        if min_cap <= prob <= max_cap and fx not in seen_fixtures:
+            seen_fixtures.add(fx)
+            bankers.append({
+                "fixture": fx,
+                "league": r.get("league") or "Global Slate",
+                "ko": r.get("ko") or "",
+                "market": r.get("pk") or r.get("market") or "Market",
+                "odds": float(r.get("odds") or 1.30),
+                "prob": round(prob, 1),
+                "ev": float(r.get("ev") or 0.0),
+                "ev_flag": r.get("ev_flag") or "BANKER",
+            })
+    bankers.sort(key=lambda x: -x["prob"])
+    top3 = bankers[:3]
+    comb_odds = round(top3[0]["odds"] * top3[1]["odds"] * top3[2]["odds"], 2) if len(top3) == 3 else (
+        round(sum(x["odds"] for x in top3) / max(1, len(top3)), 2) if top3 else 1.0
+    )
+    comb_prob = round((top3[0]["prob"]/100.0) * (top3[1]["prob"]/100.0) * (top3[2]["prob"]/100.0) * 100.0, 1) if len(top3) == 3 else 0.0
+    return jsonify({
+        "cap_range_pct": [min_cap, max_cap],
+        "banker_count": len(bankers),
+        "bankers": bankers,
+        "slip_3fold": top3,
+        "combined_odds": comb_odds,
+        "combined_prob_pct": comb_prob,
+        "recommended_stake_gbp": 10.0,
+        "est_return_gbp": round(10.0 * comb_odds, 2),
+    })

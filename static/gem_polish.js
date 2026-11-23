@@ -68,3 +68,81 @@
   setInterval(syncLandingCells, 800);
   document.addEventListener("DOMContentLoaded", syncLandingCells);
 })();
+
+
+/* GEM V15.12.0 Automated Banker Slip Tab (Capped High-Probability Filter) */
+(function() {
+  const MIN_BANKER_PROB = 68.0;
+  const MAX_BANKER_PROB = 88.0;
+
+  function renderBankerPanel() {
+    let panel = document.getElementById("gem-banker-slip-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "gem-banker-slip-panel";
+      panel.style.cssText = "display:none;margin:14px 0;padding:16px;border-radius:12px;background:#0f172a;border:1px solid #334155;color:#f8fafc;";
+      const anchor = document.querySelector("table") ? document.querySelector("table").parentElement : document.body;
+      anchor.insertBefore(panel, anchor.firstChild);
+    }
+    const rows = Array.from(document.querySelectorAll("table tbody tr"));
+    const items = [];
+    rows.forEach(tr => {
+      const tds = Array.from(tr.querySelectorAll("td")).map(td => td.innerText.trim());
+      if (tds.length >= 5) {
+        const probMatch = tr.innerText.match(/(\d{2}(?:\.\d)?)%/);
+        const prob = probMatch ? parseFloat(probMatch[1]) : 0;
+        const oddsMatch = tr.innerText.match(/\b([1-9]\.\d{2})\b/);
+        const odds = oddsMatch ? parseFloat(oddsMatch[1]) : 1.30;
+        if (prob >= MIN_BANKER_PROB && prob <= MAX_BANKER_PROB) {
+          items.push({
+            fixture: tds[1] || "Match",
+            market: tds[2] || "Banker Market",
+            odds: odds,
+            prob: prob
+          });
+        }
+      }
+    });
+    const top3 = items.slice(0, 3);
+    const combOdds = top3.length ? top3.reduce((acc, x) => acc * x.odds, 1).toFixed(2) : "1.00";
+    const combProb = top3.length ? (top3.reduce((acc, x) => acc * (x.prob / 100), 1) * 100).toFixed(1) : "0.0";
+    panel.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div>
+          <strong style="font-size:15px;color:#38bdf8;">Automated Banker Slip</strong>
+          <span style="margin-left:8px;font-size:12px;color:#94a3b8;">Probability Cap: ${MIN_BANKER_PROB}% - ${MAX_BANKER_PROB}% (All Markets)</span>
+        </div>
+        <div style="font-size:13px;color:#4ade80;">
+          3-Fold Odds: <strong>${combOdds}</strong> | Combined Prob: <strong>${combProb}%</strong> | Stake: <strong>£10.00</strong>
+        </div>
+      </div>
+      ${items.length ? `
+        <div style="font-size:13px;line-height:1.6;">
+          ${items.map((it, idx) => `<div><strong>${idx + 1}. ${it.fixture}</strong> — ${it.market} @ <strong>${it.odds.toFixed(2)}</strong> (${it.prob.toFixed(1)}%)</div>`).join("")}
+        </div>
+      ` : `<div style="color:#cbd5e1;font-size:13px;">No rows currently match the ${MIN_BANKER_PROB}%-${MAX_BANKER_PROB}% banker probability cap.</div>`}
+    `;
+    return panel;
+  }
+
+  function injectBankerTab() {
+    if (document.getElementById("gem-tab-banker-slip")) return;
+    const nav = document.querySelector("nav, .tabs, .nav-tabs, [role='tablist']") || document.body;
+    const btn = document.createElement("button");
+    btn.id = "gem-tab-banker-slip";
+    btn.type = "button";
+    btn.textContent = "Automated Banker Slip";
+    btn.style.cssText = "margin:6px;padding:8px 14px;border-radius:8px;border:1px solid #38bdf8;background:#1e293b;color:#f8fafc;cursor:pointer;font-weight:600;";
+    let active = false;
+    btn.addEventListener("click", () => {
+      active = !active;
+      const panel = renderBankerPanel();
+      panel.style.display = active ? "block" : "none";
+      btn.style.background = active ? "#0284c7" : "#1e293b";
+    });
+    nav.appendChild(btn);
+  }
+
+  setInterval(injectBankerTab, 1200);
+  document.addEventListener("DOMContentLoaded", injectBankerTab);
+})();
