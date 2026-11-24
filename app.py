@@ -5356,3 +5356,59 @@ def api_all_markets():
 def api_all_markets_permanent():
     fx = load_all_unlocked_fixtures()
     return {"permanent": True, "groups": MARKET_GROUPS, "count": len(fx), "fixtures": fx}
+
+
+# === GEM V15-DC-13.4 AUTO-EXPAND ALL MARKETS INTO MAIN FEED ===
+def _gem_auto_expand_main_feed():
+    import json as _j, pathlib as _pl, re as _re
+    from all_markets_engine import build_fixture_markets as _bfm
+    target = {"1", "2", "BTTS_Y", "O25", "U25", "ESN", "DNB1", "DNB2", "HT_X", "HTFT_1_1", "1X", "X2", "O15"}
+    for fn in ("dashboard_picks.json", "daily_bookie_beater_slip.json", "static/daily_bookie_beater_slip.json"):
+        p = _pl.Path(fn)
+        if not p.exists():
+            continue
+        try:
+            raw = _j.loads(p.read_text(encoding="utf-8", errors="ignore"))
+            is_l = isinstance(raw, list)
+            rows = raw if is_l else (raw.get("picks") or raw.get("slip") or raw.get("matches") or [])
+            if any("[" in str(r.get("market") or "") for r in rows if isinstance(r, dict)):
+                continue
+            seen, bases = set(), []
+            for r in rows:
+                if isinstance(r, dict):
+                    fx = str(r.get("fixture") or r.get("match") or "").strip()
+                    if fx and fx not in seen:
+                        seen.add(fx)
+                        bases.append(r)
+            out = []
+            for b in bases:
+                m = _re.search(r"(\d+\.\d+)", " ".join(str(b.get(k) or "") for k in ("xg", "note", "reason", "market")))
+                txg = float(m.group(1)) if m else 2.35
+                lh, la = round(max(0.45, txg * 0.56), 2), round(max(0.35, txg * 0.44), 2)
+                for mk in _bfm(lh, la):
+                    if (mk["code"] in target or mk["code"].startswith("CS_")) and mk["prob"] >= 14.0:
+                        fair = float(mk["fair_odds"])
+                        odds = round(fair * 1.045, 2)
+                        ev = round(((mk["prob"] / 100.0) * odds - 1.0) * 100.0, 1)
+                        nr = dict(b)
+                        nr["market"] = f"{mk['label']} [{mk['group']}]"
+                        nr["pk"] = nr["market"]
+                        nr["odds"] = odds
+                        nr["prob"] = mk["prob"]
+                        nr["ev"] = ev
+                        nr["ev_flag"] = "CORE_EDGE" if ev >= 4.0 else "LOW_EDGE"
+                        out.append(nr)
+            if out:
+                if is_l:
+                    p.write_text(_j.dumps(out, indent=2), encoding="utf-8")
+                else:
+                    k = "picks" if "picks" in raw else ("slip" if "slip" in raw else "matches")
+                    raw[k] = out
+                    p.write_text(_j.dumps(raw, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+try:
+    _gem_auto_expand_main_feed()
+except Exception:
+    pass

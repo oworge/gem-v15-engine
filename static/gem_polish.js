@@ -1,4 +1,39 @@
 
+/* GEM V15.13.4 Main Table Market Family Filter Bar */
+try {
+  (function() {
+    function mountMainTableFilter() {
+      try {
+        const tbl = document.querySelector("table");
+        if (!tbl || document.getElementById("gem-main-mkt-filter")) return;
+        const bar = document.createElement("div");
+        bar.id = "gem-main-mkt-filter";
+        bar.setAttribute("style", "display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;padding:8px;background:#0f172a;border:1px solid #334155;border-radius:8px;");
+        const cats = ["ALL", "1X2", "BTTS", "O/U 2.5", "ESN", "DNB", "1H Draw", "HT/FT", "Correct Score", "DC/O1.5"];
+        cats.forEach(c => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = c;
+          b.setAttribute("style", "padding:5px 10px;border-radius:6px;border:1px solid #475569;background:#1e293b;color:#f8fafc;font-size:12px;font-weight:600;cursor:pointer;");
+          b.onclick = function() {
+            Array.from(bar.querySelectorAll("button")).forEach(x => x.style.background = "#1e293b");
+            b.style.background = "#0284c7";
+            Array.from(tbl.querySelectorAll("tbody tr")).forEach(tr => {
+              const txt = tr.innerText || "";
+              tr.style.display = (c === "ALL" || txt.includes("[" + c + "]")) ? "" : "none";
+            });
+          };
+          bar.appendChild(b);
+        });
+        tbl.parentNode.insertBefore(bar, tbl);
+      } catch (e) {}
+    }
+    mountMainTableFilter();
+    setInterval(mountMainTableFilter, 900);
+  })();
+} catch (e) {}
+
+
 /* GEM V15.13.3 Permanent All-Markets Unlock */
 try {
   (function() {
