@@ -1,13 +1,11 @@
-﻿FROM python:3.14-slim
+﻿FROM python:3.11-slim
 
 WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 COPY . .
 
-ENV PORT=5000
-EXPOSE 5000
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
+    pip install --no-cache-dir flask requests numpy scipy
 
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "60"]
+EXPOSE 7860
+ENV PORT=7860
+CMD ["python", "-c", "import os, app; port = int(os.environ.get('PORT', 7860)); app.app.run(host='0.0.0.0', port=port)"]
