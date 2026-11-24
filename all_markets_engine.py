@@ -125,3 +125,42 @@ def load_all_unlocked_fixtures():
         except Exception:
             continue
     return fixtures
+
+
+def build_ui_compatible_markets(lh, la, rho=-0.065):
+    base = build_fixture_markets(lh, la, rho=rho)
+    # Add Asian Handicap lines so the 'Asian Handicap' pill populates cleanly
+    p1 = next((m["prob"] / 100.0 for m in base if m["code"] == "1"), 0.45)
+    p2 = next((m["prob"] / 100.0 for m in base if m["code"] == "2"), 0.28)
+    pdnb1 = next((m["prob"] / 100.0 for m in base if m["code"] == "DNB1"), 0.60)
+    pdnb2 = next((m["prob"] / 100.0 for m in base if m["code"] == "DNB2"), 0.40)
+
+    extra = [
+        {"group": "Asian Handicap", "code": "AH_H_05", "label": "Asian Handicap Home -0.5", "prob": round(p1 * 100, 1), "fair_odds": round(1.0 / max(0.02, p1), 2)},
+        {"group": "Asian Handicap", "code": "AH_A_05", "label": "Asian Handicap Away +0.5", "prob": round((1.0 - p1) * 100, 1), "fair_odds": round(1.0 / max(0.02, 1.0 - p1), 2)},
+        {"group": "Asian Handicap", "code": "AH_H_00", "label": "Asian Handicap Home 0.0 (DNB)", "prob": round(pdnb1 * 100, 1), "fair_odds": round(1.0 / max(0.02, pdnb1), 2)},
+        {"group": "Asian Handicap", "code": "AH_A_00", "label": "Asian Handicap Away 0.0 (DNB)", "prob": round(pdnb2 * 100, 1), "fair_odds": round(1.0 / max(0.02, pdnb2), 2)},
+    ]
+    out = []
+    for m in base + extra:
+        c = m["code"]
+        lbl = m["label"]
+        # Normalize labels so UI filter pills ('Match Winner (1X2)', 'Double Chance & Goals', 'Over / Under Goals', 'BTTS', 'Asian Handicap', 'Correct Score') always match
+        if c in ("1", "X", "2"):
+            ui_mkt = f"Match Winner (1X2) - {lbl}"
+        elif c in ("1X", "X2", "ESN"):
+            ui_mkt = f"Double Chance & Goals - {lbl}"
+        elif c in ("O15", "O25", "U25"):
+            ui_mkt = f"Over / Under Goals - {lbl}"
+        elif c.startswith("BTTS"):
+            ui_mkt = f"BTTS - {lbl}"
+        elif c.startswith("AH_") or c.startswith("DNB"):
+            ui_mkt = f"Asian Handicap - {lbl}"
+        elif c.startswith("CS_"):
+            ui_mkt = f"Correct Score - {lbl}"
+        else:
+            ui_mkt = f"{m['group']} - {lbl}"
+        m_copy = dict(m)
+        m_copy["ui_label"] = ui_mkt
+        out.append(m_copy)
+    return out
