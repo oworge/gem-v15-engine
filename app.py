@@ -5532,3 +5532,14 @@ def _gem_expand_all_tabs_and_markets(response):
     except Exception:
         pass
     return response
+
+
+# === GEM V15-DC-13.8 AUTO-SPAWN BACKGROUND WORKER ON APP START ===
+import subprocess as _sp, sys as _sys, pathlib as _pl
+try:
+    _w_path = _pl.Path(__file__).resolve().parent / "auto_pipeline_worker.py"
+    if _w_path.exists():
+        _sp.Popen([_sys.executable or "py", str(_w_path)], cwd=str(_w_path.parent),
+                  stdout=_sp.DEVNULL, stderr=_sp.DEVNULL, creationflags=getattr(_sp, "CREATE_NO_WINDOW", 0))
+except Exception:
+    pass

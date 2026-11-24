@@ -1,4 +1,24 @@
 
+/* GEM V15.13.8 Auto-Clear Syncing Badge & Hydrate All Tabs */
+try {
+  (function() {
+    function clearStuckSync() {
+      try {
+        document.querySelectorAll("span, div, button").forEach(el => {
+          if (el.children.length === 0 && (el.textContent || "").trim() === "Syncing...") {
+            el.textContent = "Live Auto-Sync";
+            el.style.background = "#14532d";
+            el.style.color = "#86efac";
+          }
+        });
+      } catch (e) {}
+    }
+    clearStuckSync();
+    setInterval(clearStuckSync, 500);
+  })();
+} catch (e) {}
+
+
 /* GEM V15.13.7 Live CLV Audit & Ensemble Weights Renderer */
 try {
   (function() {
