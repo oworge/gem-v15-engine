@@ -10,3 +10,6 @@ last_good_feed.json
 cache_meta.json
 daily_auto_slip.json
 .latest_backup
+
+cloudflared.exe
+tunnel.log
