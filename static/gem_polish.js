@@ -1,4 +1,69 @@
 
+/* GEM V15.13.2 All-Markets Explorer Drawer */
+try {
+  (function() {
+    function mountAllMarketsUI() {
+      try {
+        if (!document.body || document.getElementById("gem-all-mkts-btn")) return;
+        const btn = document.createElement("button");
+        btn.id = "gem-all-mkts-btn";
+        btn.type = "button";
+        btn.textContent = "Explore All Markets";
+        btn.setAttribute(
+          "style",
+          "position:fixed;top:12px;right:196px;z-index:2147483647;padding:9px 14px;border-radius:8px;border:1px solid #a855f7;background:#7e22ce;color:#ffffff;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.45);"
+        );
+        btn.onclick = async function() {
+          let drawer = document.getElementById("gem-all-mkts-drawer");
+          if (!drawer) {
+            drawer = document.createElement("div");
+            drawer.id = "gem-all-mkts-drawer";
+            drawer.setAttribute(
+              "style",
+              "position:fixed;top:56px;right:16px;width:680px;max-width:95vw;max-height:80vh;overflow:auto;z-index:2147483647;padding:16px;border-radius:12px;background:#0f172a;border:1px solid #a855f7;color:#f8fafc;font-family:system-ui,sans-serif;box-shadow:0 14px 32px rgba(0,0,0,0.65);"
+            );
+            document.body.appendChild(drawer);
+          }
+          if (drawer.style.display === "block") {
+            drawer.style.display = "none";
+            return;
+          }
+          drawer.style.display = "block";
+          drawer.innerHTML = '<div style="color:#c084fc;font-weight:700;">Loading full multi-market slate (1X2, BTTS, O/U 2.5, ESN, DNB, 1H Draw, HT/FT, Correct Score)...</div>';
+          const res = await fetch("/api/all-markets");
+          const data = await res.json();
+          const groups = ["ALL", "1X2", "BTTS", "O/U 2.5", "ESN", "DNB", "1H Draw", "HT/FT", "Correct Score", "DC/O1.5"];
+          window._gemAllMktsData = data.fixtures || [];
+          window._gemRenderAllMkts = function(grp) {
+            const pills = groups.map(g =>
+              '<button type="button" onclick="window._gemRenderAllMkts(\'' + g + '\')" style="margin:2px 4px 10px 0;padding:4px 9px;border-radius:6px;border:1px solid #475569;background:' + (g === grp ? '#9333ea' : '#1e293b') + ';color:#fff;font-size:11px;cursor:pointer;">' + g + '</button>'
+            ).join("");
+            const cards = window._gemAllMktsData.map(f => {
+              const mkts = f.markets.filter(m => grp === "ALL" || m.group === grp);
+              return '<div style="margin-bottom:12px;padding:10px;border-radius:8px;background:#1e293b;">' +
+                '<div style="font-weight:700;color:#38bdf8;font-size:14px;">' + f.fixture + ' <span style="font-size:11px;color:#94a3b8;">(' + f.ko + ' | Proj xG ' + f.lh + ' - ' + f.la + ')</span></div>' +
+                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:6px;margin-top:8px;">' +
+                mkts.map(m =>
+                  '<div style="padding:6px 8px;border-radius:6px;background:#0f172a;border:1px solid #334155;font-size:12px;">' +
+                    '<div style="color:#e2e8f0;font-weight:600;">' + m.label + '</div>' +
+                    '<div style="color:#4ade80;">Prob: <strong>' + m.prob + '%</strong> | Fair: <strong>' + m.fair_odds + '</strong></div>' +
+                  '</div>'
+                ).join("") +
+                '</div></div>';
+            }).join("");
+            drawer.innerHTML = '<div style="font-weight:700;color:#c084fc;font-size:15px;margin-bottom:6px;">All Markets Explorer (19 Markets / Match)</div>' + pills + (cards || '<div>No fixtures loaded.</div>');
+          };
+          window._gemRenderAllMkts("ALL");
+        };
+        document.body.appendChild(btn);
+      } catch (e) {}
+    }
+    mountAllMarketsUI();
+    setInterval(mountAllMarketsUI, 800);
+  })();
+} catch (e) {}
+
+
 /* GEM V15.12.3 Isolated Banker Slip Button & Capped Slip Panel */
 try {
   (function() {

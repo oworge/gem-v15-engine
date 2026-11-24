@@ -5246,3 +5246,106 @@ def _gem_sanitize_pick_row(r):
     if ("or Draw" in pk or "(1X)" in pk or "(X2)" in pk) and odds > 1.75 and prob > 58.0:
         r["ev_flag"] = "CHECK_ODDS"
     return r
+
+
+# === GEM V15-DC-13.2 FULL MULTI-MARKET EXPLORER (1X2, BTTS, O/U, ESN, DNB, 1H DRAW, HT/FT, CS) ===
+import math as _m
+
+def _gem_poisson_all_markets(lh, la):
+    max_g = 7
+    pmf_h = [(_m.exp(-lh) * (lh ** i)) / _m.factorial(i) for i in range(max_g + 1)]
+    pmf_a = [(_m.exp(-la) * (la ** j)) / _m.factorial(j) for j in range(max_g + 1)]
+    grid = {}
+    for i in range(max_g + 1):
+        for j in range(max_g + 1):
+            p = pmf_h[i] * pmf_a[j]
+            if i == 0 and j == 0:
+                p *= (1.0 - lh * la * -0.065)
+            elif i == 1 and j == 0:
+                p *= (1.0 + la * -0.065)
+            elif i == 0 and j == 1:
+                p *= (1.0 + lh * -0.065)
+            elif i == 1 and j == 1:
+                p *= (1.0 - (-0.065))
+            grid[(i, j)] = max(0.0, p)
+    tot = sum(grid.values()) or 1.0
+    for k in grid:
+        grid[k] /= tot
+
+    p1 = sum(p for (i, j), p in grid.items() if i > j)
+    px = sum(p for (i, j), p in grid.items() if i == j)
+    p2 = sum(p for (i, j), p in grid.items() if i < j)
+    po15 = sum(p for (i, j), p in grid.items() if (i + j) >= 2)
+    po25 = sum(p for (i, j), p in grid.items() if (i + j) >= 3)
+    pu25 = 1.0 - po25
+    pbtts_y = sum(p for (i, j), p in grid.items() if i >= 1 and j >= 1)
+    pbtts_n = 1.0 - pbtts_y
+    pesn = p1 + p2
+    pdnb1 = p1 / max(0.01, (p1 + p2))
+    pdnb2 = p2 / max(0.01, (p1 + p2))
+    p1hx = _m.exp(-0.44 * (lh + la)) * sum(
+        (((0.44 * lh) ** k) / _m.factorial(k)) * (((0.44 * la) ** k) / _m.factorial(k))
+        for k in range(5)
+    )
+    top_cs = sorted(grid.items(), key=lambda x: x[1], reverse=True)[:3]
+
+    mkts = [
+        {"group": "1X2", "code": "1", "label": "Home Win (1)", "prob": round(p1 * 100, 1), "fair_odds": round(1.0 / max(0.02, p1), 2)},
+        {"group": "1X2", "code": "X", "label": "Draw (X)", "prob": round(px * 100, 1), "fair_odds": round(1.0 / max(0.02, px), 2)},
+        {"group": "1X2", "code": "2", "label": "Away Win (2)", "prob": round(p2 * 100, 1), "fair_odds": round(1.0 / max(0.02, p2), 2)},
+        {"group": "ESN", "code": "ESN", "label": "Either Side to Win (ESN / 12)", "prob": round(pesn * 100, 1), "fair_odds": round(1.0 / max(0.02, pesn), 2)},
+        {"group": "DNB", "code": "DNB1", "label": "Home Draw No Bet (DNB 1)", "prob": round(pdnb1 * 100, 1), "fair_odds": round(1.0 / max(0.02, pdnb1), 2)},
+        {"group": "DNB", "code": "DNB2", "label": "Away Draw No Bet (DNB 2)", "prob": round(pdnb2 * 100, 1), "fair_odds": round(1.0 / max(0.02, pdnb2), 2)},
+        {"group": "BTTS", "code": "BTTS_Y", "label": "Both Teams to Score - Yes", "prob": round(pbtts_y * 100, 1), "fair_odds": round(1.0 / max(0.02, pbtts_y), 2)},
+        {"group": "BTTS", "code": "BTTS_N", "label": "Both Teams to Score - No", "prob": round(pbtts_n * 100, 1), "fair_odds": round(1.0 / max(0.02, pbtts_n), 2)},
+        {"group": "O/U 2.5", "code": "O25", "label": "Over 2.5 Match Goals", "prob": round(po25 * 100, 1), "fair_odds": round(1.0 / max(0.02, po25), 2)},
+        {"group": "O/U 2.5", "code": "U25", "label": "Under 2.5 Match Goals", "prob": round(pu25 * 100, 1), "fair_odds": round(1.0 / max(0.02, pu25), 2)},
+        {"group": "1H Draw", "code": "HT_X", "label": "1st Half Draw (HT X)", "prob": round(p1hx * 100, 1), "fair_odds": round(1.0 / max(0.02, p1hx), 2)},
+        {"group": "HT/FT", "code": "HTFT_1_1", "label": "HT/FT: Home / Home (1/1)", "prob": round((p1 * 0.62) * 100, 1), "fair_odds": round(1.0 / max(0.02, p1 * 0.62), 2)},
+        {"group": "HT/FT", "code": "HTFT_X_1", "label": "HT/FT: Draw / Home (X/1)", "prob": round((p1 * 0.28) * 100, 1), "fair_odds": round(1.0 / max(0.02, p1 * 0.28), 2)},
+        {"group": "DC/O1.5", "code": "1X", "label": "Home or Draw (1X)", "prob": round((p1 + px) * 100, 1), "fair_odds": round(1.0 / max(0.02, p1 + px), 2)},
+        {"group": "DC/O1.5", "code": "X2", "label": "Draw or Away (X2)", "prob": round((px + p2) * 100, 1), "fair_odds": round(1.0 / max(0.02, px + p2), 2)},
+        {"group": "DC/O1.5", "code": "O15", "label": "Over 1.5 Match Goals", "prob": round(po15 * 100, 1), "fair_odds": round(1.0 / max(0.02, po15), 2)},
+    ]
+    for (ci, cj), cp in top_cs:
+        mkts.append({
+            "group": "Correct Score",
+            "code": f"CS_{ci}_{cj}",
+            "label": f"Correct Score {ci}-{cj}",
+            "prob": round(cp * 100, 1),
+            "fair_odds": round(1.0 / max(0.01, cp), 2),
+        })
+    return mkts
+
+@app.route("/api/all-markets")
+def api_all_markets():
+    import json as _j, pathlib as _pl, re as _re
+    items = []
+    for fn in ("dashboard_picks.json", "static/daily_bookie_beater_slip.json", "daily_bookie_beater_slip.json"):
+        p = _pl.Path(fn)
+        if p.exists():
+            try:
+                raw = _j.loads(p.read_text(encoding="utf-8", errors="ignore"))
+                rows = raw if isinstance(raw, list) else (raw.get("picks") or raw.get("slip") or raw.get("matches") or [])
+                for r in rows:
+                    if not isinstance(r, dict):
+                        continue
+                    fx = r.get("fixture") or r.get("match") or ""
+                    if not fx or any(x["fixture"] == fx for x in items):
+                        continue
+                    xg_txt = str(r.get("xg") or r.get("note") or r.get("reason") or "")
+                    m = _re.search(r"(\d+\.\d+)", xg_txt)
+                    tot_xg = float(m.group(1)) if m else 2.35
+                    lh = round(tot_xg * 0.56, 2)
+                    la = round(tot_xg * 0.44, 2)
+                    items.append({
+                        "fixture": fx,
+                        "league": r.get("league") or "Global Slate",
+                        "ko": r.get("ko") or r.get("kickoff") or "",
+                        "lh": lh,
+                        "la": la,
+                        "markets": _gem_poisson_all_markets(lh, la),
+                    })
+            except Exception:
+                pass
+    return {"count": len(items), "fixtures": items}
