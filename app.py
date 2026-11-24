@@ -5200,6 +5200,7 @@ def api_banker_slip():
     for r in rows:
         if not isinstance(r, dict):
             continue
+        r = _gem_sanitize_pick_row(r)
         prob = float(r.get("prob") or r.get("landing_pct") or 0.0)
         fx = str(r.get("fixture") or "")
         if min_cap <= prob <= max_cap and fx not in seen_fixtures:
@@ -5230,3 +5231,18 @@ def api_banker_slip():
         "recommended_stake_gbp": 10.0,
         "est_return_gbp": round(10.0 * comb_odds, 2),
     })
+
+
+# === GEM V15-DC-13.1 OVER 1.5 PROBABILITY & PRICE GUARD ===
+def _gem_sanitize_pick_row(r):
+    if not isinstance(r, dict):
+        return r
+    pk = str(r.get("pk") or r.get("market") or "")
+    prob = float(r.get("prob") or 0.0)
+    odds = float(r.get("odds") or 1.30)
+    if "Over 1.5" in pk and prob < 62.0:
+        r["pk"] = pk.replace("Over 1.5", "Over 2.5")
+        r["market"] = r["pk"]
+    if ("or Draw" in pk or "(1X)" in pk or "(X2)" in pk) and odds > 1.75 and prob > 58.0:
+        r["ev_flag"] = "CHECK_ODDS"
+    return r
