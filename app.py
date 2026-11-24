@@ -1,3 +1,4 @@
+from all_markets_engine import load_all_unlocked_fixtures, MARKET_GROUPS
 from prediction_refiner import refine_expected_goals, calibrate_market_probability
 from learner import load_ensemble_weights
 
@@ -5349,3 +5350,9 @@ def api_all_markets():
             except Exception:
                 pass
     return {"count": len(items), "fixtures": items}
+
+
+@app.route("/api/all-markets-permanent")
+def api_all_markets_permanent():
+    fx = load_all_unlocked_fixtures()
+    return {"permanent": True, "groups": MARKET_GROUPS, "count": len(fx), "fixtures": fx}

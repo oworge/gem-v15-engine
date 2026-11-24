@@ -1,4 +1,24 @@
 
+/* GEM V15.13.3 Permanent All-Markets Unlock */
+try {
+  (function() {
+    async function refreshPermanentMarkets() {
+      try {
+        const res = await fetch("/api/all-markets-permanent");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && Array.isArray(data.fixtures)) {
+          window._gemAllMktsData = data.fixtures;
+          window._gemPermGroups = data.groups || ["ALL", "1X2", "BTTS", "O/U 2.5", "ESN", "DNB", "1H Draw", "HT/FT", "Correct Score", "DC/O1.5"];
+        }
+      } catch (e) {}
+    }
+    refreshPermanentMarkets();
+    setInterval(refreshPermanentMarkets, 15000);
+  })();
+} catch (e) {}
+
+
 /* GEM V15.13.2 All-Markets Explorer Drawer */
 try {
   (function() {
