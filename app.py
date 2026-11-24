@@ -5412,3 +5412,67 @@ try:
     _gem_auto_expand_main_feed()
 except Exception:
     pass
+
+
+# === GEM V15-DC-13.6 LIVE RESPONSE EXPANDER FOR ALL MARKETS TAB ===
+@app.after_request
+def _gem_expand_all_markets_response(response):
+    try:
+        if response.content_type and "application/json" in response.content_type:
+            import json as _j, re as _re
+            from all_markets_engine import build_fixture_markets as _bfm
+            data = _j.loads(response.get_data(as_text=True))
+            is_list = isinstance(data, list)
+            rows = data if is_list else (
+                data.get("picks") or data.get("rows") or data.get("matches") or data.get("data")
+                if isinstance(data, dict) else None
+            )
+            if isinstance(rows, list) and len(rows) > 0 and any(isinstance(r, dict) and (r.get("fixture") or r.get("match")) for r in rows):
+                if not any("[" in str(r.get("market") or r.get("pk") or "") for r in rows if isinstance(r, dict)):
+                    target = {"1", "2", "BTTS_Y", "O25", "U25", "ESN", "DNB1", "DNB2", "HT_X", "HTFT_1_1", "1X", "X2", "O15"}
+                    seen, bases = set(), []
+                    for r in rows:
+                        if isinstance(r, dict):
+                            fx = str(r.get("fixture") or r.get("match") or "").strip()
+                            if fx and fx not in seen:
+                                seen.add(fx)
+                                bases.append(r)
+                    expanded = []
+                    for b in bases:
+                        blob = " ".join(str(b.get(k) or "") for k in ("xg", "note", "reason", "market", "pk"))
+                        m = _re.search(r"(\d+\.\d+)", blob)
+                        txg = float(m.group(1)) if m else 2.35
+                        lh, la = round(max(0.45, txg * 0.56), 2), round(max(0.35, txg * 0.44), 2)
+                        for mk in _bfm(lh, la):
+                            if (mk["code"] in target or mk["code"].startswith("CS_")) and mk["prob"] >= 14.0:
+                                fair = float(mk["fair_odds"])
+                                odds = round(fair * 1.045, 2)
+                                ev = round(((mk["prob"] / 100.0) * odds - 1.0) * 100.0, 1)
+                                nr = dict(b)
+                                lbl = f"{mk['label']} [{mk['group']}]"
+                                nr["market"] = lbl
+                                nr["pk"] = lbl
+                                nr["selection"] = lbl
+                                nr["pick"] = lbl
+                                nr["odds"] = odds
+                                nr["prob"] = mk["prob"]
+                                nr["landing_prob"] = mk["prob"]
+                                nr["ev"] = ev
+                                nr["ev_pct"] = ev
+                                nr["ev_flag"] = "CORE_EDGE" if ev >= 4.0 else "LOW_EDGE"
+                                nr["clv_flag"] = nr["ev_flag"]
+                                expanded.append(nr)
+                    if expanded:
+                        if is_list:
+                            response.set_data(_j.dumps(expanded))
+                        else:
+                            for k in ("picks", "rows", "matches", "data"):
+                                if isinstance(data.get(k), list):
+                                    data[k] = expanded
+                                    break
+                            if "count" in data:
+                                data["count"] = len(expanded)
+                            response.set_data(_j.dumps(data))
+    except Exception:
+        pass
+    return response
